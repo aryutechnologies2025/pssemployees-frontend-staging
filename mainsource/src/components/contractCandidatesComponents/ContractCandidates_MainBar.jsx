@@ -33,6 +33,7 @@ const companyID = user.company_id;
   const hasCompanyAccess =
   Array.isArray(companyID) && companyID.length > 0;
 
+  
 
   if (!hasCompanyAccess) {
     return (
