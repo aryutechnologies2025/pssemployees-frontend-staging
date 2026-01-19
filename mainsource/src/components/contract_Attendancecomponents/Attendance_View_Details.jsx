@@ -206,8 +206,8 @@ setShiftOptions(
         company_id: id,
         attendance_date: date || new Date().toISOString().split('T')[0],
         employees: attendanceData1,
-        role_id: JSON.parse(localStorage.getItem("pssuser"))?.role_id || "",
-        updatedBy: JSON.parse(localStorage.getItem("pssuser"))?.id || "admin"
+        role_id: JSON.parse(localStorage.getItem("pssemployee"))?.role_id || "",
+        updatedBy: JSON.parse(localStorage.getItem("pssemployee"))?.id || "admin"
       };
 
       // API call to update attendance

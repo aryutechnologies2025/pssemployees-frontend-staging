@@ -27,6 +27,7 @@ import { TbContract } from "react-icons/tb";
 import { CiCalendar } from "react-icons/ci";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdLeaderboard } from "react-icons/md";
+import { GrMoney } from "react-icons/gr";
 
 
 const Sidebar = () => {
@@ -418,6 +419,27 @@ ${currentPath === "/pssattendance"
 
                   {!arrowClicked && (
                     <p className="text-sm font-medium">Daily Work Report</p>
+                  )}
+                </div>
+              </div>
+
+              {/* finance */}
+
+                <div className={`w-full ${arrowClicked ? "px-0" : "px-2"}`}>
+                <div
+                  onClick={() => onClickSidebarMenu("finance")}
+                  className={`flex items-center w-full flex-grow
+    ${arrowClicked ? "justify-center" : "justify-normal"}
+    px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
+    ${currentPath === "/finance"
+                      ? "bg-[#4BB452] text-white"
+                      : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+                    }`}
+                >
+                  <GrMoney  className="w-5 " />
+
+                  {!arrowClicked && (
+                    <p className="text-sm font-medium">Finace</p>
                   )}
                 </div>
               </div>

@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { TfiPencilAlt } from "react-icons/tfi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
-import Footer from "../Footer";
-import Mobile_Sidebar from "../Mobile_Sidebar";
+
 import { DataTable } from "primereact/datatable";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -16,39 +15,42 @@ import { FiSearch } from "react-icons/fi";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axiosInstance from "../../utils/axiosConfig";
+
 import { FaEye } from "react-icons/fa6";
 import { toast, ToastContainer } from "react-toastify";
-import { API_URL } from "../../config";
+
 import Swal from "sweetalert2";
 import { IoIosCloseCircle } from "react-icons/io";
 import { AiFillDelete } from "react-icons/ai";
+
+
+
+import { IoMdDownload } from "react-icons/io";
+import { API_URL } from "../../config";
+import axiosInstance from "../../utils/axiosConfig";
+import { formatToDDMMYYYY,formatToYYYYMMDD } from "../../utils/dateformat";
 import Loader from "../Loader";
-import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../utils/dateformat";
+import Mobile_Sidebar from "../Mobile_Sidebar";
+import Footer from "../Footer";
 import { Capitalise } from "../../utils/useCapitalise";
+import CameraPhoto from "../../utils/CameraPhoto";
+
+
 
 const Employee_contract_details = () => {
-
-  const user = JSON.parse(localStorage.getItem("pssemployee") || "{}");
-  const companyID = user.company_id;
-  const EmpId = user.id;
-
-  // console.log("companyID", companyID);
-  const hasCompanyAccess = companyID === null ? false :
-    Array.isArray(companyID) && companyID.length > 0;
-
-  //   console.log("hasCompanyAccess", hasCompanyAccess);
-
   //navigation
   const navigate = useNavigate();
   const [editData, setEditData] = useState(null);
   const [columnData, setColumnData] = useState([]);
 
-  //   console.log("columnData", columnData);
+  console.log("columnData", columnData);
   const [error, setError] = useState(null);
   const [employeesList, setEmployeesList] = useState([]);
   const [backendValidationError, setBackendValidationError] = useState(null);
+  const user = localStorage.getItem("pssemployee");
 
+  const userId = JSON.parse(user).id;
+  const userRole = JSON.parse(user).role_id;
 
   const getTodayDate = () => {
     return new Date().toISOString().split("T")[0];
@@ -63,7 +65,7 @@ const Employee_contract_details = () => {
       gender: z.string().min(1, "Gender is required"),
       phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
       aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
-      company: z.number().min(1, "Company is required"),
+      company: z.string().min(1, "Company is required"),
       joinedDate: z.string().min(1, "Joined date is required"),
       accountName: z.string().min(1, "Account name is required"),
       ifsccode: z.string().min(1, "IFSC code is required"),
@@ -71,11 +73,12 @@ const Employee_contract_details = () => {
       esciNumber: z.string().min(1, "ESCI number is required"),
       status: z.string().min(1, "Status is required"),
       manual_value: z.string().optional(),
+       profile_picture: z.any().optional(), 
+  documents: z.array(z.any()).optional(),
     })
 
 
-
-  const [employeeIds, setEmployeeIds] = useState([]);
+const [employeeIds, setEmployeeIds] = useState([]);
 
   const {
     register,
@@ -102,21 +105,23 @@ const Employee_contract_details = () => {
       uannumber: editData ? editData.uannumber : "",
       esciNumber: editData ? editData.esciNumber : "",
       status: editData ? editData.status : "",
+      profile_picture: editData ? editData.profile_picture : "",
+      documents: editData ? editData.documents : [],
 
     },
   });
-
-  useEffect(() => {
-      setValue("manual_value", employeeIds);
-  }, [employeeIds, setValue]);
+  
+useEffect(() => {
+  setValue("manual_value", employeeIds);
+}, [employeeIds, setValue]);
   const joined_date = watch("joinedDate");
   const company_name = watch("company");
 
   const manual_value = watch("manual_value");
 
-  //   console.log("joined_date", joined_date);
+  console.log("joined_date", joined_date);
 
-    console.log("manual_value", manual_value);
+  console.log("manual_value", manual_value);
 
 
   const [isAnimating, setIsAnimating] = useState(false);
@@ -133,7 +138,7 @@ const Employee_contract_details = () => {
 
   const [companyEmpType, setCompanyEmpType] = useState([]);
 
-  console.log("companyEmpType", companyEmpType);
+  // console.log("companyEmpType", companyEmpType);
 
   // Table states
   // const [page, setPage] = useState(1);
@@ -238,13 +243,13 @@ const Employee_contract_details = () => {
   const [isImportAddModalOpen, setIsImportAddModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
 
-  // console.log("selectedCompany", selectedCompany);
+  console.log("selectedCompany", selectedCompany);
 
 
 
 
   const [companyOptions, setCompanyOptions] = useState([]);
-  //   console.log("companyOptions", companyOptions);
+  console.log("companyOptions", companyOptions);
 
   const fileInputRef = useRef(null);
   const fileInputRefEdit = useRef(null);
@@ -290,8 +295,12 @@ const Employee_contract_details = () => {
       esciNumber: "",
       gender: "",
       status: "",
+      profile_picture: "",
+      documents: [],
     };
     reset(mappedData);
+    setPhoto(null);
+  setDocuments([]);
     setTimeout(() => {
       setIsModalOpen(false);
       setBackendValidationError(null);
@@ -309,11 +318,74 @@ const Employee_contract_details = () => {
     setTimeout(() => setIsImportAddModalOpen(false), 250);
   };
 
-  const handleView = (row) => {
-    // console.log("rowvvds", row);
-    setViewRow(row);
-    setIsViewModalOpen(true);
-  };
+  const handlePhotoChange = (e) => {
+  const file = e.target.files[0];
+  
+  if (file) {
+    setPhoto(file);
+    setValue("profile_picture", file, { shouldValidate: true });
+  }
+};
+
+// image and document state handling
+ const [photo, setPhoto] = useState(null);
+    const [openCamera, setOpenCamera] = useState(false);
+    const [documents, setDocuments] = useState([]);
+
+    useEffect(() => {
+      register("profile_picture", { required: !editData });
+    }, [register, editData]);
+    
+const handleCameraCapture = (fileOrBlob) => {
+  let file = fileOrBlob;
+
+  // If camera gives Blob → convert to File
+  if (!(fileOrBlob instanceof File)) {
+    file = new File(
+      [fileOrBlob],
+      `camera-${Date.now()}.png`, 
+      { type: fileOrBlob.type || "image/png" }
+    );
+  }
+
+  setPhoto(file);
+  setValue("profile_picture", file,{ shouldValidate: true });
+};
+
+
+
+const handleDocumentChange = (e) => {
+  const files = Array.from(e.target.files);
+
+  const updatedDocs = [...documents, ...files];
+
+  setDocuments(updatedDocs);
+  setValue("documents", updatedDocs);
+};
+
+const removeDocument = (index) => {
+  const updatedDocs = documents.filter((_, i) => i !== index);
+  setDocuments(updatedDocs);
+  setValue("documents", updatedDocs);
+};
+  const handleView = async (row) => {
+
+  try {
+    const res = await axiosInstance.get(
+      `${API_URL}api/contract-employee/edit/${row.id}`
+    );
+
+    console.log("view res....:....", res);
+    console.log("view res....:....", res.data);
+
+    if (res.data.success) {
+      setViewRow(res.data.data); 
+      setIsViewModalOpen(true);
+    }
+  } catch (err) {
+    console.error("View fetch failed", err);
+  }
+};
 
   const closeViewModal = () => {
     setIsViewModalOpen(false);
@@ -345,7 +417,7 @@ const Employee_contract_details = () => {
   const fetchCompanyList = async () => {
     try {
       const response = await axiosInstance.get("/api/company");
-      //   console.log("response check", response);
+      console.log("response check", response);
 
       if (response.data.success) {
         const companies = response.data.data.map((company) => ({
@@ -514,7 +586,7 @@ const Employee_contract_details = () => {
   };
 
   const normalizeEditData = (row) => {
-    // console.log("rowedit", row);
+    console.log("rowedit", row);
     return {
       id: row.id || null,
       name: row.name || "",
@@ -545,25 +617,77 @@ const Employee_contract_details = () => {
             : "",
       // selectedJoiningDate: row.joining_date || "",
       // joinedDate: row.joined_date || "",
-
+ profile_picture: row.profile_picture || "",
+      documents: row.documents || [],
     };
   };
 
 
-  const openEditModal = (row) => {
-    const normalizedData = normalizeEditData(row);
+ const openEditModal = async (row) => {
+ 
+      setIsModalOpen(true);
+      setTimeout(() => setIsAnimating(true), 10);
 
-    // console.log("normalizedData", normalizedData);
+      const response = await axiosInstance.get(
+        `/api/contract-employee/edit/${row.id}`
+      );
+      console.log("Edit API Response:", response.data);
 
-    setEditData(normalizedData);
+      if (response.data.success) {
+        const rowData = response.data.data;
+        const normalizedData = normalizeEditData(rowData);
+        
+        setEditData(normalizedData);
 
-    setSelectedCompany(normalizedData.company);
+        // Set photo
+        if (rowData.profile_picture) {
+          const imageUrl = rowData.profile_picture.startsWith('http')
+            ? rowData.profile_picture
+            : `${API_URL}${rowData.profile_picture}`;
+          setPhoto(imageUrl);
+        } else {
+          setPhoto(null);
+        }
 
-    reset(normalizedData);
 
-    setIsModalOpen(true);
-    setTimeout(() => setIsAnimating(true), 10);
+      let normalizedDocs = [];
+    if (rowData.document_groups) {
+      normalizedDocs = rowData.document_groups.flatMap(group => 
+        group.documents.map(doc => ({
+          ...doc,
+          id: doc.id,
+          title: group.title,
+          existing: true // marker for your UI
+        }))
+      );
+    } else if (rowData.documents) {
+      normalizedDocs = rowData.documents.map(doc => ({
+    ...doc,
+    existing: true
+  }));
+    }
+
+    setDocuments(normalizedDocs); // Update local state for the file list UI
+    setValue("documents", normalizedDocs);
+
+
+    const selectedCompanyObj = companyDropdown.find(
+      (c) => String(c.value) === String(normalizedData.company)
+    );
+    // console.log("123", selectedCompanyObj)
+
+    
+    // console.log("test123", row)
+    setSelectedCompany(selectedCompanyObj.value);
+
+    reset({
+      ...normalizedData,
+      company: String(normalizedData.company),
+    });
+  }
+
   };
+
 
 
   // useEffect(() => {
@@ -583,9 +707,6 @@ const Employee_contract_details = () => {
 
   const [selectedCompanyfilter, setSelectedCompanyfilter] = useState('');
 
-  const[companydropdown, setCompanydropdown] = useState([]);
-  // console.log("companydropdown", companydropdown);
-
   // contract api
   const fetchContractCandidates = async () => {
 
@@ -602,30 +723,13 @@ const Employee_contract_details = () => {
       // console.log("Sending payload as params:", payload);
 
       const queryParams = new URLSearchParams(payload).toString();
-      const response = await axiosInstance.get(`api/employee/contract-emp/contractemplist?${queryParams}`,
-        {
-          params: {
-            emp_company_id:companyID.join(","),
-            employee_id: EmpId,
-
-
-          },
-        }
-      );
+      const response = await axiosInstance.get(`api/contract-employee?${queryParams}`);
       const employees = response?.data?.data?.employees || [];
 
-        console.log("response emp check", response);
+      console.log("response emp check", response);
 
       setColumnData(response?.data?.data?.employees || []);
       setEmployeesList(response?.data?.data?.pssemployees || []);
-
-      const companies = response?.data?.data?.companies.map((company) => ({
-          // console.log("company", company),
-          label: company.company_name,
-          value: company.id,
-          company_emp_id: company.company_emp_id,
-        }));
-      setCompanydropdown(companies);
     } catch (error) {
       console.error("Error fetching contract candidates:", error);
     } finally {
@@ -640,15 +744,22 @@ const Employee_contract_details = () => {
 
 
   const fetchId = async (payload) => {
-    // console.log("payload", payload);
+    console.log("payload", payload);
     try {
       const response = await axiosInstance.post(
         `api/contract-employee/assign-emp-generate`,
         payload
       );
 
-        console.log("Success:", response.data.employee_id);
-      setEmployeeIds(response.data.employee_id);
+      console.log("Success:", response.data.employee_id);
+       const generatedId = response.data.employee_id;
+
+    setEmployeeIds(generatedId);
+
+     setValue("manual_value", generatedId, {
+      shouldValidate: true,
+    });
+
     } catch (error) {
       if (error.response) {
         console.log("Backend error:", error.response.data);
@@ -676,7 +787,7 @@ const Employee_contract_details = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axiosInstance.delete(`${API_URL}api/contract-emp/delete/${editData.id}`);
+      await axiosInstance.delete(`${API_URL}api/contract-employee/delete/${id}`);
       toast.success("Contract Candidates deleted successfully");
       fetchContractCandidates();
     } catch (error) {
@@ -773,7 +884,14 @@ const Employee_contract_details = () => {
   // create
   const onSubmit = async (data) => {
     try {
-      const createCandidate = {
+     console.log('Form data before submit:', {
+      profile_picture: data.profile_picture,
+      profile_image_type: typeof data.profile_picture,
+      isFile: data.profile_picture instanceof File,
+      documents: data.documents,
+      documents_length: data.documents?.length
+    });
+     const createCandidate = {
         name: data.name,
         address: data.address || "test",
 
@@ -794,48 +912,63 @@ const Employee_contract_details = () => {
         created_by: userId,
         role_id: userRole,
       };
-      setLoading(true);
-      if (editData) {
-        const response = await axiosInstance.post(
-          `/api/contract-employee/update/${editData.id}`,
-          createCandidate
+
+      const formData = new FormData();
+
+
+Object.entries(createCandidate).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(
+          key,
+          typeof value === "object" ? JSON.stringify(value) : value
         );
-        fetchContractCandidates();
-        closeAddModal();
-
-        toast.success("Candidate Updated successfully", {
-          onClose: () => {
-            fetchContractCandidates();
-          },
-        });
-
-      } else {
-        const response = await axiosInstance.post(
-          "/api/contract-employee/create",
-          createCandidate
-        );
-        setSelectedCompany(null);
-        fetchContractCandidates();
-        closeAddModal();
-        toast.success("Candidate added successfully", {
-          onClose: () => {
-            fetchContractCandidates();
-          },
-        });
-
       }
-    } catch (error) {
-      if (error.response) {
-        console.log("Backend error:", error.response.data);
-        setBackendValidationError(error.response.data.message);
-      } else if (error.request) {
-        console.log("No response received:", error.request);
-      } else {
-        console.log("Axios config error:", error.message);
-      }
-    } finally {
-      setLoading(false);
+    });
+
+ //  Profile image
+    if (data.profile_picture instanceof File) {
+      formData.append("profile_picture", data.profile_picture);
     }
+    
+
+
+// Documents (NEW FILES ONLY)
+      console.log("on submit doc",documents);
+      
+            if (documents && documents.length > 0) {
+              documents.forEach((doc,index) => {
+                if (doc instanceof File) {
+                  formData.append("documents[]", doc);
+                }else if (doc.id) {
+          
+            // formData.append(`existing_document_ids[${index}]`, doc.id);
+            formData.append("documents[]", doc.id);
+          }
+              });
+            }
+
+      console.log("Create candidate ,.... : .....",createCandidate)
+      setLoading(true);
+
+       const url = editData
+      ? `/api/contract-employee/update/${editData.id}`
+      : `/api/contract-employee/create`;
+
+    await axiosInstance.post(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+     toast.success(editData ? "Updated Successfully" : "Created Successfully");
+    closeAddModal();
+    fetchContractCandidates();
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+
   };
 
   const companyDropdown = companyOptions.map((c) => ({
@@ -844,7 +977,7 @@ const Employee_contract_details = () => {
     company_emp_id: c.company_emp_id,
   }));
 
-  //   console.log("companyDropdown", companyDropdown)
+  console.log("companyDropdown", companyDropdown)
 
   return (
     <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-10">
@@ -853,7 +986,7 @@ const Employee_contract_details = () => {
       ) : (
         <>
           <div>
-            <ToastContainer position="top-right" autoClose={3000} />
+            {/* <ToastContainer position="top-right" autoClose={3000} /> */}
             <Mobile_Sidebar />
             {/* Breadcrumbs */}
             <div className="flex gap-2 items-center cursor-pointer">
@@ -935,7 +1068,7 @@ const Employee_contract_details = () => {
                       <Dropdown
                         value={selectedCompanyfilter}
                         onChange={(e) => setSelectedCompanyfilter(e.value)}
-                        options={companydropdown}
+                        options={companyOptions}
                         optionLabel="label"
                         placeholder="Select Company"
                         filter
@@ -1111,7 +1244,7 @@ const Employee_contract_details = () => {
                         <Dropdown
                           value={selectedCompany}
                           onChange={(e) => setSelectedCompany(e.value)}
-                          options={companydropdown}
+                          options={companyOptions}
                           optionLabel="label"
                           placeholder="Select Company"
                           filter
@@ -1187,7 +1320,7 @@ const Employee_contract_details = () => {
                         Cancel
                       </button>
                       <button
-                        className="bg-[#005AEF] hover:bg-[#2879FF] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleFileSubmit}
                       >
                         Submit
@@ -1230,8 +1363,65 @@ const Employee_contract_details = () => {
                       </span>
                     )}
 
+                 {/* Upload Photo */}
+<div className="flex justify-end">
+  <div className="flex flex-col items-center gap-2">
 
-                      {/* Company */}
+    <p className="font-medium">
+      {photo ? "Change Photo" : "Upload Photo"} <span className="text-red-500">*</span>
+    </p>
+
+    {/* Preview */}
+    <div className="relative">
+      {photo ? (
+        <img
+          src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+          className="w-32 h-40 rounded-md object-cover border"
+        />
+      ) : (
+        <div className="w-32 h-40 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+          Upload
+        </div>
+      )}
+    </div>
+
+    {/* Buttons */}
+    <div className="flex gap-2">
+      <label className="cursor-pointer bg-gray-200 px-3 py-1 rounded">
+        Upload
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={handlePhotoChange}
+        />
+      </label>
+
+      <button
+        type="button"
+        onClick={() => setOpenCamera(true)}
+        className="bg-gray-200 px-3 py-1 rounded"
+      >
+        Camera
+      </button>
+    </div>
+
+    {errors.profile_picture && (
+      <p className="text-red-500 text-sm">{errors.profile_picture.message}</p>
+    )}
+  </div>
+</div>
+
+{openCamera && (
+  <CameraPhoto
+    onCapture={handleCameraCapture}
+    onClose={() => setOpenCamera(false)}
+  />
+)}
+                    
+
+             
+                   {/* Company */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium">
                         Company Name <span className="text-red-500">*</span>
@@ -1240,28 +1430,17 @@ const Employee_contract_details = () => {
                       <div className="w-[50%] md:w-[60%]">
                         <Dropdown
                           value={selectedCompany}
-                          options={companydropdown}
+                          options={companyDropdown}
                           optionLabel="label"
                           optionValue="value"
+                          onChange={(e) => {
+                            setSelectedCompany(e.value);
+                            setValue("company", String(e.value), { shouldValidate: true });
+                          }}
                           placeholder="Select Company"
                           filter
                           className="w-full border border-gray-300 rounded-lg"
-                          onChange={(e) => {
-                            setSelectedCompany(e.value);
-
-
-                            const obj = companydropdown.find(
-                              (item) => item.value === e.value
-                            );
-
-                            setCompanyEmpType(obj.company_emp_id);
-
-                            setValue("company", Number(e.value), {
-                              shouldValidate: true,
-                            });
-                          }}
                         />
-
 
                         {errors.company && (
                           <p className="text-red-500 text-sm">
@@ -1270,7 +1449,7 @@ const Employee_contract_details = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* NAME */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1430,7 +1609,7 @@ const Employee_contract_details = () => {
                           inputMode="numeric"
                           maxLength={12}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/\D/g, "");
+                            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
                           }}
                           placeholder="Enter AadharNumber"
                         />
@@ -1472,21 +1651,32 @@ const Employee_contract_details = () => {
                       </div>
                     </div>
 
-                    {(companyEmpType === "manual" || manual_value) && (
-                      <div className="mt-5 flex justify-between items-center">
-                        <label className="block text-md font-medium">
-                          Employee Id <span className="text-red-500">*</span>
-                        </label>
-                        <div className="w-[50%] md:w-[60%] rounded-lg">
-                          <input
-                            type="text"
-                            placeholder="Enter Manual Value"
-                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                            {...register("manual_value")}
-                          />
-                        </div>
-                      </div>
-                    )}
+                 {companyEmpType && (
+  <div className="mt-5 flex justify-between items-center">
+    <label className="block text-md font-medium">
+      Employee Id <span className="text-red-500">*</span>
+    </label>
+
+    <div className="w-[50%] md:w-[60%] rounded-lg">
+      <input
+        type="text"
+        {...register("manual_value")}
+        readOnly={companyEmpType === "automatic"}
+        placeholder={
+          companyEmpType === "manual"
+            ? "Enter Employee ID"
+            : "Enter Employee ID"
+        }
+        className={`w-full px-2 py-2 border rounded-[10px]
+          ${companyEmpType === "automatic"
+            ? "bg-gray-100 cursor-not-allowed"
+            : "bg-white"
+          }`}
+      />
+    </div>
+  </div>
+)}
+
 
 
                     {/* account */}
@@ -1601,6 +1791,53 @@ const Employee_contract_details = () => {
                       </div>
                     </div>
 
+{/* Documents */}
+
+<div className="mt-5 flex justify-between items-start">
+  <label className="block text-md font-medium">
+    Documents 
+    {/* <span className="text-red-500">*</span> */}
+  </label>
+
+  <div className="w-[50%] md:w-[60%]">
+    {/* Upload button */}
+    <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded inline-block mb-2">
+      Select Documents
+      <input
+        type="file"
+        multiple
+        accept=".pdf,.jpg,.png"
+        hidden
+        onChange={handleDocumentChange}
+      />
+    </label>
+
+    {/* Selected documents list */}
+  
+<div className="mt-4 space-y-2">
+  {documents.map((doc, index) => (
+    <div key={index} className="flex justify-between items-center p-2 border rounded">
+      <span className="text-sm truncate">
+        {doc instanceof File ? doc.name : (doc.original_name || "Existing Document")}
+      </span>
+      <button
+        type="button"
+        onClick={() => removeDocument(index)}
+        className="text-red-500 font-bold px-2"
+      >
+        ×
+      </button>
+    </div>
+  ))}
+</div>
+
+    {errors.documents && (
+      <p className="text-red-500 text-sm mt-1">
+        Documents are required
+      </p>
+    )}
+  </div>
+</div>
 
 
                     {/* Button */}
@@ -1613,7 +1850,7 @@ const Employee_contract_details = () => {
                       </button>
                       <button
                         type="button"
-                        className="bg-[#005AEF] hover:bg-[#2879FF] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleSubmit(onSubmit, (errors) =>
                           console.log(errors)
                         )}
@@ -1630,6 +1867,9 @@ const Employee_contract_details = () => {
               <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                 <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative animate-fadeIn">
                   {/* Close Button */}
+                  <button className="absolute top-4 right-12 text-gray-500 hover:text-green-500">
+                   <IoMdDownload size={28} />
+                  </button>
                   <button
                     onClick={closeViewModal}
                     className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
@@ -1637,11 +1877,32 @@ const Employee_contract_details = () => {
                     <IoIosCloseCircle size={28} />
                   </button>
 
-                  {/* Title */}
-                  <h2 className="text-xl font-semibold mb-4 text-[#1ea600] hover:text-[#4BB452]">
-                    Employee Details
-                  </h2>
 
+                  {/* Title and profile image */}
+                  <div className="flex justify-between items-center mb-6 border-b pb-4">
+  <h2 className="text-xl font-semibold text-[#1ea600]">
+    Employee Details
+  </h2>
+  
+  {/* Profile Picture Display */}
+  <div className="flex flex-col items-center mr-16">
+    {viewRow.profile_picture ? (
+      <img
+         src={
+      viewRow.profile_picture.startsWith("http")
+        ? viewRow.profile_picture
+        : `${API_URL}${viewRow.profile_picture}`
+    }
+        alt="Profile"
+        className="w-24 h-28 rounded-md object-cover border-2 border-gray-200 shadow-sm"
+      />
+    ) : (
+      <div className="w-24 h-28 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
+        No Photo
+      </div>
+    )}
+  </div>
+</div>
                   {/* Candidate Info */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p>
@@ -1691,6 +1952,41 @@ const Employee_contract_details = () => {
                       <b>Employee ID:</b> {viewRow.employee_id || "-"}
                     </p>
 
+                <div className="col-span-2 pt-4">
+  <b className="block mb-2 text-gray-700">Documents:</b>
+  {/* Check if documents is an array and has items */}
+  {viewRow.documents && viewRow.documents.length > 0 ? (
+    <div className="space-y-2">
+      {viewRow.documents.map((doc, index) => (
+        <div key={index} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border">
+          <span className="text-gray-600 truncate flex-1">
+            {doc.original_name || `Document ${index + 1}`}
+          </span>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.open(`${API_URL}/${doc.document_path}`, "_blank")}
+              className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-blue-100"
+            >
+              View/Print
+            </button>
+            {/* <button
+    onClick={() =>
+      window.open(`${API_URL}/${doc.document_path}?download=true`, "_blank")
+    }
+    className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-green-100"
+  >
+    Download
+  </button> */}
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500 italic">No documents uploaded.</p>
+  )}
+</div>
+                   
                   </div>
 
                 </div>

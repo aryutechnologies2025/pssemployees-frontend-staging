@@ -350,7 +350,7 @@ const Attendance_Mainbar = () => {
     const payload = {
       company_id: selectedCompany,
       date: selectedDate,
-      created_by: JSON.parse(localStorage.getItem("pssuser"))?.username || "admin",
+      created_by: JSON.parse(localStorage.getItem("pssemployee"))?.username || "admin",
     };
 
     try {
