@@ -220,8 +220,8 @@ setShiftOptions(
         company_id: data?.company?.id || null,
         attendance_date: date || new Date().toISOString().split("T")[0],
         employees: employeesPayload,
-        role_id: JSON.parse(localStorage.getItem("pssuser"))?.role_id || "",
-        updatedBy: JSON.parse(localStorage.getItem("pssuser"))?.id || "admin",
+        role_id: JSON.parse(localStorage.getItem("pssemployee"))?.role_id || "",
+        updatedBy: JSON.parse(localStorage.getItem("pssemployee"))?.id || "admin",
       };
 
       console.log("FINAL check ", payload);

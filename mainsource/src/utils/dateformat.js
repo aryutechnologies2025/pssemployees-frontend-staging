@@ -27,9 +27,8 @@ export const formatToYYYYMMDD = (date) => {
 };
 
 export const formatIndianDateTime12Hr = (date) => {
-  if (!date) return "-";
 
-  const d = new Date(date);
+  const d = (date instanceof Date && !isNaN(date)) ? date : new Date();
 
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -39,7 +38,7 @@ export const formatIndianDateTime12Hr = (date) => {
   const minutes = String(d.getMinutes()).padStart(2, "0");
   const ampm = hours >= 12 ? "PM" : "AM";
 
-  hours = hours % 12 || 12; // convert 0 to 12
+  hours = hours % 12 || 12;
   hours = String(hours).padStart(2, "0");
 
   return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
