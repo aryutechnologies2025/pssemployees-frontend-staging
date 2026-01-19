@@ -1,7 +1,7 @@
-# Jenkins Declarative Pipeline
-# Frontend CI/CD for pssemployees-frontend
-# Flow:
-# Git Push -> Jenkins -> Build Vite from mainsource -> Docker Image -> Deploy -> Health Check -> Rollback on failure
+// Jenkins Declarative Pipeline
+// Frontend CI/CD for pssemployees-frontend
+// Flow:
+// Git Push -> Jenkins -> Build Vite from mainsource -> Docker Image -> Deploy -> Health Check -> Rollback on failure
 
 pipeline {
     agent any
