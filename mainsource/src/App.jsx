@@ -16,6 +16,7 @@ import Employee_contract_main from "./pages/Employee_contract_main";
 import Employee_Main from "./pages/Employee_Main";
 import LeadManagement from "./pages/LeadManagement";
 import DailyWork_Report from "./components/Daily Work Report/DailyWork_Report";
+import Finance from "./pages/Finance";
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contractattendance" element={<Attendance />} />
+          <Route path="/finance" element={<Finance />} />
           <Route path="/attendance-add" element={<Attendance_Add_main />} />
           <Route
             path="/attendance-edit/:id"

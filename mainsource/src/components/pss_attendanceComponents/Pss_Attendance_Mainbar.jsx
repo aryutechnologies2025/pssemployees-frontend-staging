@@ -6,6 +6,7 @@ import { InputText } from "primereact/inputtext";
 import { useState, useEffect } from "react";
 import Mobile_Sidebar from "../Mobile_Sidebar";
 import Footer from "../Footer";
+import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,7 +28,18 @@ const Pss_Attendance_Mainbar = () => {
   const EmpId = user.id;
 
   const [globalFilter, setGlobalFilter] = useState("");
-  const [currentTime, setCurrentTime] = useState("");
+const [currentTime, setCurrentTime] = useState(new Date());
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date()); // Updates the Date object every minute
+  }, 60000); 
+
+  return () => clearInterval(timer);
+}, []);
+
+
+
   const [data, setData] = useState([]);
   console.log("data", data);
   const [shifts, setShifts] = useState([]);
@@ -89,6 +101,7 @@ const Pss_Attendance_Mainbar = () => {
     fetchShipt();
   }, []);
 
+ 
   function extractTimeFromDateTime(dateTimeStr) {
     if (!dateTimeStr) return "";
     const parts = dateTimeStr.split(" ");
@@ -114,13 +127,16 @@ const Pss_Attendance_Mainbar = () => {
         newData
       );
       if (res.data.success) {
+        toast.success("Attendance submitted!");
         fetchData();
         reset();
       } else {
         setError(res.data.message);
+        toast.error(res.data.message);
       }
     } catch (error) {
       setError(error.message);
+      toast.error(error.response?.data?.message || "Server Error");
     }
   };
 
@@ -193,7 +209,7 @@ const Pss_Attendance_Mainbar = () => {
             <div className="flex w-full mt-5 justify-center items-center">
               <div className="flex flex-col gap-5 ">
                 <div className="flex flex-col lg:flex-row gap-x-8 justify-between">
-                  <p>Current Date & time</p>
+                  <p>Current Date & Time</p>
                   <input
                     type="text"
                     readOnly

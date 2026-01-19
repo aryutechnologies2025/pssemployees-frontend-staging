@@ -7,11 +7,11 @@ import {
 import medics_logo from "../assets/medics_logo.svg";
 import { IoPeopleOutline, IoSettings } from "react-icons/io5";
 import { BsCalendar2Check } from "react-icons/bs";
-import { FaRegBuilding, FaRegMessage } from "react-icons/fa6";
+import { FaRegBuilding, FaRegMessage, FaUser } from "react-icons/fa6";
 import { GrMoney } from "react-icons/gr";
-import { TbUrgent } from "react-icons/tb";
+import { TbContract, TbReport, TbUrgent } from "react-icons/tb";
 import { CiMoneyCheck1 } from "react-icons/ci";
-import { MdLogout, MdOutlineContactMail } from "react-icons/md";
+import { MdLeaderboard, MdLogout, MdOutlineContactMail } from "react-icons/md";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GiHamburgerMenu } from "react-icons/gi";
@@ -192,7 +192,7 @@ const Mobile_Sidebar = () => {
               {/* Sidebar Menu */}
               <div className="flex-grow overflow-y-auto w-full flex flex-col justify-start">
                 <div className="flex flex-col gap-1 mt-3 px-4">
-                  {/* <div
+                  <div
                     onClick={() => onClickSidebarMenu("Dashboard")}
                     className="flex items-center w-full hover:bg-blue-100 hover:text-[#4F46E5] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
                   >
@@ -200,7 +200,7 @@ const Mobile_Sidebar = () => {
                       <CiBoxList />
                     </div>
                     <p>Dashboard</p>
-                  </div> */}
+                  </div> 
 
                   <div
                     onClick={() => setSelectAnyOneClicked(!selectAnyOneClicked)}
@@ -209,7 +209,7 @@ const Mobile_Sidebar = () => {
                     <div className="flex items-center justify-center h-5 w-5">
                       <IoPeopleOutline />
                     </div>
-                    <p>PSS Employee</p>
+                    <p>PSS</p>
                     {selectAnyOneClicked ? (
                       <IoIosArrowUp />
                     ) : (
@@ -227,58 +227,143 @@ const Mobile_Sidebar = () => {
                     >
                       <div className="flex gap-2  items-start  ms-10 flex-col text-sm font-medium text-gray-500">
                         <button
-                          onClick={() => onClickSidebarMenu("roles")}
+                          onClick={() => onClickSidebarMenu("pssattendance")}
                           className="hover:bg-green-100  w-full text-left px-2 py-1 rounded-md"
                         >
-                          Roles
+                          Attendance
                         </button>
+                        
+                      </div>
+                    </div>
+                  )}
+
+
+                  
+                  <div
+                    onClick={() => setSelectAnyOneClicked(!selectAnyOneClicked)}
+                    className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-md gap-2 text-gray-500 text-sm font-medium cursor-pointer"
+                  >
+                    <div className="flex items-center justify-center h-5 w-5">
+                      <FaUser />
+                    </div>
+                    <p>Interview</p>
+                    {selectAnyOneClicked ? (
+                      <IoIosArrowUp />
+                    ) : (
+                      <IoIosArrowDown />
+                    )}{" "}
+                  </div>
+
+                  {selectAnyOneClicked && (
+                    <div
+                      className={`overflow-hidden w-full transition-all duration-700 ease-in-out ${
+                        selectAnyOneClicked
+                          ? "max-h-40 opacity-100"
+                          : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="flex gap-2  items-start  ms-10 flex-col text-sm font-medium text-gray-500">
                         <button
+                          onClick={() => onClickSidebarMenu("contractcandidates")}
+                          className="hover:bg-green-100  w-full text-left px-2 py-1 rounded-md"
+                        >
+                          Candidates
+                        </button>
+                        {/* <button
                           onClick={() => onClickSidebarMenu("permission")}
                           className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
 
                         >
                           Privileges
-                        </button>
-                        <button
+                        </button> */}
+                        {/* <button
                           onClick={() => onClickSidebarMenu("employees")}
 className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
 
                         >
                           Employees
+                        </button> */}
+                      </div>
+                    </div>
+                  )}
+
+                     <div
+                    onClick={() => setSelectAnyOneClicked(!selectAnyOneClicked)}
+                    className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-md gap-2 text-gray-500 text-sm font-medium cursor-pointer"
+                  >
+                    <div className="flex items-center justify-center h-5 w-5">
+                      <TbContract />
+                    </div>
+                    <p>Contract</p>
+                    {selectAnyOneClicked ? (
+                      <IoIosArrowUp />
+                    ) : (
+                      <IoIosArrowDown />
+                    )}{" "}
+                  </div>
+
+                  {selectAnyOneClicked && (
+                    <div
+                      className={`overflow-hidden w-full transition-all duration-700 ease-in-out ${
+                        selectAnyOneClicked
+                          ? "max-h-40 opacity-100"
+                          : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="flex gap-2  items-start  ms-10 flex-col text-sm font-medium text-gray-500">
+                        <button
+                          onClick={() => onClickSidebarMenu("employeecontract")}
+                          className="hover:bg-green-100  w-full text-left px-2 py-1 rounded-md"
+                        >
+                          Employee
                         </button>
+                        <button
+                          onClick={() => onClickSidebarMenu("contractattendance")}
+                          className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
+
+                        >
+                          Attendance
+                        </button>
+                        {/* <button
+                          onClick={() => onClickSidebarMenu("employees")}
+className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
+
+                        >
+                          Employees
+                        </button> */}
                       </div>
                     </div>
                   )}
 
                   <div
-                    onClick={() => onClickSidebarMenu("company")}
+                    onClick={() => onClickSidebarMenu("lead-engine")}
                     className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
                   >
                     <div className="flex items-center justify-center h-5 w-5">
-                      <FaRegBuilding/>
+                     <MdLeaderboard />
+
                     </div>
-                    <p>Company</p>
+                    <p>Lead Engine</p>
                   </div>
 
                   <div
-                    onClick={() => onClickSidebarMenu("contractcandidates")}
+                    onClick={() => onClickSidebarMenu("dailywork_report")}
                     className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
                   >
                     <div className="flex items-center justify-center h-5 w-5">
-                     <FaFileContract />
-
+                      <TbReport />
                     </div>
-                    <p>Contract Candidates</p>
+                    <p>Daily Work Report  </p>
                   </div>
 
                   <div
-                    onClick={() => onClickSidebarMenu("attendance")}
-                    className="flex items-center w-full hover:bg-blue-100 hover:text-[#4F46E5] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
+                    onClick={() => onClickSidebarMenu("Finance")}
+                    className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
                   >
                     <div className="flex items-center justify-center h-5 w-5">
-                      <BsCalendar2Check />
+                      <GrMoney />
                     </div>
-                    <p>Attendance</p>
+                    <p>Finance</p>
                   </div>
                   
 
@@ -310,7 +395,7 @@ className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
                     <p>Message</p>
                   </div> */}
 
-                  <div
+                  {/* <div
                     onClick={() => onClickSidebarMenu("job-form")}
                     className="flex items-center w-full hover:bg-green-100 hover:text-[#4BB452] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
                   >
@@ -329,16 +414,7 @@ className="hover:bg-green-100 w-full text-left px-2 py-1 rounded-md"
 
                     </div>
                     <p>Contact</p>
-                  </div>
-                  <div
-                    onClick={() => onClickSidebarMenu("dailywork_report")}
-                    className="flex items-center w-full hover:bg-blue-100 hover:text-[#4F46E5] px-3 py-2 rounded-lg gap-2 text-gray-500 text-sm font-medium cursor-pointer"
-                  >
-                    <div className="flex items-center justify-center h-5 w-5">
-                      <TbReport />
-                    </div>
-                    <p>Daily Work Report</p>
-                  </div>
+                  </div> */}
 
                 </div>
 
