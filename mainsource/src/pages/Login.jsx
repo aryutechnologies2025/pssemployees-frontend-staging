@@ -73,7 +73,7 @@ const Login = () => {
             src="/pssAgenciesLogo.svg"
             alt="PSS Logo"
             className="w-40 md:w-72 h-auto mx-auto mb-2 md:mt-7"
-          />
+          /> welcome
           {/* <h1 className="font-bold text-2xl md:text-4xl text-blue-500">PSS</h1> */}
         </div>
 
@@ -84,7 +84,7 @@ const Login = () => {
           >
             <div className="lg:basis-[50%] flex flex-col items-center justify-center gap-3">
               <p className="text-black font-semibold text-xl md:text-2xl">
-                EMPLOYEE login DEMO
+                EMPLOYEE LOGIN
               </p>
 
               <div className="w-full max-w-sm flex items-center gap-3 bg-[#F8F9FB] px-5 py-4 rounded-xl shadow-sm border border-gray-200">
