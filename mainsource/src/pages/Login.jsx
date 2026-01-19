@@ -84,7 +84,7 @@ const Login = () => {
           >
             <div className="lg:basis-[50%] flex flex-col items-center justify-center gap-3">
               <p className="text-black font-semibold text-xl md:text-2xl">
-                EMPLOYEE LOGIN DEMO
+                EMPLOYEE login DEMO
               </p>
 
               <div className="w-full max-w-sm flex items-center gap-3 bg-[#F8F9FB] px-5 py-4 rounded-xl shadow-sm border border-gray-200">
