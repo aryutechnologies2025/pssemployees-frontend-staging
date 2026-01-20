@@ -589,14 +589,15 @@ const removeDocument = (index) => {
     console.log("rowedit", row);
     return {
       id: row.id || null,
-      name: row.name || "",
+      name: row?.name || "",
       address: row.address || "",
       gender: row.gender || "",
       fatherName: row.father_name || "",
       dob: row.date_of_birth || "",
       phone: row.phone_number || "",
       aadhar: row.aadhar_number || "",
-      company: row.company?.id ? Number(row.company.id) : "",
+      company: row?.company_id
+ ? Number(row?.company_id) : "",
       // companyLabel: row.company?.company_name || "",
       joinedDate: row.joining_date || "",
       accountName: row.acc_no || "",
@@ -666,7 +667,7 @@ const removeDocument = (index) => {
     existing: true
   }));
     }
-
+    console.log("normalizedData 333",normalizedData);
     setDocuments(normalizedDocs); // Update local state for the file list UI
     setValue("documents", normalizedDocs);
 
@@ -674,7 +675,7 @@ const removeDocument = (index) => {
     const selectedCompanyObj = companyDropdown.find(
       (c) => String(c.value) === String(normalizedData.company)
     );
-    // console.log("123", selectedCompanyObj)
+    console.log("123 test", selectedCompanyObj)
 
     
     // console.log("test123", row)
@@ -879,7 +880,6 @@ const removeDocument = (index) => {
       style: { textAlign: "center", width: "120px" },
     },
   ];
-
 
   // create
   const onSubmit = async (data) => {
@@ -1428,7 +1428,8 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       </label>
 
                       <div className="w-[50%] md:w-[60%]">
-                        <Dropdown
+                      
+                         <Dropdown
                           value={selectedCompany}
                           options={companyDropdown}
                           optionLabel="label"
