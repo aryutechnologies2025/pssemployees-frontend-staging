@@ -394,7 +394,7 @@ const DailyWork_Report_Main = () => {
                                     />
                                 </div>
                                 {/* employee (pss-emp) */}
-                                <div className="flex flex-col gap-1">
+                                {/* <div className="flex flex-col gap-1">
                                     <label className="text-sm font-medium text-[#6B7280]">Employee</label>
                                     <Dropdown
                                         value={filters.employee_id}
@@ -406,7 +406,7 @@ const DailyWork_Report_Main = () => {
                                         className="h-10 w-60 border"
                                     />
 
-                                </div>
+                                </div> */}
 
 
                                 {/* Buttons */}

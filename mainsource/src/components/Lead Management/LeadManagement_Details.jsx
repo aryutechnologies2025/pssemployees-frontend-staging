@@ -60,6 +60,7 @@ const LeadManagement_Details = () => {
   const [viewContact, setViewContact] = useState(null);
   const [genderOptions, setGenderOptions] = useState([]);
   const [platformOptions, setPlatformOptions] = useState({});
+    const [cityOptions, setCityOptions] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isViewStatusOpen, setIsViewStatusOpen] = useState(false);
   const [viewStatus, setViewStatus] = useState(null);
@@ -129,6 +130,8 @@ const LeadManagement_Details = () => {
   const [filters, setFilters] = useState({
     gender: "",
     platform: "",
+    age: "",
+    city: "",
     from_date: "",
     to_date: ""
   });
@@ -136,6 +139,33 @@ const LeadManagement_Details = () => {
   const handleApplyFilter = () => {
     fetchLead();
   };
+
+   const handleResetFilter = () => {
+    const reset = {
+      gender: "",
+      platform: "",
+      age: "",
+      city: "",
+      from_date: "",
+      to_date: ""
+    };
+
+    setFilters(reset);
+    fetchLead(reset);
+  };
+
+    // status list open
+  const openStatusView = async (row) => {
+    setStatusViewLead(row);
+    setIsStatusViewOpen(true);
+    await fetchStatusList(row.id);
+  };
+  // status list close 
+  const closeStatusView = () => {
+    setIsStatusViewOpen(false);
+    setStatusViewLead(null);
+  };
+  
   // open view
   const openViewModal = (row) => {
     setViewContact(row);
@@ -363,37 +393,120 @@ const LeadManagement_Details = () => {
   useEffect(() => {
     fetchLead();
   }, []);
+
+
   // list
-  const fetchLead = async () => {
+  // const fetchLead = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const params = {};
+
+  //     if (filters.gender) params.gender = filters.gender;
+  //     if (filters.platform) params.platform = filters.platform;
+  //     if (filters.from_date) params.from_date = filters.from_date;
+  //     if (filters.to_date) params.to_date = filters.to_date;
+
+  //     const res = await axiosInstance.get(
+  //       `${API_URL}api/lead-management`,
+  //       { params }
+  //     );
+
+  //     console.log("Filtered List", res.data);
+
+  //     if (res.data.success) {
+  //       setLeads(res.data.data || []);
+  //       setTotalRecords(res.data.data?.length || 0);
+  //       setGenderOptions(res.data.gender || []);
+  //       setPlatformOptions(res.data.platforms || {});
+  //     }
+  //   } catch (error) {
+  //     toast.error("Failed to fetch leads");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+    const fetchLead = async (customFilters) => {
+    const appliedFilters = customFilters ?? filters;
+
     try {
       setLoading(true);
 
       const params = {};
 
-      if (filters.gender) params.gender = filters.gender;
-      if (filters.platform) params.platform = filters.platform;
-      if (filters.from_date) params.from_date = filters.from_date;
-      if (filters.to_date) params.to_date = filters.to_date;
+      if (appliedFilters.gender)
+        params.gender = appliedFilters.gender.toLowerCase();
+
+      if (appliedFilters.platform)
+        params.platform = appliedFilters.platform.toLowerCase();
+
+      if (appliedFilters.city)
+        params.city = appliedFilters.city.toLowerCase();
+
+      if (appliedFilters.from_date)
+        params.from_date = appliedFilters.from_date;
+
+      if (appliedFilters.to_date)
+        params.to_date = appliedFilters.to_date;
 
       const res = await axiosInstance.get(
         `${API_URL}api/lead-management`,
         { params }
       );
 
-      console.log("Filtered List", res.data);
+      console.log("API LIST", res.data.data);
 
       if (res.data.success) {
-        setLeads(res.data.data || []);
-        setTotalRecords(res.data.data?.length || 0);
+        let data = res.data.data || [];
+
+        //  FRONTEND FILTERING
+        data = applyFrontendFilters(data, appliedFilters);
+
+        setLeads(data);
+        setTotalRecords(data.length);
         setGenderOptions(res.data.gender || []);
         setPlatformOptions(res.data.platforms || {});
+        setCityOptions(res.data.cities || []);
       }
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to fetch leads");
     } finally {
       setLoading(false);
     }
   };
+  const applyFrontendFilters = (data, filters) => {
+  let result = [...data];
+
+  // CITY
+  if (filters.city) {
+    result = result.filter(item =>
+      item.city?.toLowerCase() === filters.city.toLowerCase()
+    );
+  }
+
+  // PLATFORM
+  if (filters.platform) {
+    result = result.filter(item =>
+      item.platform?.toLowerCase() === filters.platform.toLowerCase()
+    );
+  }
+
+  // AGE
+  if (filters.age) {
+    const [min, max] = filters.age.split("-");
+
+    result = result.filter(item => {
+      const age = Number(item.age);
+      if (filters.age === "46+") return age >= 46;
+      return age >= Number(min) && age <= Number(max);
+    });
+  }
+
+  return result;
+};
+
 
 
   // status api get showing fetching
@@ -440,23 +553,6 @@ const LeadManagement_Details = () => {
     setTimeout(() => setIsImportAddModalOpen(false), 250);
   };
   //  reset filter
-  const handleResetFilter = async () => {
-    const reset = {
-      gender: "",
-      platform: "",
-      from_date: "",
-      to_date: ""
-    };
-
-    setFilters(reset);
-
-    const res = await axiosInstance.get(`${API_URL}api/lead-management`);
-
-    setLeads(res.data.data || []);
-    setTotalRecords(res.data.data?.length || 0);
-    setGenderOptions(res.data.gender || []);
-    setPlatformOptions(res.data.platforms || {});
-  };
 
   // import
   const handleFileSubmit = async () => {
@@ -583,6 +679,10 @@ const LeadManagement_Details = () => {
       header: "Phone"
     },
     {
+      field: "age",
+      header: "Age",
+    },
+    {
       field: "city",
       header: "City",
       body: (row) => Capitalise(row.city),
@@ -663,7 +763,7 @@ const LeadManagement_Details = () => {
   ];
 
   const [visibleColumnFields, setVisibleColumnFields] = useState(
-    columns.filter(col => col.fixed || ["full_name", "date_of_birth", "gender", "phone", "created_time", "status", "Action"].includes(col.field)).map(col => col.field)
+    columns.filter(col => col.fixed || ["full_name", "date_of_birth", "gender", "phone","age","city", "created_time", "status", "Action"].includes(col.field)).map(col => col.field)
   );
 
   const onColumnToggle = (event) => {
@@ -742,12 +842,12 @@ const LeadManagement_Details = () => {
                     }
                   >
                     <option value="">Gender</option>
-
-                    {genderOptions.map((gender, index) => (
-                      <option key={index} value={gender}>
-                        {gender}
-                      </option>
-                    ))}
+  
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                     
+                    
                   </select>
 
                 </div>
@@ -767,6 +867,46 @@ const LeadManagement_Details = () => {
                     {Object.entries(platformOptions).map(([key, label]) => (
                       <option key={key} value={key}>
                         {label}
+                      </option>
+                    ))}
+                  </select>
+
+                </div>
+
+                   {/* age */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-[#6B7280]">Age</label>
+                  <select
+                    className="h-10 px-3 rounded-md border"
+                    value={filters.age}
+                    onChange={(e) =>
+                      setFilters(prev => ({ ...prev, age: e.target.value }))
+                    }
+                  >
+                    <option value="">Select Age</option>
+                    <option value="18-25">18 - 25</option>
+                    <option value="26-35">26 - 35</option>
+                    <option value="36-45">36 - 45</option>
+                    <option value="46+">46+</option>
+                  </select>
+
+
+                </div>
+
+                {/* city */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-[#6B7280]">City</label>
+                  <select
+                    className="h-10 px-3 rounded-md border"
+                    value={filters.city}
+                    onChange={(e) =>
+                      setFilters(prev => ({ ...prev, city: e.target.value }))
+                    }
+                  >
+                    <option value="">Select City</option>
+                    {cityOptions.map((city, index) => (
+                      <option key={index} value={city}>
+                        {city}
                       </option>
                     ))}
                   </select>
