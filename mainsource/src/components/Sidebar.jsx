@@ -28,15 +28,27 @@ import { CiCalendar } from "react-icons/ci";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdLeaderboard } from "react-icons/md";
 import { GrMoney } from "react-icons/gr";
+import { Capitalise } from "../utils/useCapitalise";
+import { API_URL } from "../config";
 
 
 const Sidebar = () => {
 
+  
+
   const user = JSON.parse(localStorage.getItem("pssemployee") || "{}");
+  console.log("USER : ",user)
   const Psspermission = JSON.parse(localStorage.getItem("psspermission") || "{}");
   // const permissionmodula = Psspermission.modules
   // console.log("Psspermission", permissionmodula);
-  const id = user.id;
+  const id = user?.id;
+  const image=user?.photo ? `${API_URL}/${user.photo}`
+  : admin_icon;
+  console.log("EMPLOYEE IMAGE : ",`${API_URL}/${user.photo}`);
+  const name=user?.full_name;
+  // console.log("EMPLOYEE name : ",name);
+  const role = user?.role_id;
+
 
   // console.log("companyID", id);
 
@@ -471,7 +483,8 @@ ${currentPath === "/pssattendance"
               className="flex items-center gap-3 px-2 py-4 cursor-pointer"
               onClick={() => navigate(`/employeedetails/${id}`)}
             >
-              <img src={admin_icon} alt="" className="h-8 w-8 rounded-full" />
+              {/* <img src={admin_icon} alt="" className="h-8 w-8 rounded-full" /> */}
+              <img src={image} alt="" className="h-8 w-8 rounded-full" />
               {!arrowClicked && (
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
@@ -479,7 +492,8 @@ ${currentPath === "/pssattendance"
                       Welcome back
                     </p>
                   </div>
-                  <p className="font-medium text-sm">PSS Employee</p>
+                  {/* <p className="font-medium text-sm">PSS Employee</p> */}
+                  <p className="font-medium text-sm">{Capitalise(name)}</p>
                 </div>
               )}
               {!arrowClicked && (

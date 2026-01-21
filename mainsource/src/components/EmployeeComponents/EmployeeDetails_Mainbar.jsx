@@ -455,7 +455,7 @@ const EmployeeDetails_Mainbar = () => {
     const fetchEmployee = async () => {
       try {
         const response = await axiosInstance.get(`/api/employees/edit/${id}`);
-
+console.log("FETCHEMPLOYEE Response",response)
         setEmployeeData(response?.data?.data);
       } catch (err) {
         console.error("Failed to fetch employee data:", err);
@@ -517,6 +517,8 @@ const EmployeeDetails_Mainbar = () => {
                     <p className="font-semibold text-2xl">
                       {employeeData?.full_name || "-"}
                     </p>
+                    <p className="font-semibold px-2 py-1 text-sm border rounded-full w-fit">ID:{employeeData?.gen_employee_id || "-"}</p>
+
                     <p className="bg-green-100  px-3 py-1 rounded-full w-fit">
                       {roles?.find((role) => role.id == employeeData?.role_id)
                         ?.role_name || "-"}

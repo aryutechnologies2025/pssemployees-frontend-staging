@@ -68,6 +68,7 @@ const Employee_contract_details = () => {
       company: z.string().min(1, "Company is required"),
       joinedDate: z.string().min(1, "Joined date is required"),
       accountName: z.string().min(1, "Account name is required"),
+      accountNumber: z.string().min(1, "Account number is required"),
       ifsccode: z.string().min(1, "IFSC code is required"),
       uannumber: z.string().min(1, "UAN number is required"),
       esciNumber: z.string().min(1, "ESCI number is required"),
@@ -101,6 +102,7 @@ const [employeeIds, setEmployeeIds] = useState([]);
       gender: editData ? editData.gender : "",
       joinedDate: editData ? editData.joinedDate : "",
       accountName: editData ? editData.accountName : "",
+      accountNumber: editData ? editData.accountNumber : "",
       ifsccode: editData ? editData.ifsccode : "",
       uannumber: editData ? editData.uannumber : "",
       esciNumber: editData ? editData.esciNumber : "",
@@ -290,6 +292,7 @@ useEffect(() => {
       dob: "",
       address: "",
       accountName: "",
+      accountNumber: "",
       ifsccode: "",
       uannumber: "",
       esciNumber: "",
@@ -601,6 +604,7 @@ const removeDocument = (index) => {
       // companyLabel: row.company?.company_name || "",
       joinedDate: row.joining_date || "",
       accountName: row.acc_no || "",
+      accountNumber: row.account_number || "",
       ifsccode: row.ifsc_code || "",
       uannumber: row.uan_number || "",
       esciNumber: row.esic || "",
@@ -903,6 +907,7 @@ const removeDocument = (index) => {
         company_id: Number(data.company),
         joining_date: formatDateToYMD(data.joinedDate),
         acc_no: data.accountName,
+        account_number: data.accountNumber,
         ifsc_code: data.ifsccode,
         uan_number: data.uannumber,
         esic: data.esciNumber,
@@ -1435,7 +1440,12 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           optionLabel="label"
                           optionValue="value"
                           onChange={(e) => {
-                            setSelectedCompany(e.value);
+                             setSelectedCompany(e.value);
+                            const obj = companyDropdown.find(
+                              (item) => item.value === e.value
+                            );
+                            setCompanyEmpType(obj.company_emp_id?.toLowerCase());
+                            // setSelectedCompany(e.value);
                             setValue("company", String(e.value), { shouldValidate: true });
                           }}
                           placeholder="Select Company"
@@ -1665,8 +1675,8 @@ Object.entries(createCandidate).forEach(([key, value]) => {
         readOnly={companyEmpType === "automatic"}
         placeholder={
           companyEmpType === "manual"
-            ? "Enter Employee ID"
-            : "Enter Employee ID"
+            ? " Employee ID"
+            : " Employee ID"
         }
         className={`w-full px-2 py-2 border rounded-[10px]
           ${companyEmpType === "automatic"
@@ -1680,7 +1690,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
 
 
 
-                    {/* account */}
+                    {/* account name*/}
 
 
                     <div className="mt-5 flex justify-between items-center">
@@ -1697,6 +1707,26 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         />
                         <span className="text-red-500 text-sm">
                           {errors.accountName?.message}
+                        </span>
+                        {/* {errors?.interviewDate && <p className="text-red-500 text-sm mt-1">{errors?.interviewDate}</p>} */}
+                      </div>
+                    </div>
+
+                    {/*account no  */}
+<div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Account Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="accountNumber"
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          {...register("accountName")}
+                          placeholder="Enter Account Number"
+                        />
+                        <span className="text-red-500 text-sm">
+                          {errors.accountNumber?.message}
                         </span>
                         {/* {errors?.interviewDate && <p className="text-red-500 text-sm mt-1">{errors?.interviewDate}</p>} */}
                       </div>
@@ -1920,7 +1950,10 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       <b>Aadhar:</b> {viewRow.aadhar_number || "-"}
                     </p>
                     <p>
-                      <b>Account No:</b> {viewRow.acc_no || "-"}
+                      <b>Account Name:</b> {viewRow.acc_no || "-"}
+                    </p>
+                    <p>
+                      <b>Account Number:</b> {viewRow.account_number || "-"}
                     </p>
                     <p>
                       <b>Address:</b> {viewRow.address || "-"}
