@@ -23,19 +23,15 @@ import Swal from "sweetalert2";
 import { IoIosCloseCircle } from "react-icons/io";
 import { AiFillDelete } from "react-icons/ai";
 
-
-
 import { IoMdDownload } from "react-icons/io";
 import { API_URL } from "../../config";
 import axiosInstance from "../../utils/axiosConfig";
-import { formatToDDMMYYYY,formatToYYYYMMDD } from "../../utils/dateformat";
+import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../utils/dateformat";
 import Loader from "../Loader";
 import Mobile_Sidebar from "../Mobile_Sidebar";
 import Footer from "../Footer";
 import { Capitalise } from "../../utils/useCapitalise";
 import CameraPhoto from "../../utils/CameraPhoto";
-
-
 
 const Employee_contract_details = () => {
   //navigation
@@ -56,30 +52,28 @@ const Employee_contract_details = () => {
     return new Date().toISOString().split("T")[0];
   };
 
-  const candidateContractSchema = z
-    .object({
-      name: z.string().min(1, "Name is required"),
-      dob: z.string().min(1, "Date of birth is required"),
-      fatherName: z.string().min(1, "Father's name is required"),
-      address: z.string().min(1, "Address is required"),
-      gender: z.string().min(1, "Gender is required"),
-      phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
-      aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
-      company: z.string().min(1, "Company is required"),
-      joinedDate: z.string().min(1, "Joined date is required"),
-      accountName: z.string().min(1, "Account name is required"),
-      accountNumber: z.string().min(1, "Account number is required"),
-      ifsccode: z.string().min(1, "IFSC code is required"),
-      uannumber: z.string().min(1, "UAN number is required"),
-      esciNumber: z.string().min(1, "ESCI number is required"),
-      status: z.string().min(1, "Status is required"),
-      manual_value: z.string().optional(),
-       profile_picture: z.any().optional(), 
-  documents: z.array(z.any()).optional(),
-    })
+  const candidateContractSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    dob: z.string().min(1, "Date of birth is required"),
+    fatherName: z.string().min(1, "Father's name is required"),
+    address: z.string().min(1, "Address is required"),
+    gender: z.string().min(1, "Gender is required"),
+    phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
+    aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
+    company: z.string().min(1, "Company is required"),
+    joinedDate: z.string().min(1, "Joined date is required"),
+    accountName: z.string().min(1, "Account name is required"),
+    accountNumber: z.string().min(1, "Account number is required"),
+    ifsccode: z.string().min(1, "IFSC code is required"),
+    uannumber: z.string().min(1, "UAN number is required"),
+    esciNumber: z.string().min(1, "ESCI number is required"),
+    status: z.string().min(1, "Status is required"),
+    manual_value: z.string().optional(),
+    profile_picture: z.any().optional(),
+    documents: z.array(z.any()).optional(),
+  });
 
-
-const [employeeIds, setEmployeeIds] = useState([]);
+  const [employeeIds, setEmployeeIds] = useState([]);
 
   const {
     register,
@@ -109,13 +103,12 @@ const [employeeIds, setEmployeeIds] = useState([]);
       status: editData ? editData.status : "",
       profile_picture: editData ? editData.profile_picture : "",
       documents: editData ? editData.documents : [],
-
     },
   });
-  
-useEffect(() => {
-  setValue("manual_value", employeeIds);
-}, [employeeIds, setValue]);
+
+  useEffect(() => {
+    setValue("manual_value", employeeIds);
+  }, [employeeIds, setValue]);
   const joined_date = watch("joinedDate");
   const company_name = watch("company");
 
@@ -125,14 +118,12 @@ useEffect(() => {
 
   console.log("manual_value", manual_value);
 
-
   const [isAnimating, setIsAnimating] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const employees = ["Saravanan", "Ramesh", "Priya"];
 
   // Filter states - FIXED: Corrected variable names
-
 
   const [filterInterviewStatus, setFilterInterviewStatus] = useState("");
   const [filterCandidateStatus, setFilterCandidateStatus] = useState("");
@@ -210,9 +201,6 @@ useEffect(() => {
     fetchContractCandidates();
   };
 
-
-
-
   // const onPageChange = (e) => {
   //   setPage(e.page + 1); // PrimeReact is 0-based
   //   setRows(e.rows); // page size
@@ -247,9 +235,6 @@ useEffect(() => {
 
   console.log("selectedCompany", selectedCompany);
 
-
-
-
   const [companyOptions, setCompanyOptions] = useState([]);
   console.log("companyOptions", companyOptions);
 
@@ -258,7 +243,7 @@ useEffect(() => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [attachment, setAttachment] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -304,7 +289,7 @@ useEffect(() => {
     };
     reset(mappedData);
     setPhoto(null);
-  setDocuments([]);
+    setDocuments([]);
     setTimeout(() => {
       setIsModalOpen(false);
       setBackendValidationError(null);
@@ -323,73 +308,68 @@ useEffect(() => {
   };
 
   const handlePhotoChange = (e) => {
-  const file = e.target.files[0];
-  
-  if (file) {
+    const file = e.target.files[0];
+
+    if (file) {
+      setPhoto(file);
+      setValue("profile_picture", file, { shouldValidate: true });
+    }
+  };
+
+  // image and document state handling
+  const [photo, setPhoto] = useState(null);
+  const [openCamera, setOpenCamera] = useState(false);
+  const [documents, setDocuments] = useState([]);
+
+  useEffect(() => {
+    register("profile_picture", { required: !editData });
+  }, [register, editData]);
+
+  const handleCameraCapture = (fileOrBlob) => {
+    let file = fileOrBlob;
+
+    // If camera gives Blob → convert to File
+    if (!(fileOrBlob instanceof File)) {
+      file = new File([fileOrBlob], `camera-${Date.now()}.png`, {
+        type: fileOrBlob.type || "image/png",
+      });
+    }
+
     setPhoto(file);
     setValue("profile_picture", file, { shouldValidate: true });
-  }
-};
+  };
 
-// image and document state handling
- const [photo, setPhoto] = useState(null);
-    const [openCamera, setOpenCamera] = useState(false);
-    const [documents, setDocuments] = useState([]);
+  const handleDocumentChange = (e) => {
+    const files = Array.from(e.target.files);
 
-    useEffect(() => {
-      register("profile_picture", { required: !editData });
-    }, [register, editData]);
-    
-const handleCameraCapture = (fileOrBlob) => {
-  let file = fileOrBlob;
+    const updatedDocs = [...documents, ...files];
 
-  // If camera gives Blob → convert to File
-  if (!(fileOrBlob instanceof File)) {
-    file = new File(
-      [fileOrBlob],
-      `camera-${Date.now()}.png`, 
-      { type: fileOrBlob.type || "image/png" }
-    );
-  }
+    setDocuments(updatedDocs);
+    setValue("documents", updatedDocs);
+  };
 
-  setPhoto(file);
-  setValue("profile_picture", file,{ shouldValidate: true });
-};
-
-
-
-const handleDocumentChange = (e) => {
-  const files = Array.from(e.target.files);
-
-  const updatedDocs = [...documents, ...files];
-
-  setDocuments(updatedDocs);
-  setValue("documents", updatedDocs);
-};
-
-const removeDocument = (index) => {
-  const updatedDocs = documents.filter((_, i) => i !== index);
-  setDocuments(updatedDocs);
-  setValue("documents", updatedDocs);
-};
+  const removeDocument = (index) => {
+    const updatedDocs = documents.filter((_, i) => i !== index);
+    setDocuments(updatedDocs);
+    setValue("documents", updatedDocs);
+  };
   const handleView = async (row) => {
+    try {
+      const res = await axiosInstance.get(
+        `${API_URL}api/contract-employee/edit/${row.id}`,
+      );
 
-  try {
-    const res = await axiosInstance.get(
-      `${API_URL}api/contract-employee/edit/${row.id}`
-    );
+      console.log("view res....:....", res);
+      console.log("view res....:....", res.data);
 
-    console.log("view res....:....", res);
-    console.log("view res....:....", res.data);
-
-    if (res.data.success) {
-      setViewRow(res.data.data); 
-      setIsViewModalOpen(true);
+      if (res.data.success) {
+        setViewRow(res.data.data);
+        setIsViewModalOpen(true);
+      }
+    } catch (err) {
+      console.error("View fetch failed", err);
     }
-  } catch (err) {
-    console.error("View fetch failed", err);
-  }
-};
+  };
 
   const closeViewModal = () => {
     setIsViewModalOpen(false);
@@ -432,13 +412,12 @@ const removeDocument = (index) => {
         }));
 
         setCompanyOptions(companies);
-
       }
     } catch (error) {
       console.error("Error fetching companies:", error);
     }
   };
-  // file checking 
+  // file checking
   const handleFileChange = (e) => {
     // if (e.target.files[0]) {
     //     setSelectedFile(e.target.files[0]);
@@ -480,8 +459,7 @@ const removeDocument = (index) => {
     }
   };
 
-
-  // select file 
+  // select file
   const handleFileSubmit = async (e) => {
     // console.log("selectedAccount:1");
     e.preventDefault();
@@ -549,8 +527,7 @@ const removeDocument = (index) => {
         {
           headers: { "Content-Type": "multipart/form-data" },
           // Add timeout for debugging
-        }
-
+        },
       );
 
       // console.log("response:", response.data);
@@ -600,8 +577,7 @@ const removeDocument = (index) => {
       dob: row.date_of_birth || "",
       phone: row.phone_number || "",
       aadhar: row.aadhar_number || "",
-      company: row?.company_id
- ? Number(row?.company_id) : "",
+      company: row?.company_id ? Number(row?.company_id) : "",
       // companyLabel: row.company?.company_name || "",
       joinedDate: row.joining_date || "",
       accountName: row.acc_no || "",
@@ -623,78 +599,70 @@ const removeDocument = (index) => {
             : "",
       // selectedJoiningDate: row.joining_date || "",
       // joinedDate: row.joined_date || "",
- profile_picture: row.profile_picture || "",
+      profile_picture: row.profile_picture || "",
       documents: row.documents || [],
     };
   };
 
+  const openEditModal = async (row) => {
+    setIsModalOpen(true);
+    setTimeout(() => setIsAnimating(true), 10);
 
- const openEditModal = async (row) => {
- 
-      setIsModalOpen(true);
-      setTimeout(() => setIsAnimating(true), 10);
+    const response = await axiosInstance.get(
+      `/api/contract-employee/edit/${row.id}`,
+    );
+    console.log("Edit API Response:", response.data);
 
-      const response = await axiosInstance.get(
-        `/api/contract-employee/edit/${row.id}`
-      );
-      console.log("Edit API Response:", response.data);
+    if (response.data.success) {
+      const rowData = response.data.data;
+      const normalizedData = normalizeEditData(rowData);
 
-      if (response.data.success) {
-        const rowData = response.data.data;
-        const normalizedData = normalizeEditData(rowData);
-        
-        setEditData(normalizedData);
+      setEditData(normalizedData);
 
-        // Set photo
-        if (rowData.profile_picture) {
-          const imageUrl = rowData.profile_picture.startsWith('http')
-            ? rowData.profile_picture
-            : `${API_URL}${rowData.profile_picture}`;
-          setPhoto(imageUrl);
-        } else {
-          setPhoto(null);
-        }
-
+      // Set photo
+      if (rowData.profile_picture) {
+        const imageUrl = rowData.profile_picture.startsWith("http")
+          ? rowData.profile_picture
+          : `${API_URL}${rowData.profile_picture}`;
+        setPhoto(imageUrl);
+      } else {
+        setPhoto(null);
+      }
 
       let normalizedDocs = [];
-    if (rowData.document_groups) {
-      normalizedDocs = rowData.document_groups.flatMap(group => 
-        group.documents.map(doc => ({
+      if (rowData.document_groups) {
+        normalizedDocs = rowData.document_groups.flatMap((group) =>
+          group.documents.map((doc) => ({
+            ...doc,
+            id: doc.id,
+            title: group.title,
+            existing: true, // marker for your UI
+          })),
+        );
+      } else if (rowData.documents) {
+        normalizedDocs = rowData.documents.map((doc) => ({
           ...doc,
-          id: doc.id,
-          title: group.title,
-          existing: true // marker for your UI
-        }))
+          existing: true,
+        }));
+      }
+      console.log("normalizedData 333", normalizedData);
+      setDocuments(normalizedDocs); // Update local state for the file list UI
+      setValue("documents", normalizedDocs);
+
+      const selectedCompanyObj = companyDropdown.find(
+        (c) => String(c.value) === String(normalizedData.company),
       );
-    } else if (rowData.documents) {
-      normalizedDocs = rowData.documents.map(doc => ({
-    ...doc,
-    existing: true
-  }));
+      console.log("123 test", selectedCompanyObj);
+
+      // console.log("test123", row)
+      setSelectedCompany(selectedCompanyObj.value);
+
+      reset({
+        ...normalizedData,
+        company: String(normalizedData.company),
+      });
     }
-    console.log("normalizedData 333",normalizedData);
-    setDocuments(normalizedDocs); // Update local state for the file list UI
-    setValue("documents", normalizedDocs);
-
-
-    const selectedCompanyObj = companyDropdown.find(
-      (c) => String(c.value) === String(normalizedData.company)
-    );
-    console.log("123 test", selectedCompanyObj)
-
-    
-    // console.log("test123", row)
-    setSelectedCompany(selectedCompanyObj.value);
-
-    reset({
-      ...normalizedData,
-      company: String(normalizedData.company),
-    });
-  }
-
   };
-
-
 
   // useEffect(() => {
   //   if (editData) {
@@ -711,12 +679,10 @@ const removeDocument = (index) => {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterGender, setFilterGender] = useState("");
 
-  const [selectedCompanyfilter, setSelectedCompanyfilter] = useState('');
+  const [selectedCompanyfilter, setSelectedCompanyfilter] = useState("");
 
   // contract api
   const fetchContractCandidates = async () => {
-
-
     try {
       setLoading(true);
       const payload = {
@@ -729,7 +695,9 @@ const removeDocument = (index) => {
       // console.log("Sending payload as params:", payload);
 
       const queryParams = new URLSearchParams(payload).toString();
-      const response = await axiosInstance.get(`api/contract-employee?${queryParams}`);
+      const response = await axiosInstance.get(
+        `api/contract-employee?${queryParams}`,
+      );
       const employees = response?.data?.data?.employees || [];
 
       console.log("response emp check", response);
@@ -748,24 +716,22 @@ const removeDocument = (index) => {
     fetchCompanyList();
   }, []);
 
-
   const fetchId = async (payload) => {
     console.log("payload", payload);
     try {
       const response = await axiosInstance.post(
         `api/contract-employee/assign-emp-generate`,
-        payload
+        payload,
       );
 
       console.log("Success:", response.data.employee_id);
-       const generatedId = response.data.employee_id;
+      const generatedId = response.data.employee_id;
 
-    setEmployeeIds(generatedId);
+      setEmployeeIds(generatedId);
 
-     setValue("manual_value", generatedId, {
-      shouldValidate: true,
-    });
-
+      setValue("manual_value", generatedId, {
+        shouldValidate: true,
+      });
     } catch (error) {
       if (error.response) {
         console.log("Backend error:", error.response.data);
@@ -776,8 +742,6 @@ const removeDocument = (index) => {
       }
     }
   };
-
-
 
   const handleDelete = async (id) => {
     console.log("Deleting Contract Candidates ID:", id);
@@ -793,7 +757,9 @@ const removeDocument = (index) => {
     if (!result.isConfirmed) return;
 
     try {
-      await axiosInstance.delete(`${API_URL}api/contract-employee/delete/${id}`);
+      await axiosInstance.delete(
+        `${API_URL}api/contract-employee/delete/${id}`,
+      );
       toast.success("Contract Candidates deleted successfully");
       fetchContractCandidates();
     } catch (error) {
@@ -847,9 +813,10 @@ const removeDocument = (index) => {
       body: (row) => (
         <div
           className={`inline-block text-sm font-normal rounded-full w-[100px] justify-center items-center border 
-            ${row.status === 0 || row.status === "0"
-              ? "text-[#DC2626] bg-[#fff0f0] "
-              : "text-[#16A34A] bg-[#e8fff0] "
+            ${
+              row.status === 0 || row.status === "0"
+                ? "text-[#DC2626] bg-[#fff0f0] "
+                : "text-[#16A34A] bg-[#e8fff0] "
             }`}
         >
           {row.status === 0 || row.status === "0" ? "Inactive" : "Active"}
@@ -889,14 +856,14 @@ const removeDocument = (index) => {
   // create
   const onSubmit = async (data) => {
     try {
-     console.log('Form data before submit:', {
-      profile_picture: data.profile_picture,
-      profile_image_type: typeof data.profile_picture,
-      isFile: data.profile_picture instanceof File,
-      documents: data.documents,
-      documents_length: data.documents?.length
-    });
-     const createCandidate = {
+      console.log("Form data before submit:", {
+        profile_picture: data.profile_picture,
+        profile_image_type: typeof data.profile_picture,
+        isFile: data.profile_picture instanceof File,
+        documents: data.documents,
+        documents_length: data.documents?.length,
+      });
+      const createCandidate = {
         name: data.name,
         address: data.address || "test",
 
@@ -921,60 +888,67 @@ const removeDocument = (index) => {
 
       const formData = new FormData();
 
+      Object.entries(createCandidate).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(
+            key,
+            typeof value === "object" ? JSON.stringify(value) : value,
+          );
+        }
+      });
 
-Object.entries(createCandidate).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(
-          key,
-          typeof value === "object" ? JSON.stringify(value) : value
-        );
+      //  Profile image
+      if (data.profile_picture instanceof File) {
+        console.log("Appending new profile picture file",data.profile_picture);
+        formData.append("profile_picture", data.profile_picture);
       }
-    });
 
- //  Profile image
-    if (data.profile_picture instanceof File) {
-      formData.append("profile_picture", data.profile_picture);
-    }
-    
+      // Documents (NEW FILES ONLY)
+      console.log("on submit doc", documents);
 
+      //   if (documents && documents.length > 0) {
+      //     documents.forEach((doc,index) => {
+      //       if (doc instanceof File) {
+      //         formData.append("documents[]", doc);
+      //       }else if (doc.id) {
 
-// Documents (NEW FILES ONLY)
-      console.log("on submit doc",documents);
-      
-            if (documents && documents.length > 0) {
-              documents.forEach((doc,index) => {
-                if (doc instanceof File) {
-                  formData.append("documents[]", doc);
-                }else if (doc.id) {
-          
+      //   // formData.append(`existing_document_ids[${index}]`, doc.id);
+      //   formData.append("documents[]", doc.id);
+      // }
+      //     });
+      //   }
+
+      if (documents && documents.length > 0) {
+        documents.forEach((doc, index) => {
+          if (doc instanceof File) {
+            formData.append("documents[]", doc);
+          } else if (doc.id) {
             // formData.append(`existing_document_ids[${index}]`, doc.id);
             formData.append("documents[]", doc.id);
           }
-              });
-            }
+        });
+      }
 
-      console.log("Create candidate ,.... : .....",createCandidate)
+      console.log("Create candidate ,.... : .....", createCandidate);
       setLoading(true);
 
-       const url = editData
-      ? `/api/contract-employee/update/${editData.id}`
-      : `/api/contract-employee/create`;
+      const url = editData
+        ? `/api/contract-employee/update/${editData.id}`
+        : `/api/contract-employee/create`;
 
-    await axiosInstance.post(url, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      await axiosInstance.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-     toast.success(editData ? "Updated Successfully" : "Created Successfully");
-    closeAddModal();
-    fetchContractCandidates();
-
-  } catch (error) {
-    console.error(error);
-    toast.error("Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-
+      toast.success(editData ? "Updated Successfully" : "Created Successfully");
+      closeAddModal();
+      fetchContractCandidates();
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const companyDropdown = companyOptions.map((c) => ({
@@ -983,7 +957,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
     company_emp_id: c.company_emp_id,
   }));
 
-  console.log("companyDropdown", companyDropdown)
+  console.log("companyDropdown", companyDropdown);
 
   return (
     <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-10">
@@ -1003,9 +977,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                 Dashboard
               </p>
               <p>{">"}</p>
-              <p className="text-xs  md:text-sm  text-[#1ea600]">
-                Employee
-              </p>
+              <p className="text-xs  md:text-sm  text-[#1ea600]">Employee</p>
             </div>
 
             {/* Filter Section */}
@@ -1039,7 +1011,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                   </div>
                   {/* Status */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">Status</label>
+                    <label className="text-sm font-medium text-[#6B7280]">
+                      Status
+                    </label>
                     <select
                       value={filterStatus || ""}
                       onChange={(e) => setFilterStatus(e.target.value)}
@@ -1054,7 +1028,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
 
                   {/* Gender Dropdown */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">Gender</label>
+                    <label className="text-sm font-medium text-[#6B7280]">
+                      Gender
+                    </label>
                     <select
                       value={filterGender || ""}
                       onChange={(e) => setFilterGender(e.target.value)}
@@ -1068,7 +1044,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">Company</label>
+                    <label className="text-sm font-medium text-[#6B7280]">
+                      Company
+                    </label>
 
                     <div className="w-[60%] md:w-[100%]">
                       <Dropdown
@@ -1082,7 +1060,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       />
                     </div>
                   </div>
-
 
                   {/* Buttons */}
                   <div className="col-span-1 md:col-span-2 lg:col-span-5 flex justify-end gap-4">
@@ -1201,8 +1178,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                 </div>
 
                 <div
-                  className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${isAnimating ? "translate-x-0" : "translate-x-full"
-                    }`}
+                  className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${
+                    isAnimating ? "translate-x-0" : "translate-x-full"
+                  }`}
                 >
                   <div
                     className="w-6 h-6 rounded-full  mt-2 ms-2  border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer"
@@ -1369,85 +1347,92 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       </span>
                     )}
 
-                 {/* Upload Photo */}
-<div className="flex justify-end">
-  <div className="flex flex-col items-center gap-2">
+                    {/* Upload Photo */}
+                    <div className="flex justify-end">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="font-medium">
+                          {photo ? "Change Photo" : "Upload Photo"}{" "}
+                          <span className="text-red-500">*</span>
+                        </p>
 
-    <p className="font-medium">
-      {photo ? "Change Photo" : "Upload Photo"} <span className="text-red-500">*</span>
-    </p>
+                        {/* Preview */}
+                        <div className="relative">
+                          {photo ? (
+                            <img
+                              src={
+                                photo instanceof File
+                                  ? URL.createObjectURL(photo)
+                                  : photo
+                              }
+                              className="w-32 h-40 rounded-md object-cover border"
+                            />
+                          ) : (
+                            <div className="w-32 h-40 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                              Upload
+                            </div>
+                          )}
+                        </div>
 
-    {/* Preview */}
-    <div className="relative">
-      {photo ? (
-        <img
-          src={photo instanceof File ? URL.createObjectURL(photo) : photo}
-          className="w-32 h-40 rounded-md object-cover border"
-        />
-      ) : (
-        <div className="w-32 h-40 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
-          Upload
-        </div>
-      )}
-    </div>
+                        {/* Buttons */}
+                        <div className="flex gap-2">
+                          <label className="cursor-pointer bg-gray-200 px-3 py-1 rounded">
+                            Upload
+                            <input
+                              type="file"
+                              accept="image/*"
+                              hidden
+                              onChange={handlePhotoChange}
+                            />
+                          </label>
 
-    {/* Buttons */}
-    <div className="flex gap-2">
-      <label className="cursor-pointer bg-gray-200 px-3 py-1 rounded">
-        Upload
-        <input
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={handlePhotoChange}
-        />
-      </label>
+                          <button
+                            type="button"
+                            onClick={() => setOpenCamera(true)}
+                            className="bg-gray-200 px-3 py-1 rounded"
+                          >
+                            Camera
+                          </button>
+                        </div>
 
-      <button
-        type="button"
-        onClick={() => setOpenCamera(true)}
-        className="bg-gray-200 px-3 py-1 rounded"
-      >
-        Camera
-      </button>
-    </div>
+                        {errors.profile_picture && (
+                          <p className="text-red-500 text-sm">
+                            {errors.profile_picture.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
-    {errors.profile_picture && (
-      <p className="text-red-500 text-sm">{errors.profile_picture.message}</p>
-    )}
-  </div>
-</div>
+                    {openCamera && (
+                      <CameraPhoto
+                        onCapture={handleCameraCapture}
+                        onClose={() => setOpenCamera(false)}
+                      />
+                    )}
 
-{openCamera && (
-  <CameraPhoto
-    onCapture={handleCameraCapture}
-    onClose={() => setOpenCamera(false)}
-  />
-)}
-                    
-
-             
-                   {/* Company */}
+                    {/* Company */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium">
                         Company Name <span className="text-red-500">*</span>
                       </label>
 
                       <div className="w-[50%] md:w-[60%]">
-                      
-                         <Dropdown
+                        <Dropdown
                           value={selectedCompany}
                           options={companyDropdown}
                           optionLabel="label"
                           optionValue="value"
                           onChange={(e) => {
-                             setSelectedCompany(e.value);
+                            setSelectedCompany(e.value);
                             const obj = companyDropdown.find(
-                              (item) => item.value === e.value
+                              (item) => item.value === e.value,
                             );
-                            setCompanyEmpType(obj.company_emp_id?.toLowerCase());
+                            setCompanyEmpType(
+                              obj.company_emp_id?.toLowerCase(),
+                            );
                             // setSelectedCompany(e.value);
-                            setValue("company", String(e.value), { shouldValidate: true });
+                            setValue("company", String(e.value), {
+                              shouldValidate: true,
+                            });
                           }}
                           placeholder="Select Company"
                           filter
@@ -1491,9 +1476,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           type="date"
                           name="dob"
                           {...register("dob")}
-
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-
                         />
                         <span className="text-red-500 text-sm">
                           {errors.dob?.message}
@@ -1502,7 +1485,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     </div>
 
                     {/* fathername */}
-
 
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1513,7 +1495,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           type="text"
                           name="fatherName"
                           {...register("fatherName")}
-
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           placeholder="Enter the Father Name"
                         />
@@ -1522,9 +1503,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         </span>
                       </div>
                     </div>
-
-
-
 
                     {/* address */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1536,7 +1514,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           type="text"
                           name="address"
                           {...register("address")}
-
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           placeholder="Enter the Address"
                         />
@@ -1559,7 +1536,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                             <input
                               type="radio"
                               value="Male"
-                              {...register("gender", { required: "Gender is required" })}
+                              {...register("gender", {
+                                required: "Gender is required",
+                              })}
                               className="accent-[#1ea600]"
                             />
                             Male
@@ -1569,7 +1548,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                             <input
                               type="radio"
                               value="Female"
-                              {...register("gender", { required: "Gender is required" })}
+                              {...register("gender", {
+                                required: "Gender is required",
+                              })}
                               className="accent-[#1ea600]"
                             />
                             Female
@@ -1581,7 +1562,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         </span>
                       </div>
                     </div>
-
 
                     {/* PHONE */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1621,7 +1601,9 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           inputMode="numeric"
                           maxLength={12}
                           onInput={(e) => {
-                            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
+                            e.target.value = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 12);
                           }}
                           placeholder="Enter AadharNumber"
                         />
@@ -1630,8 +1612,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         </span>
                       </div>
                     </div>
-
-                  
 
                     {/* joinedDate date */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1663,36 +1643,34 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       </div>
                     </div>
 
-                 {companyEmpType && (
-  <div className="mt-5 flex justify-between items-center">
-    <label className="block text-md font-medium">
-      Employee Id <span className="text-red-500">*</span>
-    </label>
+                    {companyEmpType && (
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium">
+                          Employee Id <span className="text-red-500">*</span>
+                        </label>
 
-    <div className="w-[50%] md:w-[60%] rounded-lg">
-      <input
-        type="text"
-        {...register("manual_value")}
-        readOnly={companyEmpType === "automatic"}
-        placeholder={
-          companyEmpType === "manual"
-            ? " Employee ID"
-            : " Employee ID"
-        }
-        className={`w-full px-2 py-2 border rounded-[10px]
-          ${companyEmpType === "automatic"
-            ? "bg-gray-100 cursor-not-allowed"
-            : "bg-white"
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <input
+                            type="text"
+                            {...register("manual_value")}
+                            readOnly={companyEmpType == "automatic"}
+                            placeholder={
+                              companyEmpType === "manual"
+                                ? " Employee ID"
+                                : " Employee ID"
+                            }
+                            className={`w-full px-2 py-2 border rounded-[10px]
+          ${
+            companyEmpType === "automatic"
+              ? "bg-gray-100 cursor-not-allowed"
+              : "bg-white"
           }`}
-      />
-    </div>
-  </div>
-)}
-
-
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {/* account name*/}
-
 
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1714,7 +1692,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     </div>
 
                     {/*account no  */}
-<div className="mt-5 flex justify-between items-center">
+                    <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Account Number <span className="text-red-500">*</span>
                       </label>
@@ -1798,7 +1776,6 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     {/* status */}
 
                     <div className="mt-5 flex justify-between items-center">
-
                       <label
                         htmlFor="status"
                         className="block text-md font-medium mb-2 mt-3"
@@ -1816,61 +1793,65 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           <option value="0">InActive</option>
                         </select>
                         {errors.status && (
-                          <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.status.message}
+                          </p>
                         )}
-
-
                       </div>
                     </div>
 
-{/* Documents */}
+                    {/* Documents */}
 
-<div className="mt-5 flex justify-between items-start">
-  <label className="block text-md font-medium">
-    Documents 
-    {/* <span className="text-red-500">*</span> */}
-  </label>
+                    <div className="mt-5 flex justify-between items-start">
+                      <label className="block text-md font-medium">
+                        Documents
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
 
-  <div className="w-[50%] md:w-[60%]">
-    {/* Upload button */}
-    <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded inline-block mb-2">
-      Select Documents
-      <input
-        type="file"
-        multiple
-        accept=".pdf,.jpg,.png"
-        hidden
-        onChange={handleDocumentChange}
-      />
-    </label>
+                      <div className="w-[50%] md:w-[60%]">
+                        {/* Upload button */}
+                        <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded inline-block mb-2">
+                          Select Documents
+                          <input
+                            type="file"
+                            multiple
+                            accept=".pdf,.jpg,.png"
+                            hidden
+                            onChange={handleDocumentChange}
+                          />
+                        </label>
 
-    {/* Selected documents list */}
-  
-<div className="mt-4 space-y-2">
-  {documents.map((doc, index) => (
-    <div key={index} className="flex justify-between items-center p-2 border rounded">
-      <span className="text-sm truncate">
-        {doc instanceof File ? doc.name : (doc.original_name || "Existing Document")}
-      </span>
-      <button
-        type="button"
-        onClick={() => removeDocument(index)}
-        className="text-red-500 font-bold px-2"
-      >
-        ×
-      </button>
-    </div>
-  ))}
-</div>
+                        {/* Selected documents list */}
 
-    {errors.documents && (
-      <p className="text-red-500 text-sm mt-1">
-        Documents are required
-      </p>
-    )}
-  </div>
-</div>
+                        <div className="mt-4 space-y-2">
+                          {documents.map((doc, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center p-2 border rounded"
+                            >
+                              <span className="text-sm truncate">
+                                {doc instanceof File
+                                  ? doc.name
+                                  : doc.original_name || "Existing Document"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeDocument(index)}
+                                className="text-red-500 font-bold px-2"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
 
+                        {errors.documents && (
+                          <p className="text-red-500 text-sm mt-1">
+                            Documents are required
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Button */}
                     <div className="flex  justify-end gap-2 mt-6 md:mt-14">
@@ -1884,7 +1865,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         type="button"
                         className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleSubmit(onSubmit, (errors) =>
-                          console.log(errors)
+                          console.log(errors),
                         )}
                       >
                         Submit
@@ -1900,7 +1881,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                 <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative animate-fadeIn">
                   {/* Close Button */}
                   <button className="absolute top-4 right-12 text-gray-500 hover:text-green-500">
-                   <IoMdDownload size={28} />
+                    <IoMdDownload size={28} />
                   </button>
                   <button
                     onClick={closeViewModal}
@@ -1909,37 +1890,38 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     <IoIosCloseCircle size={28} />
                   </button>
 
-
                   {/* Title and profile image */}
                   <div className="flex justify-between items-center mb-6 border-b pb-4">
-  <h2 className="text-xl font-semibold text-[#1ea600]">
-    Employee Details
-  </h2>
-  
-  {/* Profile Picture Display */}
-  <div className="flex flex-col items-center mr-16">
-    {viewRow.profile_picture ? (
-      <img
-         src={
-      viewRow.profile_picture.startsWith("http")
-        ? viewRow.profile_picture
-        : `${API_URL}${viewRow.profile_picture}`
-    }
-        alt="Profile"
-        className="w-24 h-28 rounded-md object-cover border-2 border-gray-200 shadow-sm"
-      />
-    ) : (
-      <div className="w-24 h-28 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
-        No Photo
-      </div>
-    )}
-  </div>
-</div>
+                    <h2 className="text-xl font-semibold text-[#1ea600]">
+                      Employee Details
+                    </h2>
+
+                    {/* Profile Picture Display */}
+                    <div className="flex flex-col items-center mr-16">
+                      {viewRow.profile_picture ? (
+                        <img
+                          src={
+                            viewRow.profile_picture.startsWith("http")
+                              ? viewRow.profile_picture
+                              : `${API_URL}${viewRow.profile_picture}`
+                          }
+                          alt="Profile"
+                          className="w-24 h-28 rounded-md object-cover border-2 border-gray-200 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-24 h-28 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
+                          No Photo
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {/* Candidate Info */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p>
                       <b>Company:</b>{" "}
-                      {companyOptions.find(c => c.value === viewRow.company_id)?.label || "-"}
+                      {companyOptions.find(
+                        (c) => c.value === viewRow.company_id,
+                      )?.label || "-"}
                     </p>
                     <p>
                       <b>Name:</b> {viewRow.name || "-"}
@@ -1960,7 +1942,8 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       <b>Address:</b> {viewRow.address || "-"}
                     </p>
                     <p>
-                      <b>Date of Birth:</b> {formatToDDMMYYYY(viewRow.date_of_birth) || "-"}
+                      <b>Date of Birth:</b>{" "}
+                      {formatToDDMMYYYY(viewRow.date_of_birth) || "-"}
                     </p>
                     <p>
                       <b>Father Name:</b> {viewRow.father_name || "-"}
@@ -1978,34 +1961,44 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       <b>UAN Number:</b> {viewRow.uan_number || "-"}
                     </p>
                     <p>
-                      <b>Status:</b> {viewRow.status === 1 ? "Active" : "Inactive"}
+                      <b>Status:</b>{" "}
+                      {viewRow.status === 1 ? "Active" : "Inactive"}
                     </p>
                     <p>
-                      <b>Joining Date:</b> {formatToDDMMYYYY(viewRow.joining_date) || "-"}
+                      <b>Joining Date:</b>{" "}
+                      {formatToDDMMYYYY(viewRow.joining_date) || "-"}
                     </p>
                     <p>
                       <b>Employee ID:</b> {viewRow.employee_id || "-"}
                     </p>
 
-                <div className="col-span-2 pt-4">
-  <b className="block mb-2 text-gray-700">Documents:</b>
-  {/* Check if documents is an array and has items */}
-  {viewRow.documents && viewRow.documents.length > 0 ? (
-    <div className="space-y-2">
-      {viewRow.documents.map((doc, index) => (
-        <div key={index} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border">
-          <span className="text-gray-600 truncate flex-1">
-            {doc.original_name || `Document ${index + 1}`}
-          </span>
-          
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.open(`${API_URL}/${doc.document_path}`, "_blank")}
-              className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-blue-100"
-            >
-              View/Print
-            </button>
-            {/* <button
+                    <div className="col-span-2 pt-4">
+                      <b className="block mb-2 text-gray-700">Documents:</b>
+                      {/* Check if documents is an array and has items */}
+                      {viewRow.documents && viewRow.documents.length > 0 ? (
+                        <div className="space-y-2">
+                          {viewRow.documents.map((doc, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border"
+                            >
+                              <span className="text-gray-600 truncate flex-1">
+                                {doc.original_name || `Document ${index + 1}`}
+                              </span>
+
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() =>
+                                    window.open(
+                                      `${API_URL}${doc.document_path}`,
+                                      "_blank",
+                                    )
+                                  }
+                                  className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-blue-100"
+                                >
+                                  View/Print
+                                </button>
+                                {/* <button
     onClick={() =>
       window.open(`${API_URL}/${doc.document_path}?download=true`, "_blank")
     }
@@ -2013,17 +2006,17 @@ Object.entries(createCandidate).forEach(([key, value]) => {
   >
     Download
   </button> */}
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-gray-500 italic">No documents uploaded.</p>
-  )}
-</div>
-                   
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">
+                          No documents uploaded.
+                        </p>
+                      )}
+                    </div>
                   </div>
-
                 </div>
               </div>
             )}

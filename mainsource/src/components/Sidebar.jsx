@@ -31,24 +31,20 @@ import { GrMoney } from "react-icons/gr";
 import { Capitalise } from "../utils/useCapitalise";
 import { API_URL } from "../config";
 
-
 const Sidebar = () => {
-
-  
-
   const user = JSON.parse(localStorage.getItem("pssemployee") || "{}");
-  console.log("USER : ",user)
-  const Psspermission = JSON.parse(localStorage.getItem("psspermission") || "{}");
+  console.log("USER : ", user);
+  const Psspermission = JSON.parse(
+    localStorage.getItem("psspermission") || "{}",
+  );
   // const permissionmodula = Psspermission.modules
   // console.log("Psspermission", permissionmodula);
   const id = user?.id;
-  const image=user?.photo ? `${API_URL}/${user.photo}`
-  : admin_icon;
-  console.log("EMPLOYEE IMAGE : ",`${API_URL}/${user.photo}`);
-  const name=user?.full_name;
+  const image = user?.photo ? `${API_URL}/${user.photo}` : admin_icon;
+  console.log("EMPLOYEE IMAGE : ", `${API_URL}/${user.photo}`);
+  const name = user?.full_name;
   // console.log("EMPLOYEE name : ",name);
   const role = user?.role_id;
-
 
   // console.log("companyID", id);
 
@@ -65,27 +61,28 @@ const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
-
   const hasPermission = (moduleName) => {
     return (Psspermission?.modules || []).some(
-      (item) => item.module === moduleName
+      (item) => item.module === moduleName,
     );
   };
 
-
-
   // Path matchers for active states
-  const isAttendanceActive = location.pathname.startsWith("/contractattendance");
-  const isContractEmployeeActive = location.pathname.startsWith("/contractemployee");
+  const isAttendanceActive = location.pathname.startsWith(
+    "/contractattendance",
+  );
+  const isContractEmployeeActive =
+    location.pathname.startsWith("/contractemployee");
   const isPssAttendanceActive = location.pathname.startsWith("/pssattendance");
-  const isContractCandidatesActive = location.pathname.startsWith("/employeecontract");
+  const isContractCandidatesActive =
+    location.pathname.startsWith("/employeecontract");
 
   const isPssActive = isPssAttendanceActive;
-  const isContractActive =
-    isContractCandidatesActive || isAttendanceActive;
+  const isContractActive = isContractCandidatesActive || isAttendanceActive;
 
-  const isInterviewCandidatesActive =
-    location.pathname.startsWith("/contractcandidates");
+  const isInterviewCandidatesActive = location.pathname.startsWith(
+    "/contractcandidates",
+  );
 
   useEffect(() => {
     if (isInterviewCandidatesActive) {
@@ -98,7 +95,6 @@ const Sidebar = () => {
       setCurrentOpen(null);
     }
   }, [location.pathname]);
-
 
   const toggleMenu = (menu) => {
     setCurrentOpen(currentOpen === menu ? null : menu);
@@ -127,18 +123,18 @@ const Sidebar = () => {
     }
   };
 
-
-
   return (
     <div>
       <section
-        className={`bg-white max-md:hidden max-h-dvh transition-all duration-500 flex flex-col ${arrowClicked ? "w-[60px]" : "w-52 "
-          }`}
+        className={`bg-white max-md:hidden max-h-dvh transition-all duration-500 flex flex-col ${
+          arrowClicked ? "w-[60px]" : "w-52 "
+        }`}
       >
         <ToastContainer />
         <div
-          className={`fixed flex flex-col h-full  ${arrowClicked ? "w-[50px]" : "w-48"
-            }`}
+          className={`fixed flex flex-col h-full  ${
+            arrowClicked ? "w-[50px]" : "w-48"
+          }`}
         >
           {/* Toggle Button */}
           <div
@@ -147,8 +143,9 @@ const Sidebar = () => {
             title="Toggle Sidebar"
           >
             <div
-              className={`${arrowClicked ? "-me-3" : "-me-8"
-                } w-6 h-6 rounded-full border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer`}
+              className={`${
+                arrowClicked ? "-me-3" : "-me-8"
+              } w-6 h-6 rounded-full border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer`}
             >
               {arrowClicked ? (
                 <IoIosArrowForward className="w-3 h-3" />
@@ -185,19 +182,21 @@ const Sidebar = () => {
             style={{ scrollbarGutter: "stable" }}
           >
             <div
-              className={`flex gap-1 mt-2 mx-2 flex-col ${arrowClicked ? "items-center" : "items-start"
-                }`}
+              className={`flex gap-1 mt-2 mx-2 flex-col ${
+                arrowClicked ? "items-center" : "items-start"
+              }`}
             >
-
               {/* dashboard */}
               <div className={`w-full ${arrowClicked ? "px-0" : "px-[7px]"}`}>
                 <div
                   onClick={() => onClickSidebarMenu("Dashboard")}
-                  className={`flex items-center h-10 w-full flex-grow ${arrowClicked ? "justify-center  " : "justify-normal"
-                    } hover:bg-green-100 hover:text-[#4BB452] px-2 py-3 rounded-md gap-2 text-gray-500 text-sm font-medium cursor-pointer ${currentPath === "/dashboard"
+                  className={`flex items-center h-10 w-full flex-grow ${
+                    arrowClicked ? "justify-center  " : "justify-normal"
+                  } hover:bg-green-100 hover:text-[#4BB452] px-2 py-3 rounded-md gap-2 text-gray-500 text-sm font-medium cursor-pointer ${
+                    currentPath === "/dashboard"
                       ? "bg-[#4BB452] text-white"
                       : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                    }`}
+                  }`}
                 >
                   <CiBoxList className="w-5" />
                   {!arrowClicked && <p className="text-sm">Dashboard</p>}
@@ -211,11 +210,11 @@ const Sidebar = () => {
                   className={`flex items-center w-full flex-grow
 ${arrowClicked ? "justify-center" : "justify-normal"}
 px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-${currentPath === "/pssattendance"
-                      ? "bg-[#4BB452] text-white"
-                      : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                    }`}
-
+${
+  currentPath === "/pssattendance"
+    ? "bg-[#4BB452] text-white"
+    : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+}`}
                 >
                   <FaBuilding className="w-5" />
 
@@ -234,10 +233,11 @@ ${currentPath === "/pssattendance"
                 {/* PSS Submenu */}
                 {!arrowClicked && (
                   <div
-                    className={`overflow-hidden transition-all duration-500 ease-in-out ${currentOpen === "pss" || isPssAttendanceActive
-                      ? "max-h-50 opacity-100 mt-1"
-                      : "max-h-0 opacity-0"
-                      }`}
+                    className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                      currentOpen === "pss" || isPssAttendanceActive
+                        ? "max-h-50 opacity-100 mt-1"
+                        : "max-h-0 opacity-0"
+                    }`}
                   >
                     <div className="flex gap-2 items-start ms-8 flex-col text-sm font-medium text-gray-500">
                       <button
@@ -248,9 +248,10 @@ ${currentPath === "/pssattendance"
                           }
                         }}
                         className={`w-full text-left px-2 py-1 rounded-md transition
-                          ${isPssAttendanceActive
-                            ? "text-[#4BB452]"
-                            : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+                          ${
+                            isPssAttendanceActive
+                              ? "text-[#4BB452]"
+                              : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
                           }`}
                       >
                         Attendance
@@ -269,17 +270,19 @@ ${currentPath === "/pssattendance"
                     className={`flex items-center w-full flex-grow
       ${arrowClicked ? "justify-center" : "justify-normal"}
       px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-      ${isInterviewCandidatesActive
-                        ? "bg-[#4BB452] text-white"
-                        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                      }`}
+      ${
+        isInterviewCandidatesActive
+          ? "bg-[#4BB452] text-white"
+          : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+      }`}
                   >
                     <FaUser className="w-5" />
 
                     {!arrowClicked && (
                       <div className="flex items-center justify-between w-full">
                         <span className="text-sm font-medium">Interview</span>
-                        {currentOpen === "interview" || isInterviewCandidatesActive ? (
+                        {currentOpen === "interview" ||
+                        isInterviewCandidatesActive ? (
                           <IoIosArrowUp />
                         ) : (
                           <IoIosArrowDown />
@@ -291,10 +294,12 @@ ${currentPath === "/pssattendance"
                   {/* Interview Submenu */}
                   {!arrowClicked && (
                     <div
-                      className={`overflow-hidden transition-all duration-500 ease-in-out ${currentOpen === "interview" || isInterviewCandidatesActive
-                        ? "max-h-40 opacity-100 mt-1"
-                        : "max-h-0 opacity-0"
-                        }`}
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        currentOpen === "interview" ||
+                        isInterviewCandidatesActive
+                          ? "max-h-40 opacity-100 mt-1"
+                          : "max-h-0 opacity-0"
+                      }`}
                     >
                       <div className="flex gap-2 items-start ms-8 flex-col text-sm font-medium">
                         <button
@@ -303,10 +308,11 @@ ${currentPath === "/pssattendance"
                             setCurrentOpen("interview");
                           }}
                           className={`w-full text-left px-2 py-1 rounded-md transition
-            ${isInterviewCandidatesActive
-                              ? "text-[#4BB452]"
-                              : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                            }`}
+            ${
+              isInterviewCandidatesActive
+                ? "text-[#4BB452]"
+                : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+            }`}
                         >
                           Candidates
                         </button>
@@ -316,7 +322,6 @@ ${currentPath === "/pssattendance"
                 </div>
               )}
 
-
               {/* Contract Menu */}
               {(hasPermission("employee") || hasPermission("attendance")) && (
                 <div className={`w-full ${arrowClicked ? "px-0" : "px-2"}`}>
@@ -325,18 +330,18 @@ ${currentPath === "/pssattendance"
                     className={`flex items-center w-full flex-grow
     ${arrowClicked ? "justify-center" : "justify-normal"}
     px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-    ${isAttendanceActive || isContractCandidatesActive
-                        ? "bg-[#4BB452] text-white"
-                        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                      }`}
+    ${
+      isAttendanceActive || isContractCandidatesActive
+        ? "bg-[#4BB452] text-white"
+        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+    }`}
                   >
                     <TbContract className="w-5" />
 
                     {!arrowClicked && (
                       <div className="flex items-center justify-between w-full">
                         <span className="text-sm font-medium">Contract</span>
-                        {currentOpen === "contract" ||
-                          isAttendanceActive ? (
+                        {currentOpen === "contract" || isAttendanceActive ? (
                           <IoIosArrowUp />
                         ) : (
                           <IoIosArrowDown />
@@ -348,15 +353,15 @@ ${currentPath === "/pssattendance"
                   {/* Contract Submenu */}
                   {!arrowClicked && (
                     <div
-                      className={`overflow-hidden transition-all duration-500 ease-in-out ${currentOpen === "contract" ||
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        currentOpen === "contract" ||
                         currentPath === "/employeecontract" ||
                         isAttendanceActive
-                        ? "max-h-50 opacity-100 mt-1"
-                        : "max-h-0 opacity-0"
-                        }`}
+                          ? "max-h-50 opacity-100 mt-1"
+                          : "max-h-0 opacity-0"
+                      }`}
                     >
                       <div className="flex gap-2 items-start ms-8 flex-col text-sm font-medium text-gray-500">
-
                         {hasPermission("employee") && (
                           <button
                             onClick={() => {
@@ -364,10 +369,11 @@ ${currentPath === "/pssattendance"
                               setCurrentOpen("contract");
                             }}
                             className={`w-full text-left px-2 py-1 rounded-md transition
-             ${isContractCandidatesActive
-                                ? "text-[#4BB452]"
-                                : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                              }`}
+             ${
+               isContractCandidatesActive
+                 ? "text-[#4BB452]"
+                 : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+             }`}
                           >
                             Employee
                           </button>
@@ -381,10 +387,11 @@ ${currentPath === "/pssattendance"
                               }
                             }}
                             className={`w-full text-left px-2 py-1 rounded-md transition
-                          ${isAttendanceActive
-                                ? "text-[#4BB452]"
-                                : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                              }`}
+                          ${
+                            isAttendanceActive
+                              ? "text-[#4BB452]"
+                              : "text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+                          }`}
                           >
                             Attendance
                           </button>
@@ -402,10 +409,11 @@ ${currentPath === "/pssattendance"
                   className={`flex items-center w-full flex-grow
     ${arrowClicked ? "justify-center" : "justify-normal"}
     px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-    ${currentPath === "/lead-engine"
-                      ? "bg-[#4BB452] text-white"
-                      : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                    }`}
+    ${
+      currentPath === "/lead-engine"
+        ? "bg-[#4BB452] text-white"
+        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+    }`}
                 >
                   <MdLeaderboard className="w-5 " />
 
@@ -422,12 +430,13 @@ ${currentPath === "/pssattendance"
                   className={`flex items-center w-full flex-grow
     ${arrowClicked ? "justify-center" : "justify-normal"}
     px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-    ${currentPath === "/dailywork_report"
-                      ? "bg-[#4BB452] text-white"
-                      : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                    }`}
+    ${
+      currentPath === "/dailywork_report"
+        ? "bg-[#4BB452] text-white"
+        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+    }`}
                 >
-                  <TbReport  className="w-5 " />
+                  <TbReport className="w-5 " />
 
                   {!arrowClicked && (
                     <p className="text-sm font-medium">Daily Work Report</p>
@@ -437,25 +446,25 @@ ${currentPath === "/pssattendance"
 
               {/* finance */}
 
-                <div className={`w-full ${arrowClicked ? "px-0" : "px-2"}`}>
+              {/* <div className={`w-full ${arrowClicked ? "px-0" : "px-2"}`}>
                 <div
                   onClick={() => onClickSidebarMenu("finance")}
                   className={`flex items-center w-full flex-grow
     ${arrowClicked ? "justify-center" : "justify-normal"}
     px-2 py-3 h-10 rounded-md gap-2 text-sm font-medium cursor-pointer
-    ${currentPath === "/finance"
-                      ? "bg-[#4BB452] text-white"
-                      : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
-                    }`}
+    ${
+      currentPath === "/finance"
+        ? "bg-[#4BB452] text-white"
+        : "group text-gray-500 hover:bg-green-100 hover:text-[#4BB452]"
+    }`}
                 >
-                  <GrMoney  className="w-5 " />
+                  <GrMoney className="w-5 " />
 
                   {!arrowClicked && (
                     <p className="text-sm font-medium">Finace</p>
                   )}
                 </div>
-              </div>
-
+              </div> */}
             </div>
           </div>
 
@@ -465,8 +474,9 @@ ${currentPath === "/pssattendance"
             <div className="w-full px-2">
               <div
                 onClick={() => onClickSidebarMenu("/")}
-                className={`group flex items-center w-full ${arrowClicked ? "justify-center" : "justify-normal"
-                  } px-3 py-3 rounded-full gap-3 items-center mt-1 h-10 text-center my-2 border border-black  hover:bg-[#E0E0E0] hover:border-[#E0E0E0] transition-all duration-200  cursor-pointer`}
+                className={`group flex items-center w-full ${
+                  arrowClicked ? "justify-center" : "justify-normal"
+                } px-3 py-3 rounded-full gap-3 items-center mt-1 h-10 text-center my-2 border border-black  hover:bg-[#E0E0E0] hover:border-[#E0E0E0] transition-all duration-200  cursor-pointer`}
               >
                 <div className="text-[#0D0D0D] flex items-center justify-center">
                   <MdLogout />
