@@ -47,10 +47,10 @@ const Employee_contract_details = () => {
   const [error, setError] = useState(null);
   const [employeesList, setEmployeesList] = useState([]);
   const [backendValidationError, setBackendValidationError] = useState(null);
-  const user = localStorage.getItem("pssemployee");
+  const user =JSON.parse(localStorage.getItem("pssemployee") || "null");
 
-  const userId = JSON.parse(user).id;
-  const userRole = JSON.parse(user).role_id;
+    const userId = user?.id;
+  const userRole = user?.role_id;
 
   const getTodayDate = () => {
     return new Date().toISOString().split("T")[0];
@@ -300,6 +300,7 @@ useEffect(() => {
       status: "",
       profile_picture: "",
       documents: [],
+      employee_id: "",
     };
     reset(mappedData);
     setPhoto(null);
@@ -1722,7 +1723,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           type="text"
                           name="accountNumber"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("accountName")}
+                          {...register("accountNumber")}
                           placeholder="Enter Account Number"
                         />
                         <span className="text-red-500 text-sm">

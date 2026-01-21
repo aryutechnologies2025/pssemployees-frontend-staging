@@ -717,15 +717,15 @@ const LeadManagement_Details = () => {
             });
           }}
         >
-          <option value="">Select</option>
-          <option value="open">Open</option>
-          <option value="contacted">Contacted</option>
-          <option value="interested">Interested</option>
-          <option value="not_interested">Not Interested</option>
-          <option value="customer">Customer</option>
-          <option value="bad_timing">Bad Timing</option>
-          <option value="not_picked">Not Picked</option>
-          <option value="future_lead">Future Lead</option>
+          <option value="">Select Status</option>
+            <option value="open">Open</option>
+            <option value="joined">Joined</option>
+            <option value="interested">Interested</option>
+            <option value="not_interested">Not Interested</option>
+            <option value="follow_up">Follow Up</option>
+            <option value="bad_timing">Bad Timing</option>
+            <option value="not_picked">Not Picked</option>
+            <option value="interview_scheduled">Interview Scheduled</option>
         </select>
       ),
       style: { width: "150px" },
