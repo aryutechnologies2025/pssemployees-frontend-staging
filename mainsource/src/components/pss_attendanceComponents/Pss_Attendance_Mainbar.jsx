@@ -10,44 +10,53 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { formatIndianDateTime12Hr, formatToDDMMYYYY, formatToYYYYMMDD } from "../../utils/dateformat";
+import {
+  formatIndianDateTime12Hr,
+  formatToDDMMYYYY,
+  formatToYYYYMMDD,
+} from "../../utils/dateformat";
 import axiosInstance from "../../utils/axiosConfig";
 import { Capitalise } from "../../utils/useCapitalise";
+import { reverseGeocodeOSM } from "../../utils/geoLocation";
+import { API_URL } from "../../config";
+import CameraPhoto from "../../utils/CameraPhoto";
+import { FaUserCircle } from "react-icons/fa";
 
 // Define Zod schema for form validation
 const attendanceSchema = z.object({
   shift: z.string().optional(),
   reason: z.string().min(1, "Please select a reason"),
+  selfImage: z.instanceof(File, { message: "Self image is required" }),
 });
 
 const Pss_Attendance_Mainbar = () => {
-
-
   const user = JSON.parse(localStorage.getItem("pssemployee") || "{}");
   const companyID = user.company_id;
   const EmpId = user.id;
 
   const [globalFilter, setGlobalFilter] = useState("");
-const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCurrentTime(new Date()); // Updates the Date object every minute
-  }, 60000); 
+  // show camera every minute update
+  const [selfImage, setSelfImage] = useState(null);
+  const [showCamera, setShowCamera] = useState(false);
 
-  return () => clearInterval(timer);
-}, []);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date()); // Updates the Date object every minute
+    }, 60000);
 
-
-
-
+    return () => clearInterval(timer);
+  }, []);
 
   const [data, setData] = useState([]);
-  console.log("data", data);
+  // console.log("data", data);
   const [shifts, setShifts] = useState([]);
-  console.log("shifts", shifts);
+  // console.log("shifts", shifts);
   const [error, setError] = useState(null);
   // console.log("data :", data);
+
+  const [previewImage, setPreviewImage] = useState(null);
 
   const { id: userId } = JSON.parse(localStorage.getItem("pssemployee"));
 
@@ -56,16 +65,18 @@ useEffect(() => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(attendanceSchema),
     defaultValues: {
       shift: "",
       reason: "",
+      selfImage: null,
     },
   });
 
   const [reason, setReason] = useState(null);
-  console.log("reason", reason);
+  // console.log("reason", reason);
 
   const fetchData = async () => {
     try {
@@ -91,7 +102,6 @@ useEffect(() => {
         setShifts(res.data.data);
 
         // console.log("shifts", shifts);
-
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -103,7 +113,50 @@ useEffect(() => {
     fetchShipt();
   }, []);
 
- 
+  const LocationCell = ({ lat, lng }) => {
+    const [location, setLocation] = useState("Loading...");
+
+    useEffect(() => {
+      if (!lat || !lng) {
+        setLocation("Loading...");
+        return;
+      }
+
+      reverseGeocodeOSM(lat, lng).then(setLocation);
+    }, [lat, lng]);
+
+    return (
+      <span className="text-sm text-gray-700">
+        {/* {location.fullAddress || "-"} */}
+        {location && location.fullAddress ? (
+          <div className="text-sm text-gray-600 mt-2">
+            <div>
+              <span>
+                <b>Address:</b> {location?.area},{" "}
+              </span>
+              <span>
+                <b>City:</b> {location?.city},{" "}
+              </span>
+              <span>
+                <b>State:</b> {location?.state},{" "}
+              </span>
+            </div>
+            <div>
+              <span>
+                <b>Country:</b> {location?.country},{" "}
+              </span>
+              <span>
+                <b>Pincode:</b> {location?.pincode}.
+              </span>
+            </div>
+          </div>
+        ) : (
+          "-"
+        )}
+      </span>
+    );
+  };
+
   function extractTimeFromDateTime(dateTimeStr) {
     if (!dateTimeStr) return "";
     const parts = dateTimeStr.split(" ");
@@ -116,22 +169,46 @@ useEffect(() => {
   // Submit handler
   const onSubmit = async (data) => {
     try {
-      const newData = {
-        attendance_date: formatToYYYYMMDD(new Date()),
-        attendance_time: extractTimeFromDateTime(currentTime),
-        employee_id: userId,
-        reason: data.reason,
-        // shift: data.shift,
-      };
+      console.log("Form Data Submitted: ", data);
+      // const newData = {
+      //   attendance_date: formatToYYYYMMDD(new Date()),
+      //   attendance_time: extractTimeFromDateTime(currentTime),
+      //   employee_id: userId,
+      //   reason: data.reason,
+      //   // shift: data.shift,
+      // };
+
+      // const res = await axiosInstance.post(
+      //   `api/employee/emp-attendance/create`,
+      //   newData
+      // );
+      const geo = await getCurrentLocation();
+      const formData = new FormData();
+      formData.append("reason", data.reason);
+      formData.append("dateTime", currentTime);
+      formData.append("employee_id", userId);
+      formData.append("attendance_date", formatToYYYYMMDD(new Date()));
+      formData.append("attendance_time", extractTimeFromDateTime(currentTime));
+      formData.append("latitude", geo.latitude);
+      formData.append("longitude", geo.longitude);
+      formData.append("accuracy", geo.accuracy);
+      formData.append("profile_picture", data.selfImage); // file
 
       const res = await axiosInstance.post(
         `api/employee/emp-attendance/create`,
-        newData
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
+
       if (res.data.success) {
         toast.success("Attendance submitted!");
         fetchData();
         reset();
+        setSelfImage(null);
       } else {
         setError(res.data.message);
         toast.error(res.data.message);
@@ -142,25 +219,121 @@ useEffect(() => {
     }
   };
 
-  const columns = [
-    { field: "attendance_date", header: "Date",
-      body: (row) => formatToDDMMYYYY(row.attendance_date),
-     },
-{
-  header: "Time",
-  field: "attendance_time",
-  body: (row) => formatTime(row.attendance_time),
-},
-    {
-      field: "reason", header: "Reason",
-      body: (row) => Capitalise(row.reason || "-")
+  // const columns = [
+  //   {
+  //     field: "attendance_date",
+  //     header: "Date",
+  //     body: (row) => formatToDDMMYYYY(row.attendance_date),
+  //   },
+  //   {
+  //     header: "Time",
+  //     field: "attendance_time",
+  //     body: (row) => formatTime(row.attendance_time),
+  //   },
+  //   {
+  //     field: "reason",
+  //     header: "Reason",
+  //     body: (row) => Capitalise(row.reason || "-"),
+  //   },
+  //   // {
+  //   //   field: "shift",
+  //   //   header: "Shift",
+  //   //   body: (row) => row.shift?.shift_name || "-"
+  //   // }
+  // ];
 
+  //   const columns = [
+  //   {
+  //     field: "attendance_date",
+  //     header: "Date",
+  //     body: (row) => formatToDDMMYYYY(row.attendance_date),
+  //   },
+  //   {
+  //     header: "Time",
+  //     field: "attendance_time",
+  //     body: (row) => formatTime(row.attendance_time),
+  //   },
+  //   {
+  //     field: "reason",
+  //     header: "Reason",
+  //     body: (row) => Capitalise(row.reason || "-"),
+  //   },
+  //   {
+  //     header: "Location",
+  //     body: (row) => (
+  //       <LocationCell
+  //         lat={row.latitude}
+  //         lng={row.longitude}
+  //       />
+  //     ),
+  //   },
+  // //   {
+  // //   header: "Map",
+  // //   body: (row) => (
+  // //     <a
+  // //       href={`https://www.google.com/maps?q=${row.latitude},${row.longitude}`}
+  // //       target="_blank"
+  // //       rel="noreferrer"
+  // //       className="text-blue-600 underline text-sm"
+  // //     >
+  // //       View
+  // //     </a>
+  // //   ),
+  // // }
+
+  // ];
+  const columns = [
+    {
+      field: "attendance_date",
+      header: "Date",
+      body: (row) => formatToDDMMYYYY(row.attendance_date),
     },
+    {
+      header: "Time",
+      field: "attendance_time",
+      body: (row) => formatTime(row.attendance_time),
+    },
+    {
+      field: "reason",
+      header: "Reason",
+      body: (row) => Capitalise(row.reason || "-"),
+    },
+    {
+      header: "Location",
+      body: (row) => <LocationCell lat={row.latitude} lng={row.longitude} />,
+    },
+    {
+      header: "Selfie",
+      body: (row) =>
+        row.photo ? (
+          <div className="flex items-center justify-center">
+            <img
+              src={`${API_URL}${row.photo}`}
+              alt="Selfie"
+              className="w-20 h-20 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
+              onClick={() => setPreviewImage(`${API_URL}${row.photo}`)}
+              onError={(e) => (e.target.src = "/user-placeholder.png")}
+            />
+          </div>
+        ) : (
+          "-"
+        ),
+    },
+
+    // OPTIONAL: Map link
     // {
-    //   field: "shift",
-    //   header: "Shift",
-    //   body: (row) => row.shift?.shift_name || "-"
-    // }
+    //   header: "Map",
+    //   body: (row) => (
+    //     <a
+    //       href={`https://www.google.com/maps?q=${row.latitude},${row.longitude}`}
+    //       target="_blank"
+    //       rel="noreferrer"
+    //       className="text-blue-600 underline text-sm"
+    //     >
+    //       View
+    //     </a>
+    //   ),
+    // },
   ];
 
   useEffect(() => {
@@ -191,6 +364,29 @@ useEffect(() => {
     const ampm = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 || 12;
     return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // geolocation useEffect
+  const getCurrentLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject("Geolocation not supported");
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+          });
+        },
+        (err) => {
+          reject(err.message);
+        },
+        { enableHighAccuracy: true },
+      );
+    });
   };
 
   return (
@@ -304,30 +500,106 @@ useEffect(() => {
 
                     {reason === "login" ? (
                       <>
-                        <option value="breakout" className="cursor-pointer">Break Out</option>
-                        <option value="logout" className="cursor-pointer">Logout</option>
+                        <option value="breakout" className="cursor-pointer">
+                          Break Out
+                        </option>
+                        <option value="logout" className="cursor-pointer">
+                          Logout
+                        </option>
                       </>
                     ) : reason === "breakout" ? (
                       <>
-                        <option value="breakin" className="cursor-pointer">Break In</option>
+                        <option value="breakin" className="cursor-pointer">
+                          Break In
+                        </option>
                         {/* <option value="Logout">Logout</option> */}
                       </>
                     ) : reason === "breakin" ? (
                       <>
-                        <option value="breakout" className="cursor-pointer">Break Out</option>
-                        <option value="logout" className="cursor-pointer">Logout</option>
+                        <option value="breakout" className="cursor-pointer">
+                          Break Out
+                        </option>
+                        <option value="logout" className="cursor-pointer">
+                          Logout
+                        </option>
                       </>
                     ) : (
-                      <option value="login" className="cursor-pointer">Login</option>
+                      <option value="login" className="cursor-pointer">
+                        Login
+                      </option>
                     )}
                   </select>
                 </div>
                 {/* Display reason error if exists */}
                 {errors.reason && (
-                  <p className="text-red-500 text-sm mt-1 ml-40">
+                  <p className="text-red-500 text-sm mt-1 ml-48">
                     {errors.reason.message}
                   </p>
                 )}
+
+                {/* Self Image */}
+                <div className="flex flex-col lg:flex-row gap-x-8 justify-between items-start">
+                  <p>Self Image</p>
+
+                  <div className="w-full py-1 px-2 md:w-96">
+                    {/* Preview */}
+                    {selfImage ? (
+                      <img
+                        src={URL.createObjectURL(selfImage)}
+                        alt="Selfie"
+                        className="w-24 h-24 rounded-full r object-fill border"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-gray-100">
+                        <FaUserCircle className="text-gray-400 w-16 h-16" />
+                      </div>
+                    )}
+
+                    {/* Buttons */}
+                    <div className="flex gap-2 mt-2">
+                      {/* Camera */}
+                      <button
+                        type="button"
+                        onClick={() => setShowCamera(true)}
+                        className="bg-blue-600 text-white px-3 py-1 rounded"
+                      >
+                        {selfImage ? "Retake Selfie" : "Take Selfie"}
+                      </button>
+
+                      {/* Upload */}
+                      <label className="bg-gray-600 text-white px-3 py-1 rounded cursor-pointer">
+                        Upload
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setSelfImage(file);
+                              setValue("selfImage", file, {
+                                shouldValidate: true,
+                              });
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {/* {errors.selfImage && (
+                      <p className="text-red-500 text-sm">
+                        {errors.selfImage.message}
+                      </p>
+                    )} */}
+                  </div>
+                </div>
+
+                {errors.selfImage && (
+                  <p className="text-red-500 text-sm mt-1  ml-48">
+                    {errors.selfImage.message}
+                  </p>
+                )}
+
                 {error && (
                   <p className="text-red-500 text-sm mt-1 ml-40">{error}</p>
                 )}
@@ -341,6 +613,17 @@ useEffect(() => {
                 </div>
               </div>
             </div>
+            {/* Camera Modal */}
+            {showCamera && (
+              <CameraPhoto
+                onCapture={(file) => {
+                  setSelfImage(file);
+                  setValue("selfImage", file, { shouldValidate: true });
+                  setShowCamera(false);
+                }}
+                onClose={() => setShowCamera(false)}
+              />
+            )}
           </form>
         </div>
 
@@ -382,6 +665,33 @@ useEffect(() => {
           </DataTable>
         </div>
       </div>
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
+          onClick={() => setPreviewImage(null)} // click outside closes
+        >
+          {/* Full Image Container */}
+          <div className="relative">
+            {/* Close Button Top Right */}
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute -top-1 right-2 text-red-400 text-3xl font-bold hover:text-red-500 z-10"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* Full Image */}
+            <img
+              src={previewImage}
+              alt="Full selfie"
+              className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-lg"
+              onClick={(e) => e.stopPropagation()} // Prevent modal close when clicking image
+            />
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

@@ -755,7 +755,7 @@ const removeDocument = (index) => {
       
       setEditData(normalizedData);
       setSelectedEducation(normalizedData.education || null);
-
+  
    if (normalizedData.profile_picture) {
         // If it's already a full URL, use it; otherwise, append base URL
         const imageUrl = normalizedData.profile_picture.startsWith('http') 

@@ -86,7 +86,6 @@ const Login = () => {
               <p className="text-black font-semibold text-xl md:text-2xl">
                 EMPLOYEE LOGIN
               </p>
-
               <div className="w-full max-w-sm flex items-center gap-3 bg-[#F8F9FB] px-5 py-4 rounded-xl shadow-sm border border-gray-200">
                 <LuUser className="text-2xl text-gray-500" />
                 <input
@@ -107,7 +106,6 @@ const Login = () => {
                   {errors.email.message}
                 </p>
               )}
-
               {/* Password Field */}
               <div className="relative w-full max-w-sm flex items-center gap-3 bg-[#F8F9FB] px-5 py-4 mt-4 rounded-xl shadow-sm border border-gray-200">
                 <SlLock className="text-2xl text-gray-500" />
@@ -134,13 +132,11 @@ const Login = () => {
                   )}
                 </span>
               </div>
-
               {errors?.password && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.password.message}
                 </p>
               )}
-
               {apiError && (
                 <div className="text-red-500 text-sm mt-1">{apiError}</div>
               )}
@@ -159,7 +155,6 @@ const Login = () => {
                 {requiredError}
               </p>
             )} */}
-
               <button
                 type="submit"
                 disabled={isLoading}
