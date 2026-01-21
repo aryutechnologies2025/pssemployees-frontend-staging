@@ -1,7 +1,7 @@
 export const reverseGeocodeOSM = async (lat, lng) => {
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
       {
         headers: {
           "User-Agent": "attendance-app/1.0",
@@ -10,29 +10,48 @@ export const reverseGeocodeOSM = async (lat, lng) => {
     );
 
     const data = await res.json();
+    if (!data?.address) return null;
 
-    if (!data || !data.address) return null;
+    const a = data.address;
+    console.log("OSM reverse geocode data:", data);
 
     return {
-      fullAddress: data.display_name,
-      area:
-        data.address.suburb ||
-        data.address.neighbourhood ||
+      fullAddress: data.display_name || "",
+
+      // ⭐ IMPORTANT FIX
+      address:a.neighbourhood || a.suburb ||
+        a.quarter ,
+      landmark:
+        a.amenity ||
+        a.shop ||
+        a.office ||
+        a.tourism ||
+        a.building ||
+        a.residential ||   // ✅ REQUIRED
+        a.suburb ||
         "",
-      city:
-        data.address.city ||
-        data.address.town ||
-        data.address.village ||
+
+      building: a.building || "",
+      road: a.road || a.pedestrian || a.footway || "",
+      locality:
+        a.suburb ||
+        a.neighbourhood ||
+        a.quarter ||
+        a.residential ||   // ✅ REQUIRED
         "",
-      state: data.address.state || "",
-      country: data.address.country || "",
-      pincode: data.address.postcode || "",
+
+      placeType: a.residential ? "residential" : a.amenity ? "amenity" : "",
+      city: a.city || a.town || a.village || "",
+      state: a.state || "",
+      country: a.country || "",
+      pincode: a.postcode || "",
     };
   } catch (error) {
     console.error("OSM reverse geocode failed", error);
     return null;
   }
 };
+
 
 
 

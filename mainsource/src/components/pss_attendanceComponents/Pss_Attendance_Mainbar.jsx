@@ -131,17 +131,32 @@ const Pss_Attendance_Mainbar = () => {
         {location && location.fullAddress ? (
           <div className="text-sm text-gray-600 mt-2">
             <div>
-              <span>
-                <b>Address:</b> {location?.area},{" "}
+               <span>
+                <b>neighbourhood:</b> {location?.address},{" "}
               </span>
-              <span>
-                <b>City:</b> {location?.city},{" "}
+               <span>
+                <b>Locality:</b> {location?.locality},{" "}
               </span>
-              <span>
-                <b>State:</b> {location?.state},{" "}
+               {/* <span>
+                <b>Building:</b> {location?.building},{" "}
               </span>
+               <span>
+                <b>Road:</b> {location?.road},{" "}
+              </span> */}
+               {/* <span>
+                <b>Locality:</b> {location?.locality},{" "}
+              </span> */}
+             
+            
+             
             </div>
             <div>
+                <span>
+                <b>City:</b> {location?.city},{" "}
+              </span>
+               <span>
+                <b>State:</b> {location?.state},{" "}
+              </span>
               <span>
                 <b>Country:</b> {location?.country},{" "}
               </span>
@@ -310,7 +325,7 @@ const Pss_Attendance_Mainbar = () => {
             <img
               src={`${API_URL}${row.photo}`}
               alt="Selfie"
-              className="w-20 h-20 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
+              className="w-20 h-20 rounded-full object-fit border cursor-pointer hover:scale-105 transition"
               onClick={() => setPreviewImage(`${API_URL}${row.photo}`)}
               onError={(e) => (e.target.src = "/user-placeholder.png")}
             />
