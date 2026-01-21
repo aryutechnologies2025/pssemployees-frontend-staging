@@ -671,6 +671,8 @@ setShiftOptions(
                   <span className=" text-[#6B7280]">Entries Per Page</span>
                 </div>
 
+                
+
                 <div className="relative">
                   <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <InputText

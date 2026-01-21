@@ -7,7 +7,6 @@ const Attendance_Edit_Main = () => {
       <div className="bg-gray-100 md:bg-white">
         <Sidebar />
       </div>
-
       <Attendance_Edit_Details />
     </div>
   );
