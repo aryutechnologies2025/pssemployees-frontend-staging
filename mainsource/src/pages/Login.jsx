@@ -1,4 +1,5 @@
 import login_image from "../assets/login_image.svg";
+import login_img_pss from "../assets/login_img_pss.png";
 import { SlLock } from "react-icons/sl";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
@@ -73,7 +74,7 @@ const Login = () => {
             src="/pssAgenciesLogo.svg"
             alt="PSS Logo"
             className="w-40 md:w-72 h-auto mx-auto mb-2 md:mt-7"
-          /> welcome
+          />
           {/* <h1 className="font-bold text-2xl md:text-4xl text-blue-500">PSS</h1> */}
         </div>
 
@@ -196,8 +197,9 @@ const Login = () => {
               </button>
             </div>
           </form>
-          <div className="basis-[50%]  ">
+           <div className="basis-[50%]  ">
             <img src={login_image} alt="" />
+            {/* <img src={login_img_pss} alt="" className="h-[500px] "/> */}
           </div>
         </div>
       </div>
