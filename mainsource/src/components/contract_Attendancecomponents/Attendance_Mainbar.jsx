@@ -1,11 +1,8 @@
-
 import { MdArrowForwardIos, MdOutlineDeleteOutline } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  FaEye,
-} from "react-icons/fa";
+import { FaEye } from "react-icons/fa";
 
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -28,16 +25,15 @@ import Footer from "../Footer";
 import { formatToDDMMYYYY } from "../../utils/dateformat";
 import { IoIosArrowForward } from "react-icons/io";
 const Attendance_Mainbar = () => {
-  const storedUser = JSON.parse(
-    localStorage.getItem("pssemployee") || "{}"
-  );
-
+  const storedUser = JSON.parse(localStorage.getItem("pssemployee") || "{}");
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedClient, setSelectedClient] = useState("");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [filterDate, setFilterDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
@@ -53,33 +49,32 @@ const Attendance_Mainbar = () => {
   const [companies, setCompanies] = useState([]);
   // console.log("company", companies)
   const [attendanceData, setAttendanceData] = useState([]);
-  console.log("attendance table:", attendanceData)
+  console.log("attendance table:", attendanceData);
   const [createdbyData, setCreatedbyData] = useState([]);
 
   // import
-   const [isImportAddModalOpen, setIsImportAddModalOpen] = useState(false);
-    const fileInputRef = useRef(null);
-     const fileInputRefEdit = useRef(null);
-     const [selectedFile, setSelectedFile] = useState(null);
-     const [attachment, setAttachment] = useState(null);
-   
-       const [error, setError] = useState({});
+  const [isImportAddModalOpen, setIsImportAddModalOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const fileInputRefEdit = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [attachment, setAttachment] = useState(null);
 
+  const [error, setError] = useState({});
 
   const fetchCompaniesAttendance = async () => {
     const empId = storedUser?.id || [];
 
     try {
-
-      const res = await axiosInstance.get(`${API_URL}api/employee/contract-emp/attendance`,
+      const res = await axiosInstance.get(
+        `${API_URL}api/employee/contract-emp/attendance`,
         {
           params: {
             from_date: filterStartDate,
             to_date: filterEndDate,
             employee_id: empId,
-            emp_company_id: filterCompanyname
-          }
-        }
+            emp_company_id: filterCompanyname,
+          },
+        },
       );
       console.log("res", res);
 
@@ -89,17 +84,14 @@ const Attendance_Mainbar = () => {
         name: company.company?.company_name || "-",
         attendanceDate: company.attendance_date,
 
-        shifts:company?.details[0]?.shifts?.map((shift) =>
-
-             shift.shift_name) || [],
-        employee: company.employee
+        shifts:
+          company?.details[0]?.shifts?.map((shift) => shift.shift_name) || [],
+        employee: company.employee,
       }));
-
 
       const companyOptions = res?.data?.companies.map((company) => ({
         id: company?.id,
         name: company?.company_name,
-
       }));
       // console.log("companyData", companyData)
 
@@ -107,7 +99,6 @@ const Attendance_Mainbar = () => {
 
       setCreatedbyData(res?.data?.createdby || []);
       setAttendanceData(companyData);
-
     } catch (err) {
       console.error("Error fetching companies", err);
       // setAttendanc
@@ -128,13 +119,11 @@ const Attendance_Mainbar = () => {
       const res = await axiosInstance.get(
         `${API_URL}api/employee/contract-emp/companylist`,
         {
-
           params: { emp_company_id: empCompanyId.join(",") },
-        }
+        },
       );
 
-
-      const companyOptions = res?.data?.data?.map(company => ({
+      const companyOptions = res?.data?.data?.map((company) => ({
         id: company.id,
         name: company.company_name,
       }));
@@ -150,7 +139,6 @@ const Attendance_Mainbar = () => {
     fetchAssignedCompaniesForFilter();
   }, []);
 
-
   const [filterStartDate, setFilterStartDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
   });
@@ -160,24 +148,21 @@ const Attendance_Mainbar = () => {
   const [filterCreatedBy, setFilterCreatedBy] = useState(null);
   const [filterCompanyname, setFilterCompanyname] = useState(null);
 
-
   const handleApplyFilter = () => {
     console.log({
       filterStartDate,
       filterEndDate,
       filterCreatedBy,
-      filterCompanyname
+      filterCompanyname,
     });
     fetchCompaniesAttendance();
   };
-
 
   const handleResetFilter = () => {
     setFilterStartDate(null);
     setFilterEndDate(null);
     setFilterCreatedBy("");
     setFilterCompanyname("");
-
   };
 
   function onClickaddadtence() {
@@ -210,7 +195,7 @@ const Attendance_Mainbar = () => {
   //       );
 
   //       const totalEmployees = companyData.length;
-  //       const presentCount = companyData.filter(item => 
+  //       const presentCount = companyData.filter(item =>
   //         item.attendance === "present" || item.attendance === "half-day"
   //       ).length;
   //       const absentCount = companyData.filter(item => item.attendance === "absent").length;
@@ -237,17 +222,16 @@ const Attendance_Mainbar = () => {
   //     }
   //   };
 
-
   // View Handler - Navigate to view page
   const handleView = (id) => {
-    const record = attendanceData.find(item => item.id === id);
+    const record = attendanceData.find((item) => item.id === id);
     if (record) {
       navigate(`/contractattendance-view/${id}`, {
         state: {
           company: record.companyName,
           date: record.date,
-          attendanceId: id
-        }
+          attendanceId: id,
+        },
       });
     }
   };
@@ -259,7 +243,7 @@ const Attendance_Mainbar = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       // setAttendanceData(response?.data?.data);
       setAttendanceCount(response?.data?.count);
@@ -274,20 +258,19 @@ const Attendance_Mainbar = () => {
     }
   };
 
-
   // Delete Handler
   const handleDelete = async (id) => {
-    const record = attendanceData.find(item => item.id === id);
+    const record = attendanceData.find((item) => item.id === id);
 
     Swal.fire({
-      title: 'Delete Attendance Record?',
+      title: "Delete Attendance Record?",
       text: `Are you sure you want to delete attendance record ?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel'
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -297,7 +280,6 @@ const Attendance_Mainbar = () => {
           fetchCompaniesAttendance();
 
           toast.success("Attendance record deleted successfully!");
-
         } catch (error) {
           console.error("Delete error:", error);
           toast.error("Failed to delete attendance record");
@@ -308,20 +290,17 @@ const Attendance_Mainbar = () => {
 
   // Edit Handler - Navigate to edit page
   const handleEdit = (id) => {
-    const record = attendanceData.find(item => item.id === id);
+    const record = attendanceData.find((item) => item.id === id);
     if (record) {
       navigate(`/contractattendance-edit/${id}`, {
         state: {
           company: record.companyName,
           date: record.date,
-          attendanceId: id
-        }
+          attendanceId: id,
+        },
       });
     }
   };
-
-
-
 
   useEffect(() => {
     const date = new Date().toISOString().split("T")[0];
@@ -337,7 +316,7 @@ const Attendance_Mainbar = () => {
   const closeAddModal = () => {
     setIsAddModalOpen(false);
     setTimeout(() => setIsAddModalOpen(false), 250);
-  }
+  };
   const [errors, setErrors] = useState({});
   const handleSubmit = async () => {
     const newErrors = {};
@@ -360,13 +339,12 @@ const Attendance_Mainbar = () => {
     const payload = {
       company_id: selectedCompany,
       date: selectedDate,
-      created_by: JSON.parse(localStorage.getItem("pssemployee"))?.username || "admin",
+      created_by:
+        JSON.parse(localStorage.getItem("pssemployee"))?.username || "admin",
     };
 
     try {
       setLoading(true);
-
-
 
       if (response.data.success || response.data.status) {
         toast.success("Attendance added successfully");
@@ -390,8 +368,6 @@ const Attendance_Mainbar = () => {
     setErrors({});
   };
 
-
-
   const handleSelectAll = () => {
     setSelectedUsers(attendanceData.map((item) => item.id));
   };
@@ -402,13 +378,9 @@ const Attendance_Mainbar = () => {
 
   const handleAttendanceChange = (id, value) => {
     setAttendanceData((prev) =>
-      prev.map((emp) =>
-        emp.id === id ? { ...emp, attendance: value } : emp
-      )
+      prev.map((emp) => (emp.id === id ? { ...emp, attendance: value } : emp)),
     );
   };
-
-
 
   const columns = [
     // {
@@ -530,7 +502,7 @@ const Attendance_Mainbar = () => {
             ))}
           </div>
         );
-      }
+      },
     },
     // {
     //   field: "createdBy",
@@ -552,7 +524,8 @@ const Attendance_Mainbar = () => {
 
           <button
             onClick={() => handleEdit(row.id)}
-            className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]">
+            className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
+          >
             <TfiPencilAlt />
           </button>
 
@@ -566,7 +539,7 @@ const Attendance_Mainbar = () => {
       ),
       style: { textAlign: "center" },
       fixed: "true",
-    }
+    },
   ];
 
   // Chart data for pie chart
@@ -574,40 +547,36 @@ const Attendance_Mainbar = () => {
     if (!attendanceStats) return null;
 
     return {
-      labels: ['Present', 'Absent'],
+      labels: ["Present", "Absent"],
       datasets: [
         {
-          data: [
-            attendanceStats.presentCount,
-            attendanceStats.absentCount,
-          ],
-          backgroundColor: ['#4BB452', '#DC2626'],
+          data: [attendanceStats.presentCount, attendanceStats.absentCount],
+          backgroundColor: ["#4BB452", "#DC2626"],
           borderWidth: 1,
         },
       ],
     };
   };
 
-
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom',
+        position: "bottom",
       },
       tooltip: {
         callbacks: {
           label: function (context) {
-            const label = context.label || '';
+            const label = context.label || "";
             const value = context.raw || 0;
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
             const percentage = Math.round((value / total) * 100);
             return `${label}: ${value} (${percentage}%)`;
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   };
 
   let navigate = useNavigate();
@@ -660,112 +629,110 @@ const Attendance_Mainbar = () => {
     });
   }
 
-   const openImportAddModal = () => {
+  const openImportAddModal = () => {
     setIsImportAddModalOpen(true);
     setTimeout(() => setIsAnimating(true), 10);
   };
-   const closeImportAddModal = () => {
+  const closeImportAddModal = () => {
     setIsAnimating(false);
     setTimeout(() => setIsImportAddModalOpen(false), 250);
   };
 
-   const handleFileChange = (e) => {
-      // if (e.target.files[0]) {
-      //     setSelectedFile(e.target.files[0]);
-      // }
-      const file = e.target.files[0];
-      if (!file) return;
-  
-      // Validate file type
-      const allowedTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-excel",
-        ".xlsx",
-        ".xls",
-        ".csv",
-      ];
-  
-      const fileExtension = file.name.split(".").pop().toLowerCase();
-  
-      if (
-        !allowedTypes.includes(file.type) &&
-        !["xlsx", "xls", "csv"].includes(fileExtension)
-      ) {
-        toast.error("Please upload an Excel file (.xlsx or .xls or .csv)");
-        e.target.value = ""; // Clear the input
-        return;
-      }
-  
-      setSelectedFile(file);
-      setAttachment(file);
-  
-      // clear previous errors
-      setError((prev) => ({ ...prev, file: "" }));
-    };
-      const handleFileSubmit = async (e) => {
-      e.preventDefault();
-    
-      setError({ file: "", date: "", company: "", import: [] });
-    
-      if (!selectedFile || !selectedCompany) {
-        toast.error("Company and file are required");
-        return;
-      }
-    
-      try {
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        formData.append("company_id", Number(selectedCompany));
-        formData.append("created_by", userId);
-    
-        const response = await axiosInstance.post(
-          `${API_URL}api/attendance/import`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
+  const handleFileChange = (e) => {
+    // if (e.target.files[0]) {
+    //     setSelectedFile(e.target.files[0]);
+    // }
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      ".xlsx",
+      ".xls",
+      ".csv",
+    ];
+
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+
+    if (
+      !allowedTypes.includes(file.type) &&
+      !["xlsx", "xls", "csv"].includes(fileExtension)
+    ) {
+      toast.error("Please upload an Excel file (.xlsx or .xls or .csv)");
+      e.target.value = ""; // Clear the input
+      return;
+    }
+
+    setSelectedFile(file);
+    setAttachment(file);
+
+    // clear previous errors
+    setError((prev) => ({ ...prev, file: "" }));
+  };
+  const handleFileSubmit = async (e) => {
+    e.preventDefault();
+
+    setError({ file: "", date: "", company: "", import: [] });
+
+    if (!selectedFile || !selectedCompany) {
+      toast.error("Company and file are required");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("company_id", Number(selectedCompany));
+      formData.append("created_by", userId);
+
+      const response = await axiosInstance.post(
+        `${API_URL}api/attendance/import`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+
+      //  SUCCESS HANDLING
+      if (response.data.success || response.data.status) {
+        toast.success(
+          response.data.message || "Attendance imported successfully!",
         );
-    
-        //  SUCCESS HANDLING
-        if (response.data.success || response.data.status) {
-          toast.success(response.data.message || "Attendance imported successfully!");
-    
-          // Reset UI
-          handleDeleteFile();
-          setSelectedCompany(null);
-          setSelectedDate(new Date().toISOString().split("T")[0]);
-          closeImportAddModal();
-          fetchCompaniesAttendance();
-    
-          return; 
-        }
-        toast.error(response.data.message || "Import failed");
-    
-      } catch (err) {
-        console.error("Import error:", err);
-    
-        const msg =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Upload failed";
-    
-        toast.error(msg);
+
+        // Reset UI
+        handleDeleteFile();
+        setSelectedCompany(null);
+        setSelectedDate(new Date().toISOString().split("T")[0]);
+        closeImportAddModal();
+        fetchCompaniesAttendance();
+
+        return;
       }
-    };
+      toast.error(response.data.message || "Import failed");
+    } catch (err) {
+      console.error("Import error:", err);
+
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Upload failed";
+
+      toast.error(msg);
+    }
+  };
 
   return (
     <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-5">
-
       {loading ? (
         <Loader />
       ) : (
         <>
           <div>
-
             <div className=" cursor-pointer ">
               <Mobile_Sidebar />
             </div>
 
             {/* Breadcrumbs */}
-
             <div className="flex gap-1 items-center cursor-pointer">
               <ToastContainer position="top-right" autoClose={3000} />
               <p
@@ -778,8 +745,6 @@ const Attendance_Mainbar = () => {
 
               <p className="text-xs md:text-sm   text-[#1ea600]">Attendance</p>
             </div>
-
-
 
             {/* <div className="flex  justify-between w-full mt-1 md:mt-5 h-auto  rounded-2xl bg-white shadow-lg px-2 py-2 md:px-6 md:py-6 ">
 
@@ -860,7 +825,6 @@ const Attendance_Mainbar = () => {
                   </select>
                 </div>
 
-
                 {/* Created By */}
                 {/* <div className="flex flex-col gap-1">
                   <label className="block text-sm font-medium text-[#6B7280]">
@@ -883,7 +847,6 @@ const Attendance_Mainbar = () => {
                  
                 </div> */}
 
-
                 {/* Buttons */}
                 <div className="w-full flex gap-4">
                   <button
@@ -903,9 +866,11 @@ const Attendance_Mainbar = () => {
               {/* </div> */}
             </div>
             {/* data table */}
-            <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white 
+            <div
+              className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white 
 shadow-[0_8px_24px_rgba(0,0,0,0.08)] 
-px-2 py-2 md:px-6 md:py-6">
+px-2 py-2 md:px-6 md:py-6"
+            >
               <div className="datatable-container">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                   {/* Entries per page */}
@@ -913,11 +878,16 @@ px-2 py-2 md:px-6 md:py-6">
                     {/* <span className="font-semibold text-base text-[#6B7280]">Show</span> */}
                     <Dropdown
                       value={rows}
-                      options={[10, 25, 50, 100].map((v) => ({ label: v, value: v }))}
+                      options={[10, 25, 50, 100].map((v) => ({
+                        label: v,
+                        value: v,
+                      }))}
                       onChange={(e) => setRows(e.value)}
                       className="w-20 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                     />
-                    <span className=" text-sm text-[#6B7280]">Entries Per Page</span>
+                    <span className=" text-sm text-[#6B7280]">
+                      Entries Per Page
+                    </span>
                   </div>
 
                   {/* <input
@@ -933,8 +903,6 @@ px-2 py-2 md:px-6 md:py-6">
                 /> */}
 
                   <div className="flex items-center gap-11">
-
-
                     {/* Search box */}
                     <div className="relative w-64">
                       <FiSearch
@@ -945,14 +913,12 @@ px-2 py-2 md:px-6 md:py-6">
                       <InputText
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
-
                         placeholder="Search......"
                         className="w-full pl-10 pr-3 py-2 rounded-md border text-sm border-[#D9D9D9] 
                focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-
                       />
                     </div>
-                     <div className="flex items-center">
+                    <div className="flex items-center">
                       <button
                         onClick={openImportAddModal}
                         className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium w-20 rounded-lg"
@@ -962,7 +928,7 @@ px-2 py-2 md:px-6 md:py-6">
                     </div>
 
                     <button
-                      onClick={() => navigate('/attendance-add')}
+                      onClick={() => navigate("/attendance-add")}
                       className="px-2 py-2  text-white bg-[#4BB452] hover:bg-[#5FD367] font-medium   w-fit rounded-lg transition-all duration-200"
                     >
                       + Add Attendance
@@ -1010,7 +976,9 @@ px-2 py-2 md:px-6 md:py-6">
                 <div className="relative z-50 bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold text-gray-800">Attendance Details</h2>
+                      <h2 className="text-2xl font-bold text-gray-800">
+                        Attendance Details
+                      </h2>
                       <button
                         onClick={() => setIsViewModalOpen(false)}
                         className="text-gray-400 hover:text-gray-600 text-2xl font-bold p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -1024,15 +992,21 @@ px-2 py-2 md:px-6 md:py-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <p className="text-sm text-gray-600">Company Name</p>
-                          <p className="text-lg font-semibold">{attendanceStats.companyName}</p>
+                          <p className="text-lg font-semibold">
+                            {attendanceStats.companyName}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Date</p>
-                          <p className="text-lg font-semibold">{attendanceStats.date}</p>
+                          <p className="text-lg font-semibold">
+                            {attendanceStats.date}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Created By</p>
-                          <p className="text-lg font-semibold">{attendanceStats.createdBy}</p>
+                          <p className="text-lg font-semibold">
+                            {attendanceStats.createdBy}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1041,10 +1015,15 @@ px-2 py-2 md:px-6 md:py-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                       {/* Pie Chart */}
                       <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h3 className="text-lg font-semibold mb-4">Attendance Distribution</h3>
+                        <h3 className="text-lg font-semibold mb-4">
+                          Attendance Distribution
+                        </h3>
                         <div className="h-64">
                           {getChartData() && (
-                            <Doughnut data={getChartData()} options={chartOptions} />
+                            <Doughnut
+                              data={getChartData()}
+                              options={chartOptions}
+                            />
                           )}
                         </div>
                       </div>
@@ -1054,12 +1033,24 @@ px-2 py-2 md:px-6 md:py-6">
                         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="text-sm text-green-600">Total Employees</p>
-                              <p className="text-3xl font-bold text-green-700">{attendanceStats.totalEmployees}</p>
+                              <p className="text-sm text-green-600">
+                                Total Employees
+                              </p>
+                              <p className="text-3xl font-bold text-green-700">
+                                {attendanceStats.totalEmployees}
+                              </p>
                             </div>
                             <div className="text-green-600">
-                              <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                              <svg
+                                className="w-12 h-12"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </div>
                           </div>
@@ -1069,11 +1060,21 @@ px-2 py-2 md:px-6 md:py-6">
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-blue-600">Present</p>
-                              <p className="text-3xl font-bold text-blue-700">{attendanceStats.presentCount}</p>
+                              <p className="text-3xl font-bold text-blue-700">
+                                {attendanceStats.presentCount}
+                              </p>
                             </div>
                             <div className="text-blue-600">
-                              <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <svg
+                                className="w-12 h-12"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </div>
                           </div>
@@ -1083,11 +1084,21 @@ px-2 py-2 md:px-6 md:py-6">
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-red-600">Absent</p>
-                              <p className="text-3xl font-bold text-red-700">{attendanceStats.absentCount}</p>
+                              <p className="text-3xl font-bold text-red-700">
+                                {attendanceStats.absentCount}
+                              </p>
                             </div>
                             <div className="text-red-600">
-                              <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              <svg
+                                className="w-12 h-12"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </div>
                           </div>
@@ -1097,41 +1108,66 @@ px-2 py-2 md:px-6 md:py-6">
 
                     {/* Employee List */}
                     <div className="mt-8">
-                      <h3 className="text-lg font-semibold mb-4">Employee List</h3>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Employee List
+                      </h3>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                S.No
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee Name
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee ID
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {attendanceStats.employees.map((employee, index) => (
-                              <tr key={employee.id}>
-                                <td className="px-4 py-3 whitespace-nowrap">{index + 1}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">{employee.employee_name}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">{employee.employee_number}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">{employee.roleName}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${employee.attendance === 'present'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
-                                    }`}>
-                                    {employee.attendance === 'present' ? 'Present' : 'Absent'}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
+                            {attendanceStats.employees.map(
+                              (employee, index) => (
+                                <tr key={employee.id}>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    {index + 1}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    {employee.employee_name}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    {employee.employee_number}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    {employee.roleName}
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        employee.attendance === "present"
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-red-100 text-red-800"
+                                      }`}
+                                    >
+                                      {employee.attendance === "present"
+                                        ? "Present"
+                                        : "Absent"}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ),
+                            )}
                           </tbody>
                         </table>
                       </div>
                     </div>
-
-
                   </div>
                 </div>
               </div>
@@ -1140,22 +1176,23 @@ px-2 py-2 md:px-6 md:py-6">
             {/* Add Modal */}
             {isAddModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-
                 {/* Overlay */}
                 <div className="absolute inset-0" onClick={closeAddModal}></div>
 
                 <div className=" bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative ">
-
                   {/* <div className="w-6 h-6 rounded-full mt-2 ms-2 border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer" onClick={closeAddModal}>
                     <IoIosArrowForward className="w-3 h-3" />
                   </div> */}
 
                   <div className="px-5 lg:px-14 py-2 md:py-10">
-                    <p className="text-2xl md:text-3xl font-medium">Add Attendance</p>
+                    <p className="text-2xl md:text-3xl font-medium">
+                      Add Attendance
+                    </p>
 
                     <div className="bg-white flex justify-between items-center w-full rounded-2xl shadow-md p-4 md:p-6">
                       <div className="flex flex-col  gap-1 ">
-                        <label className="font-medium text-sm">Company Name
+                        <label className="font-medium text-sm">
+                          Company Name
                           {/* <span className="text-red-500">*</span> */}
                         </label>
                         <Dropdown
@@ -1167,7 +1204,6 @@ px-2 py-2 md:px-6 md:py-6">
                         />
                       </div>
 
-
                       <div className=" flex flex-col  gap-1 ">
                         <label className="font-medium text-sm">
                           Date <span className="text-red-500">*</span>
@@ -1177,16 +1213,15 @@ px-2 py-2 md:px-6 md:py-6">
                           type="date"
                           value={selectedDate}
                           onChange={(e) => setSelectedDate(e.value)}
-
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                         />
-
-
                       </div>
 
-
                       <div className="flex justify-end gap-2 mt-5 ">
-                        <button onClick={closeAddModal} className="bg-red-100 hover:bg-red-200 text-sm md:text-base text-red-600 px-5 md:px-5 py-1 md:py-2 font-semibold rounded-full">
+                        <button
+                          onClick={closeAddModal}
+                          className="bg-red-100 hover:bg-red-200 text-sm md:text-base text-red-600 px-5 md:px-5 py-1 md:py-2 font-semibold rounded-full"
+                        >
                           Cancel
                         </button>
                         <button
@@ -1196,7 +1231,6 @@ px-2 py-2 md:px-6 md:py-6">
                         >
                           {loading ? "Submitting..." : "Submit"}
                         </button>
-
                       </div>
                     </div>
                   </div>
@@ -1204,140 +1238,140 @@ px-2 py-2 md:px-6 md:py-6">
               </div>
             )}
 
-              {/* import add modal */}
-                        {isImportAddModalOpen && (
-                          <div className="fixed inset-0 bg-black/10 backdrop-blur-sm bg-opacity-50 z-50">
-                            {/* Overlay */}
-                            <div
-                              className="absolute inset-0 "
-                              onClick={() => {
-                                closeImportAddModal();
-                                resetImportForm();
-                              }}
-                            >
-                              <IoIosArrowForward className="w-3 h-3" />
-                            </div>
-            
-                            <div
-                              className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${isAnimating ? "translate-x-0" : "translate-x-full"
-                                }`}
-                            >
-                              <div
-                                className="w-6 h-6 rounded-full  mt-2 ms-2  border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer"
-                                title="Toggle Sidebar"
-                                onClick={() => {
-                                  closeImportAddModal();
-                                  resetImportForm();
-                                }}
-                              >
-                                <IoIosArrowForward className="w-3 h-3" />
-                              </div>
-            
-                              <div className="p-5">
-                                <p className="text-xl md:text-2xl font-medium">
-                                  Attendance
-                                </p>
-            
-                                {/* company */}
-                                <div className="mt-3 flex justify-between items-center">
-                                  <label className="block text-md font-medium">
-                                    Company<span className="text-red-500">*</span>
-                                  </label>
-            
-                                  <div className="w-[60%] md:w-[50%]">
-            
-                                    <select
-                                      value={selectedCompany}
-                                      onChange={(e) => setSelectedCompany(e.target.value)}
-                                      className="w-full border px-3 py-2 border-gray-300 rounded-lg"
-                                    >
-                                      <option value="">Select Company</option>
-                                      {companies.map((com) => (
-                                        <option key={com.id} value={com.id}>
-                                          {com.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                </div>
-            
-                                {/* File Upload */}
-                                <div className="mt-3 flex justify-between items-center">
-                                  <label className="block text-md font-medium">
-                                    File Upload
-                                  </label>
-            
-                                  <div className="w-[60%] md:w-[50%]">
-                                    <input
-                                      type="file"
-                                      ref={fileInputRef}
-                                      onChange={handleFileChange}
-                                      accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+            {/* import add modal */}
+            {isImportAddModalOpen && (
+              <div className="fixed inset-0 bg-black/10 backdrop-blur-sm bg-opacity-50 z-50">
+                {/* Overlay */}
+                <div
+                  className="absolute inset-0 "
+                  onClick={() => {
+                    closeImportAddModal();
+                    resetImportForm();
+                  }}
+                >
+                  <IoIosArrowForward className="w-3 h-3" />
+                </div>
+
+                <div
+                  className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${
+                    isAnimating ? "translate-x-0" : "translate-x-full"
+                  }`}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full  mt-2 ms-2  border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer"
+                    title="Toggle Sidebar"
+                    onClick={() => {
+                      closeImportAddModal();
+                      resetImportForm();
+                    }}
+                  >
+                    <IoIosArrowForward className="w-3 h-3" />
+                  </div>
+
+                  <div className="p-5">
+                    <p className="text-xl md:text-2xl font-medium">
+                      Attendance
+                    </p>
+
+                    {/* company */}
+                    <div className="mt-3 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        Company<span className="text-red-500">*</span>
+                      </label>
+
+                      <div className="w-[60%] md:w-[50%]">
+                        <select
+                          value={selectedCompany}
+                          onChange={(e) => setSelectedCompany(e.target.value)}
+                          className="w-full border px-3 py-2 border-gray-300 rounded-lg"
+                        >
+                          <option value="">Select Company</option>
+                          {companies.map((com) => (
+                            <option key={com.id} value={com.id}>
+                              {com.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* File Upload */}
+                    <div className="mt-3 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        File Upload
+                      </label>
+
+                      <div className="w-[60%] md:w-[50%]">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
+                          accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg 
                                          focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-            
-                                    {attachment && (
-                                      <div className="flex justify-between mt-2 items-center bg-gray-50 px-3 py-2 rounded-lg border">
-                                        <span className="text-sm text-gray-700 truncate w-[80%]">
-                                          {attachment.name}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={handleDeleteFile}
-                                          title="Delete"
-                                          className="text-red-600 hover:text-red-800 text-[18px]"
-                                        >
-                                          <AiFillDelete />
-                                        </button>
-                                      </div>
-                                    )}
-                                    {errors.file && (
-                                      <p className="text-red-500 text-sm mt-1">
-                                        {errors.file}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                {/* IMPORT ERRORS */}
-                                {errors.import?.length > 0 && (
-                                  // <div className="mt-4 bg-red-50 border border-red-300 p-3 rounded-lg max-h-48 overflow-auto">
-                                  <div className="mt-4">
-                                    <p className="text-red-700 font-semibold mb-2"></p>
-            
-                                    {Array.isArray(errors.import) ? (
-                                      errors.import.map((item, idx) => (
-                                        <p key={idx} className="text-sm text-red-600">
-                                          Row {item.row}: {item.errors.join(", ")}
-                                        </p>
-                                      ))
-                                    ) : (
-                                      <p className="text-red-600">{errors.import}</p>
-                                    )}
-                                  </div>
-                                )}
-            
-                                <div className="flex  justify-end gap-2 mt-6 md:mt-14">
-                                  <button
-                                    onClick={() => {
-                                      closeImportAddModal();
-                                      resetImportForm();
-                                    }}
-                                    className=" hover:bg-[#FEE2E2] hover:border-[#FEE2E2] text-sm md:text-base border border-[#7C7C7C]  text-[#7C7C7C] hover:text-[#DC2626] px-5 md:px-5 py-1 md:py-2 font-semibold rounded-[10px] transition-all duration-200"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
-                                    onClick={handleFileSubmit}
-                                  >
-                                    Submit
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                        />
+
+                        {attachment && (
+                          <div className="flex justify-between mt-2 items-center bg-gray-50 px-3 py-2 rounded-lg border">
+                            <span className="text-sm text-gray-700 truncate w-[80%]">
+                              {attachment.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleDeleteFile}
+                              title="Delete"
+                              className="text-red-600 hover:text-red-800 text-[18px]"
+                            >
+                              <AiFillDelete />
+                            </button>
                           </div>
                         )}
+                        {errors.file && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.file}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {/* IMPORT ERRORS */}
+                    {errors.import?.length > 0 && (
+                      // <div className="mt-4 bg-red-50 border border-red-300 p-3 rounded-lg max-h-48 overflow-auto">
+                      <div className="mt-4">
+                        <p className="text-red-700 font-semibold mb-2"></p>
+
+                        {Array.isArray(errors.import) ? (
+                          errors.import.map((item, idx) => (
+                            <p key={idx} className="text-sm text-red-600">
+                              Row {item.row}: {item.errors.join(", ")}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-red-600">{errors.import}</p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex  justify-end gap-2 mt-6 md:mt-14">
+                      <button
+                        onClick={() => {
+                          closeImportAddModal();
+                          resetImportForm();
+                        }}
+                        className=" hover:bg-[#FEE2E2] hover:border-[#FEE2E2] text-sm md:text-base border border-[#7C7C7C]  text-[#7C7C7C] hover:text-[#DC2626] px-5 md:px-5 py-1 md:py-2 font-semibold rounded-[10px] transition-all duration-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                        onClick={handleFileSubmit}
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

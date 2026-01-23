@@ -57,6 +57,7 @@ const Pss_Attendance_Mainbar = () => {
   // console.log("data :", data);
 
   const [previewImage, setPreviewImage] = useState(null);
+  const [selfPreview, setSelfPreview] = useState(null); // Blob URL
 
   const { id: userId } = JSON.parse(localStorage.getItem("pssemployee"));
 
@@ -113,6 +114,19 @@ const Pss_Attendance_Mainbar = () => {
     fetchShipt();
   }, []);
 
+  useEffect(() => {
+    if (!selfImage) {
+      setSelfPreview(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selfImage);
+    setSelfPreview(objectUrl);
+
+    // 🔥 CRITICAL CLEANUP
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selfImage]);
+
   const LocationCell = ({ lat, lng }) => {
     const [location, setLocation] = useState("Loading...");
 
@@ -126,35 +140,33 @@ const Pss_Attendance_Mainbar = () => {
     }, [lat, lng]);
 
     return (
+  
       <span className="text-sm text-gray-700">
         {/* {location.fullAddress || "-"} */}
         {location && location.fullAddress ? (
           <div className="text-sm text-gray-600 mt-2">
             <div>
-               <span>
+              <span>
                 <b>neighbourhood:</b> {location?.address},{" "}
               </span>
-               <span>
+              <span>
                 <b>Locality:</b> {location?.locality},{" "}
               </span>
-               {/* <span>
+              {/* <span>
                 <b>Building:</b> {location?.building},{" "}
               </span>
                <span>
                 <b>Road:</b> {location?.road},{" "}
               </span> */}
-               {/* <span>
+              {/* <span>
                 <b>Locality:</b> {location?.locality},{" "}
               </span> */}
-             
-            
-             
             </div>
             <div>
-                <span>
+              <span>
                 <b>City:</b> {location?.city},{" "}
               </span>
-               <span>
+              <span>
                 <b>State:</b> {location?.state},{" "}
               </span>
               <span>
@@ -181,6 +193,24 @@ const Pss_Attendance_Mainbar = () => {
     return "";
   }
 
+  const getLocationDetails = async (lat, lng) => {
+    if (!lat || !lng) return null;
+
+    const location = await reverseGeocodeOSM(lat, lng);
+
+    if (!location) return null;
+
+    return {
+      address: location.address || "",
+      locality: location.locality || "",
+      city: location.city || "",
+      state: location.state || "",
+      country: location.country || "",
+      pincode: location.pincode || "",
+      fullAddress: `${location.address || ""}, ${location.locality || ""}, ${location.city || ""}, ${location.state || ""}, ${location.country || ""} - ${location.pincode || ""}`,
+    };
+  };
+
   // Submit handler
   const onSubmit = async (data) => {
     try {
@@ -197,8 +227,26 @@ const Pss_Attendance_Mainbar = () => {
       //   `api/employee/emp-attendance/create`,
       //   newData
       // );
+      // const geo = await getCurrentLocation();
+      // const formData = new FormData();
+      // formData.append("reason", data.reason);
+      // formData.append("dateTime", currentTime);
+      // formData.append("employee_id", userId);
+      // formData.append("attendance_date", formatToYYYYMMDD(new Date()));
+      // formData.append("attendance_time", extractTimeFromDateTime(currentTime));
+      // formData.append("latitude", geo.latitude);
+      // formData.append("longitude", geo.longitude);
+      // formData.append("accuracy", geo.accuracy);
+      // formData.append("profile_picture", data.selfImage); // file
       const geo = await getCurrentLocation();
+
+      const locationDetails = await getLocationDetails(
+        geo.latitude,
+        geo.longitude,
+      );
+
       const formData = new FormData();
+
       formData.append("reason", data.reason);
       formData.append("dateTime", currentTime);
       formData.append("employee_id", userId);
@@ -207,7 +255,10 @@ const Pss_Attendance_Mainbar = () => {
       formData.append("latitude", geo.latitude);
       formData.append("longitude", geo.longitude);
       formData.append("accuracy", geo.accuracy);
-      formData.append("profile_picture", data.selfImage); // file
+      formData.append("profile_picture", data.selfImage);
+
+      // 🔥 IMPORTANT: stringify object
+      formData.append("location_details", JSON.stringify(locationDetails));
 
       const res = await axiosInstance.post(
         `api/employee/emp-attendance/create`,
@@ -297,6 +348,18 @@ const Pss_Attendance_Mainbar = () => {
   // // }
 
   // ];
+  const parseLocationDetails = (location_details) => {
+  if (!location_details) return "-";
+
+  try {
+    const loc = JSON.parse(location_details);
+    return loc.fullAddress || "-";
+  } catch (err) {
+    console.error("Invalid location_details:", location_details);
+    return "-";
+  }
+};
+
   const columns = [
     {
       field: "attendance_date",
@@ -314,9 +377,14 @@ const Pss_Attendance_Mainbar = () => {
       body: (row) => Capitalise(row.reason || "-"),
     },
     {
-      header: "Location",
-      body: (row) => <LocationCell lat={row.latitude} lng={row.longitude} />,
-    },
+  header: "Location",
+  body: (row) => (
+    <span className="text-sm text-gray-700">
+      {parseLocationDetails(row.location_details)}
+    </span>
+  ),
+},
+
     {
       header: "Selfie",
       body: (row) =>
@@ -351,6 +419,7 @@ const Pss_Attendance_Mainbar = () => {
     // },
   ];
 
+  
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -362,7 +431,6 @@ const Pss_Attendance_Mainbar = () => {
       });
 
       const date = formatToDDMMYYYY(now);
-
       setCurrentTime(`${date} ${time}`);
     };
 
@@ -558,11 +626,23 @@ const Pss_Attendance_Mainbar = () => {
 
                   <div className="w-full py-1 px-2 md:w-96">
                     {/* Preview */}
-                    {selfImage ? (
+                    {/* {selfImage ? (
                       <img
                         src={URL.createObjectURL(selfImage)}
                         alt="Selfie"
                         className="w-24 h-24 rounded-full r object-fill border"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-gray-100">
+                        <FaUserCircle className="text-gray-400 w-16 h-16" />
+                      </div>
+                    )} */}
+
+                    {selfPreview ? (
+                      <img
+                        src={selfPreview}
+                        alt="Selfie"
+                        className="w-24 h-24 rounded-full object-cover border"
                       />
                     ) : (
                       <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-gray-100">
