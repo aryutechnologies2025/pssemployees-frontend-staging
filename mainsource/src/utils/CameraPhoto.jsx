@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, memo } from "react";
 
-function CameraPhoto({ onCapture, onClose }) {
+const CameraPhoto = memo(function CameraPhoto({ onCapture, onClose }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
@@ -84,6 +84,6 @@ function CameraPhoto({ onCapture, onClose }) {
       </div>
     </div>
   );
-}
+});
 
 export default CameraPhoto;
