@@ -32,6 +32,7 @@ import Mobile_Sidebar from "../Mobile_Sidebar";
 import Footer from "../Footer";
 import { Capitalise } from "../../utils/useCapitalise";
 import CameraPhoto from "../../utils/CameraPhoto";
+import { IoAddCircleSharp } from "react-icons/io5";
 
 const Employee_contract_details = () => {
   //navigation
@@ -59,6 +60,13 @@ const Employee_contract_details = () => {
     address: z.string().min(1, "Address is required"),
     gender: z.string().min(1, "Gender is required"),
     phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
+    currentAddress: z.string().optional(),
+      state: z.string().optional(),
+      city: z.string().optional(),
+      bankName: z.string().optional(),
+      branch: z.string().optional(),
+      emergency_contact: z.string().optional(),
+      pan_number: z.string().optional(),  
     aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
     company: z.string().min(1, "Company is required"),
     joinedDate: z.string().min(1, "Joined date is required"),
@@ -95,6 +103,13 @@ const Employee_contract_details = () => {
       address: editData ? editData.address : "",
       gender: editData ? editData.gender : "",
       joinedDate: editData ? editData.joinedDate : "",
+      currentAddress: editData ? editData.currentAddress : "",
+      state: editData ? editData.state : "",
+      city: editData ? editData.city : "",
+      bankName: editData ? editData.bankName : "",
+      branch: editData ? editData.branch : "",
+      emergency_contact: editData ? editData.emergency_contact : "",
+      panNumber: editData ? editData.pan : "",
       accountName: editData ? editData.accountName : "",
       accountNumber: editData ? editData.accountNumber : "",
       ifsccode: editData ? editData.ifsccode : "",
@@ -238,6 +253,14 @@ const Employee_contract_details = () => {
   const [companyOptions, setCompanyOptions] = useState([]);
   console.log("companyOptions", companyOptions);
 
+    const [selectedBranch, setSelectedBranch] = useState(null);
+     const [branchOptions, setBranchOptions] = useState([]);
+
+       const branchDropdown = [
+    { label: "Branch 1", value: "Branch 1" },
+    { label: "Branch 2", value: "Branch 2" },
+    { label: "Branch 3", value: "Branch 3" },
+  ];
   const fileInputRef = useRef(null);
   const fileInputRefEdit = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -268,6 +291,13 @@ const Employee_contract_details = () => {
       candidateStatus: "",
       joinedDate: "",
       reference: "",
+      branch:null,
+      pan_number: "",
+      currentAddress: "",
+      state: "",
+      city: "",
+      bankName: "",
+      emergency_contact: "",
       otherReference: "",
       notJoinedReason: "",
       importFileName: "",
@@ -680,7 +710,32 @@ const Employee_contract_details = () => {
   const [filterGender, setFilterGender] = useState("");
 
   const [selectedCompanyfilter, setSelectedCompanyfilter] = useState("");
+const [emergencyContacts, setEmergencyContacts] = useState([
+    { name: "", phone: "", relation: "" },
+  ]);
 
+  
+    const addEmergencyContact = () => {
+      const last = emergencyContacts[emergencyContacts.length - 1];
+      // Only add if last contact is filled
+      if (last.name && last.phone && last.relation) {
+        setEmergencyContacts([...emergencyContacts, { name: "", phone: "", relation: "" }]);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Incomplete Contact",
+          text: "Please complete the current contact before adding a new one",
+        });
+      }
+    };
+
+     const relationOptions = [
+    { label: "Father", value: "Father" },
+    { label: "Mother", value: "Mother" },
+    { label: "Spouse", value: "Spouse" },
+    { label: "Sibling", value: "Sibling" },
+    { label: "Friend", value: "Friend" },
+  ];
   // contract api
   const fetchContractCandidates = async () => {
     try {
@@ -767,6 +822,7 @@ const Employee_contract_details = () => {
     }
   };
 
+  
   const columns = [
     {
       header: "S.No",
@@ -1447,6 +1503,43 @@ const Employee_contract_details = () => {
                       </div>
                     </div>
 
+  {/* branch */}
+                      <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        Branch Name
+                         {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%]">
+                         <Dropdown
+                          value={selectedBranch}
+                          options={branchDropdown}
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Select Branch"
+                          filter
+                          className="w-full border border-gray-300 rounded-lg"
+                          onChange={(e) => {
+                            setSelectedBranch(e.value);
+                            const branchObj = branchDropdown.find(
+                              (item) => item.value === e.value
+                            );
+                            setCompanyEmpType(obj.company_emp_id?.toLowerCase());
+                            setValue("company", String(e.value), {
+                              shouldValidate: true,
+                            });
+                          }}
+                        />
+                        
+
+                        {/* {errors.branch && (
+                          <p className="text-red-500 text-sm">
+                            {errors.branch.message}
+                          </p>
+                        )} */}
+                      </div>
+                    </div>
+
                     {/* NAME */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1520,6 +1613,71 @@ const Employee_contract_details = () => {
                         <span className="text-red-500 text-sm">
                           {errors.address?.message}
                         </span>
+                      </div>
+                    </div>
+
+                    {/* city */}
+                    <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        City 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="city"
+                          {...register("city")}
+
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          placeholder="Enter The City"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.city?.message}
+                        </span> */}
+                      </div>
+                    </div>
+
+{/* state */}
+
+<div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        State 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="state"
+                          {...register("state")}
+
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          placeholder="Enter The State"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.state?.message}
+                        </span> */}
+                      </div>
+                    </div>
+
+{/* current address */}
+
+<div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                       Current Address 
+                       {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <textarea
+                          type="text"
+                          name="currentaddress"
+                          {...register("currentaddress")}
+
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          placeholder="Enter The Address"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.current_address?.message}
+                        </span> */}
                       </div>
                     </div>
 
@@ -1613,6 +1771,34 @@ const Employee_contract_details = () => {
                       </div>
                     </div>
 
+                                        {/* pan number */}
+             <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Pan Number 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="pan"
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          {...register("pan")}
+                          
+                          maxLength={10}
+                          onInput={(e) => {
+    e.target.value = e.target.value
+      .toUpperCase()              // convert to uppercase
+      .replace(/[^A-Z0-9]/g, "")  // allow only letters & numbers
+      .slice(0, 10);              // max 10 chars
+  }}
+                          placeholder="Enter Pan Number"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.pan?.message}
+                        </span> */}
+                      </div>
+                    </div>
+
                     {/* joinedDate date */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1669,6 +1855,28 @@ const Employee_contract_details = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* bank name */}
+
+  <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Bank Name
+                         {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="bankName"
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          {...register("bankName")}
+                          placeholder="Enter Bank Name"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.bankName?.message}
+                        </span> */}
+                        {/* {errors?.interviewDate && <p className="text-red-500 text-sm mt-1">{errors?.interviewDate}</p>} */}
+                      </div>
+                    </div>
 
                     {/* account name*/}
 
@@ -1799,6 +2007,96 @@ const Employee_contract_details = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Emergency Contacts */}
+<div className="rounded-[10px] border-2 border-[#E0E0E0] bg-white py-2 px-2 lg:px-4 my-5">
+
+  {/* Header */}
+  <div className="flex justify-between items-center">
+    <p className="text-lg md:text-xl font-semibold">
+      Emergency Contacts
+    </p>
+    <IoAddCircleSharp
+      className="text-[#1ea600] text-3xl cursor-pointer"
+      onClick={addEmergencyContact}
+    />
+  </div>
+
+  {/* Table Head */}
+  <div className="mt-4">
+    <div className="grid grid-cols-3 font-semibold text-sm md:text-base text-[#4A4A4A] bg-gray-50 p-2 rounded-[10px] text-center">
+      <span>Name</span>
+      <span>Relation</span>
+      <span>Phone No</span>
+    </div>
+
+    {/* Rows */}
+    {emergencyContacts.map((item, index) => (
+      <div
+        key={index}
+        className="relative grid grid-cols-3 gap-4 border p-3 rounded-[10px] mt-3 bg-gray-50"
+      >
+
+        {/* Remove */}
+        {index > 0 && (
+          <IoIosCloseCircle
+            className="absolute top-2 right-2 text-red-500 text-xl cursor-pointer"
+            onClick={() => removeEmergencyContact(index)}
+          />
+        )}
+
+        {/* Name */}
+        <div className="flex flex-col mt-1">
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={item.name}
+            onChange={(e) =>
+              updateEmergencyContact(index, "name", e.target.value)
+            }
+            className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+          />
+        </div>
+
+        {/* Relation */}
+        <div className="flex flex-col mt-1">
+          <select
+            value={item.relation}
+            onChange={(e) =>
+              updateEmergencyContact(index, "relation", e.target.value)
+            }
+            className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+          >
+            <option value="">Select Relation</option>
+            {relationOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Phone */}
+        <div className="flex flex-col mt-1">
+          <input
+            type="text"
+            placeholder="Phone Number"
+            value={item.phone}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              if (value.length <= 10) {
+                updateEmergencyContact(index, "phone", value);
+              }
+            }}
+            className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+          />
+        </div>
+
+      </div>
+    ))}
+  </div>
+</div>
+
 
                     {/* Documents */}
 

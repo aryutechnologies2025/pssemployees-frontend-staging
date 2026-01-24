@@ -49,8 +49,12 @@ const Attendance_Mainbar = () => {
   const [companies, setCompanies] = useState([]);
   // console.log("company", companies)
   const [attendanceData, setAttendanceData] = useState([]);
-  console.log("attendance table:", attendanceData);
+
   const [createdbyData, setCreatedbyData] = useState([]);
+  
+  
+  // For edit modal state 
+  const [editSelectedCompany, setEditSelectedCompany] = useState(null);
 
   // import
   const [isImportAddModalOpen, setIsImportAddModalOpen] = useState(false);
@@ -721,6 +725,12 @@ const Attendance_Mainbar = () => {
     }
   };
 
+   const companyOptions = companies.map(company => ({
+    label: company.name,
+    value: company.id,
+    name: company.name // Keep original name for reference
+  }));
+
   return (
     <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-5">
       {loading ? (
@@ -809,20 +819,16 @@ const Attendance_Mainbar = () => {
                   <label className="block text-sm font-medium text-[#6B7280]">
                     Company
                   </label>
-                  <select
-                    value={filterCompanyname}
-                    onChange={(e) => setFilterCompanyname(e.target.value)}
+                  <Dropdown
+                          value={filterCompanyname}
+                          options={companyOptions}
+                          onChange={(e) => setSelectedCompany(e.value)}
+                          placeholder="Select Company"
+                          filter
                     className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                  >
-                    <option value="">Select Company</option>
-                    {/* Get unique references from data */}
-                    {companies // Remove null/undefined
-                      .map((com, index) => (
-                        <option key={index} value={com.id}>
-                          {com.name}
-                        </option>
-                      ))}
-                  </select>
+                  />
+                   
+                  
                 </div>
 
                 {/* Created By */}
@@ -1199,7 +1205,8 @@ px-2 py-2 md:px-6 md:py-6"
                           value={selectedCompany}
                           options={companyOptions}
                           onChange={(e) => setSelectedCompany(e.value)}
-                          placeholder="Select Role"
+                          placeholder="Select Company"
+                          filter
                           className=" border-2  border-gray-300 w-full  rounded-lg "
                         />
                       </div>

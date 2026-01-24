@@ -78,10 +78,12 @@ const ContractCandidates_Mainbar = () => {
       // dob: z.string().min(1, "Date of birth is required"),
       // fatherName: z.string().min(1, "Father's name is required"),
       // address: z.string().min(1, "Address is required"),
-      // gender: z.string().min(1, "Gender is required"),
+      gender: z.string().optional(),
       phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
       aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
+      pan_number: z.string().optional(),
       company: z.string().min(1, "Company is required"),
+      
       
       interviewDate: z.string().min(1, "Interview date is required"),
       interviewStatus: z.string().min(1, "Interview status is required"),
@@ -184,7 +186,9 @@ education: z.string().optional(),
       name: editData ? editData.name : "",
       phone: editData ? editData.phone_number : "",
       aadhar: editData ? editData.aadhar_number : "",
+      pan_number: editData ? editData.pan_number : "",
       company: editData ? editData.company_name : "",
+     
       interviewDate: editData ? editData.interview_date : getTodayDate(),
       interviewStatus: editData ? editData.interview_status : "",
       rejectReason: editData ? editData.rejectReason : "",
@@ -201,7 +205,7 @@ education: z.string().optional(),
       // dob: editData ? editData.dob : "",
       // fatherName: editData ? editData.fatherName : "",
       // address: editData ? editData.address : "",
-      // gender: editData ? editData.gender : "",
+      gender: editData ? editData.gender : "",
     },
   });
   // const joining_date = watch("joinedDate");
@@ -236,6 +240,7 @@ education: z.string().optional(),
   const [filterCandidateStatus, setFilterCandidateStatus] = useState("");
   console.log("filterCandidateStatus", filterCandidateStatus)
   const [selectedReference, setSelectedReference] = useState("");
+  const [selectedReferenceForm, setSelectedReferenceForm] = useState(""); 
   const [selectedEducation, setSelectedEducation] = useState("");
   const [filterEducation, setFilterEducation] = useState("");
 
@@ -305,6 +310,7 @@ education: z.string().optional(),
     setFilterInterviewStatus("");
     setFilterCandidateStatus("");
     fetchContractCandidates();
+    setFilterGender("");
   };
 
  const fetchId = async (payload) => {
@@ -386,8 +392,10 @@ education: z.string().optional(),
       name: "",
       phone: "",
       aadhar: "",
+      pan_number: "",
       // company: null,
       company: "",
+      gender: "",
       education: "",
       interviewDate: "",
       interviewStatus: "",
@@ -704,11 +712,13 @@ const removeDocument = (index) => {
       id: row.id || null,
       name: row.name || "",
       // address: row.address || "",
-      // gender: row.gender || "",
+      gender: row.gender || "",
       // fatherName: row.father_name || "",
       // dob: row.date_of_birth || "",
       phone: row.phone_number || "",
       aadhar: row.aadhar_number || "",
+      pan_number: row.pan_number || "",
+      
       education: row.education || "",
       company: String(row.company_id),
       interviewDate: row.interview_date || "",
@@ -1039,9 +1049,10 @@ const removeDocument = (index) => {
 
         // date_of_birth: formatDateToYMD(data.dob),
         // father_name: data.fatherName,
-        // gender: data.gender,
+        gender: data.gender,
         phone_number: data.phone,
         aadhar_number: data.aadhar,
+        pan_number: data.pan_number,
         company_id: Number(data.company),
      education: data.education, 
 
@@ -1288,8 +1299,25 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                             { label: "Vocational / Skill Certificate / ITI / Trade", value: "vocational_certificate" }
                           ];
 
+const referenceFilterOptions = [
+  ...employeesList.map(emp => ({
+    label: emp.full_name,
+    value: emp.full_name,
+  })),
+  { label: "Other", value: "other" },
+];
+
+const referenceFormOptions = [
+    { label: "Select Reference", value: "" },
+    ...employeesList.map(emp => ({
+      label: emp.full_name,
+      value: emp.full_name,
+    })),
+    { label: "Other", value: "other" },
+  ];
+
   return (
-    <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-10">
+    <div className="bg-gray-100 flex flex-col justify-between w-full overflow-x-auto min-h-screen px-5 pt-2 md:pt-10">
       {loading ? (
         <Loader />
       ) : (
@@ -1341,29 +1369,24 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     />
                   </div>
 
-                  {/* Reference */}
+                  
+                      {/* Reference */}
                   <div className="flex flex-col gap-1">
                     <label className="text-sm font-medium text-[#6B7280]">
                       Reference
                     </label>
 
-                    <select
+                    <Dropdown
                       value={selectedReference}
-                      onChange={(e) => setSelectedReference(e.target.value)}
-                      className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C]
-               focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                    >
+                      onChange={(e) => setSelectedReference(e.value)}
+                      className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
+               options={referenceFilterOptions}
+               placeholder="Select Reference"
+               filter
+                    />
 
-                      <option value="">Select Reference</option>
-                      {employeesList.map((emp) => (
-                        <option key={emp.id} value={emp.full_name}>
-                          {emp.full_name}
-                        </option>
-                      ))}
-                      <option value="other">Other</option>
-                    </select>
+                      
                   </div>
-
                   {/* Interview Status */}
                   <div className="flex flex-col gap-1">
                     <label className="text-sm font-medium text-[#6B7280]">
@@ -1374,6 +1397,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                       options={interviewStatusOptions}
                       onChange={(e) => setFilterInterviewStatus(e.value)}
                       placeholder="Select Status "
+                      filter
                       className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
                     />
                   </div>
@@ -1386,6 +1410,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     <Dropdown
                       value={filterCandidateStatus}
                       options={candidateStatusOptions}
+                      filter
                       onChange={(e) => setFilterCandidateStatus(e.value)}
                       placeholder="Select Status "
                       className="w-full border border-gray-300 text-sm text-[#7C7C7C] rounded-md placeholder:text-gray-400"
@@ -1883,9 +1908,10 @@ Object.entries(createCandidate).forEach(([key, value]) => {
 
                     {/* gender */}
 
-                    {/* <div className="mt-5 flex justify-between items-center">
+                    <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
-                        Gender <span className="text-red-500">*</span>
+                        Gender 
+                        {/* <span className="text-red-500">*</span> */}
                       </label>
 
                       <div className="w-[50%] md:w-[60%] rounded-lg">
@@ -1911,11 +1937,11 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           </label>
                         </div>
 
-                        <span className="text-red-500 text-sm">
+                        {/* <span className="text-red-500 text-sm">
                           {errors.gender?.message}
-                        </span>
+                        </span> */}
                       </div>
-                    </div>  */}
+                    </div>  
 
 
                     {/* PHONE */}
@@ -1963,6 +1989,34 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         <span className="text-red-500 text-sm">
                           {errors.aadhar?.message}
                         </span>
+                      </div>
+                    </div>
+
+                                        {/* pan no */}
+  <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Pan Number 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <input
+                          type="text"
+                          name="pan"
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          {...register("pan")}
+                          
+                          maxLength={10}
+                          onInput={(e) => {
+    e.target.value = e.target.value
+      .toUpperCase()              // convert to uppercase
+      .replace(/[^A-Z0-9]/g, "")  // allow only letters & numbers
+      .slice(0, 10);              // max 10 chars
+  }}
+                          placeholder="Enter Pan Number"
+                        />
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.pan?.message}
+                        </span> */}
                       </div>
                     </div>
 
@@ -2231,10 +2285,10 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                     )}
 
                     {/* Reference */}
-                    <div className="mt-5 flex justify-between items-center">
+                    {/* <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Reference 
-                        {/* <span className="text-red-500">*</span> */}
+                       
                       </label>
                       <div className="w-[50%] md:w-[60%] rounded-lg">
                         <select
@@ -2252,11 +2306,7 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                         <span className="text-red-500 text-sm">
                           {errors.reference?.message}
                         </span>
-                        {/* {errors.reference && (
-                                <p className="text-red-500 text-sm mt-1">
-                                  {errors.reference.message}
-                                </p>
-                              )} */}
+                       
                       </div>
                     </div>
 
@@ -2276,7 +2326,53 @@ Object.entries(createCandidate).forEach(([key, value]) => {
                           )}
                         </div>
                       </div>
-                    )}
+                    )} */}
+
+                     <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Reference 
+                    
+                      </label>
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                      <Dropdown
+                       value={selectedReferenceForm}
+                     onChange={(e) => {
+                    setSelectedReferenceForm(e.value);
+                    setValue("reference", e.value, { shouldValidate: true });
+                  }}
+                          className="uniform-field w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                        options={referenceFormOptions}
+                        optionLabel="label"
+                  optionValue="value"
+               placeholder="Select Reference"
+               filter
+                        />
+                         
+                        <span className="text-red-500 text-sm">
+                          {errors.reference?.message}
+                        </span>
+                        
+                      </div>
+                    </div>
+
+                   {selectedReferenceForm === "other" && (
+              <div className="mt-5 flex justify-between items-center">
+                <label className="block text-md font-medium mb-2">
+                  Other Reference <span className="text-red-500">*</span>
+                </label>
+                <div className="w-[50%] md:w-[60%] rounded-lg">
+                  <input
+                    type="text"
+                    {...register("otherReference")}
+                    placeholder="Specify Reference"
+                    className="w-full px-3 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                  />
+                  <span className="text-red-500 text-sm">
+                    {errors.otherReference?.message}
+                  </span>
+                </div>
+              </div>
+            )}
 
 {/* Documents */}
 
