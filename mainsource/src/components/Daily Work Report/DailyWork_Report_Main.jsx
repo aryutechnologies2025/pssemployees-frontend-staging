@@ -42,10 +42,12 @@ const DailyWork_Report_Main = () => {
     const [errors, setErrors] = useState({});
     const [totalRecords, setTotalRecords] = useState(0);
     const [editLeadForm, setEditLeadForm] = useState(null);
+
     const storedDetatis = localStorage.getItem("pssemployee");
     const parsedDetails = JSON.parse(storedDetatis);
     const userid = parsedDetails ? parsedDetails.id : null;
     console.log("userId", userid)
+
     const [rows, setRows] = useState(10);
     const [globalFilter, setGlobalFilter] = useState("");;
     const [viewMessage, setViewMessage] = useState(null);
@@ -61,9 +63,11 @@ const DailyWork_Report_Main = () => {
         report_date: "",
         report: ""
     });
+
+    const today = new Date().toISOString().split("T")[0];
     const [filters, setFilters] = useState({
-        from_date: "",
-        to_date: "",
+        from_date: today,
+        to_date: today,
         employee_id: ""
     });
     const [tableData, setTableData] = useState([]);
@@ -76,7 +80,7 @@ const DailyWork_Report_Main = () => {
         try {
             setLoading(true);
 
-            const res = await axiosInstance.get(`${API_URL}api/work-reports`);
+            const res = await axiosInstance.get(`${API_URL}api/work-reports/${userid}`);
             console.log("list res", res);
 
             const reports = res.data?.data || [];

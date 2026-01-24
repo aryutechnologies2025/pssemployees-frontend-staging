@@ -32,6 +32,7 @@ import { IoIosCloseCircle } from "react-icons/io"
 import { AiFillDelete } from "react-icons/ai";
 import { Capitalise } from "../../utils/useCapitalise.jsx";
 import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../utils/dateformat.js";
+import { IoToday } from "react-icons/io5";
 
 
 const LeadManagement_Details = () => {
@@ -127,13 +128,14 @@ const LeadManagement_Details = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const today = new Date().toISOString().split("T")[0];
   const [filters, setFilters] = useState({
     gender: "",
     platform: "",
     age: "",
     city: "",
-    from_date: "",
-    to_date: ""
+    from_date:today ,
+    to_date: today
   });
   // apply filter
   const handleApplyFilter = () => {

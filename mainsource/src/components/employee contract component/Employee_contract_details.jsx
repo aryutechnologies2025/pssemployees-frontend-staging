@@ -59,12 +59,13 @@ const Employee_contract_details = () => {
     fatherName: z.string().min(1, "Father's name is required"),
     address: z.string().min(1, "Address is required"),
     gender: z.string().min(1, "Gender is required"),
+    marital_status: z.string().optional(),
     phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
     currentAddress: z.string().optional(),
       state: z.string().optional(),
       city: z.string().optional(),
       bankName: z.string().optional(),
-      branch: z.string().optional(),
+      bank_branch: z.string().optional(),
       emergency_contact: z.string().optional(),
       pan_number: z.string().optional(),  
     aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
@@ -102,12 +103,13 @@ const Employee_contract_details = () => {
       fatherName: editData ? editData.fatherName : "",
       address: editData ? editData.address : "",
       gender: editData ? editData.gender : "",
+      marital_status: editData ? editData.marital_status : "",
       joinedDate: editData ? editData.joinedDate : "",
       currentAddress: editData ? editData.currentAddress : "",
       state: editData ? editData.state : "",
       city: editData ? editData.city : "",
       bankName: editData ? editData.bankName : "",
-      branch: editData ? editData.branch : "",
+      bank_branch: editData ? editData.bank_branch : "",
       emergency_contact: editData ? editData.emergency_contact : "",
       panNumber: editData ? editData.pan : "",
       accountName: editData ? editData.accountName : "",
@@ -253,14 +255,7 @@ const Employee_contract_details = () => {
   const [companyOptions, setCompanyOptions] = useState([]);
   console.log("companyOptions", companyOptions);
 
-    const [selectedBranch, setSelectedBranch] = useState(null);
-     const [branchOptions, setBranchOptions] = useState([]);
 
-       const branchDropdown = [
-    { label: "Branch 1", value: "Branch 1" },
-    { label: "Branch 2", value: "Branch 2" },
-    { label: "Branch 3", value: "Branch 3" },
-  ];
   const fileInputRef = useRef(null);
   const fileInputRefEdit = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -291,7 +286,7 @@ const Employee_contract_details = () => {
       candidateStatus: "",
       joinedDate: "",
       reference: "",
-      branch:null,
+      bank_branch:"",
       pan_number: "",
       currentAddress: "",
       state: "",
@@ -312,6 +307,7 @@ const Employee_contract_details = () => {
       uannumber: "",
       esciNumber: "",
       gender: "",
+      marital_status: "",
       status: "",
       profile_picture: "",
       documents: [],
@@ -603,6 +599,7 @@ const Employee_contract_details = () => {
       name: row?.name || "",
       address: row.address || "",
       gender: row.gender || "",
+      marital_status: row.marital_status || "",
       fatherName: row.father_name || "",
       dob: row.date_of_birth || "",
       phone: row.phone_number || "",
@@ -729,6 +726,20 @@ const [emergencyContacts, setEmergencyContacts] = useState([
       }
     };
 
+      const removeEmergencyContact = (index) => {
+    if (emergencyContacts.length <= 1) {
+      Swal.fire({ icon: "warning", title: "Cannot remove", text: "At least one contact is required" });
+      return;
+    }
+    setEmergencyContacts(emergencyContacts.filter((_, i) => i !== index));
+  };
+
+  // Update Emergency Contact
+  const updateEmergencyContact = (index, field, value) => {
+    const updatedContacts = [...emergencyContacts];
+    updatedContacts[index][field] = value;
+    setEmergencyContacts(updatedContacts);
+  };
      const relationOptions = [
     { label: "Father", value: "Father" },
     { label: "Mother", value: "Mother" },
@@ -926,6 +937,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         date_of_birth: formatDateToYMD(data.dob),
         father_name: data.fatherName,
         gender: data.gender,
+        marital_status: data.marital_status,
         phone_number: data.phone,
         aadhar_number: data.aadhar,
         company_id: Number(data.company),
@@ -1503,42 +1515,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       </div>
                     </div>
 
-  {/* branch */}
-                      <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium">
-                        Branch Name
-                         {/* <span className="text-red-500">*</span> */}
-                      </label>
 
-                      <div className="w-[50%] md:w-[60%]">
-                         <Dropdown
-                          value={selectedBranch}
-                          options={branchDropdown}
-                          optionLabel="label"
-                          optionValue="value"
-                          placeholder="Select Branch"
-                          filter
-                          className="w-full border border-gray-300 rounded-lg"
-                          onChange={(e) => {
-                            setSelectedBranch(e.value);
-                            const branchObj = branchDropdown.find(
-                              (item) => item.value === e.value
-                            );
-                            setCompanyEmpType(obj.company_emp_id?.toLowerCase());
-                            setValue("company", String(e.value), {
-                              shouldValidate: true,
-                            });
-                          }}
-                        />
-                        
-
-                        {/* {errors.branch && (
-                          <p className="text-red-500 text-sm">
-                            {errors.branch.message}
-                          </p>
-                        )} */}
-                      </div>
-                    </div>
 
                     {/* NAME */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1721,6 +1698,46 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       </div>
                     </div>
 
+{/* marital status */}
+                     <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Marital_Status 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Single"
+                              {...register("marital_status", {
+                                required: "Marital Status Is Required",
+                              })}
+                              className="accent-[#1ea600]"
+                            />
+                            Single
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Married"
+                              {...register("marital_status", {
+                                required: "Marital Status Is Required",
+                              })}
+                              className="accent-[#1ea600]"
+                            />
+                            Married
+                          </label>
+                        </div>
+
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.marital_status?.message}
+                        </span> */}
+                      </div>
+                    </div>
+
                     {/* PHONE */}
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
@@ -1878,6 +1895,30 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       </div>
                     </div>
 
+                      {/* branch */}
+                      <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        Branch Name
+                         {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%]">
+                         <input
+                          type="text"
+                          name="bank_branch"
+                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          {...register("bank_branch")}
+                          placeholder="Enter Branch Name"
+                        />
+                        
+                        {/* {errors.branch && (
+                          <p className="text-red-500 text-sm">
+                            {errors.branch.message}
+                          </p>
+                        )} */}
+                      </div>
+                    </div>
+
                     {/* account name*/}
 
                     <div className="mt-5 flex justify-between items-center">
@@ -1996,7 +2037,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                           {...register("status")}
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                         >
-                          <option value="">Select a status</option>
+                          <option value="">Select A Status</option>
                           <option value="1">Active</option>
                           <option value="0">InActive</option>
                         </select>
@@ -2261,10 +2302,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>Company:</b>{" "}
                       {companyOptions.find(c => c.value === viewRow.company_id)?.label || "-"}
                     </p>
-                     <p>
-                      <b>Branch:</b>{" "}
-                      {branchOptions.find(b => b.value === viewRow.company_id)?.label || "-"}
-                    </p>
+                     
                     <p>
                       <b>Name:</b> {viewRow.name || "-"}
                     </p>
@@ -2279,6 +2317,9 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                     </p>
                     <p>
                       <b>Bank Name:</b> {viewRow.bank_name || "-"}
+                    </p>
+                         <p>
+                      <b>Branch Name:</b> {viewRow.bank_branch || "-"}
                     </p>
                     <p>
                       <b>Account Name:</b> {viewRow.acc_no || "-"}
