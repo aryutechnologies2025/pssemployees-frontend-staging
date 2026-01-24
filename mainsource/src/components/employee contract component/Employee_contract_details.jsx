@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { TfiPencilAlt } from "react-icons/tfi";
+import { TfiPencilAlt, TfiPrinter } from "react-icons/tfi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
 
@@ -2174,52 +2174,96 @@ const [emergencyContacts, setEmergencyContacts] = useState([
               </div>
             )}
 
-            {isViewModalOpen && viewRow && (
-              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative animate-fadeIn">
+              {isViewModalOpen && viewRow && (
+              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+                <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative max-h-[90vh] flex flex-col animate-fadeIn">
                   {/* Close Button */}
-                  <button className="absolute top-4 right-12 text-gray-500 hover:text-green-500">
+                  {/* <button className="absolute top-4 right-20 text-gray-500 hover:text-green-500">
                     <IoMdDownload size={28} />
+                  </button>
+                  <button className="absolute top-4 right-12 text-gray-500 hover:text-green-500">
+                    <TfiPrinter size={28} />
                   </button>
                   <button
                     onClick={closeViewModal}
                     className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
                   >
                     <IoIosCloseCircle size={28} />
-                  </button>
+                  </button> */}
+
 
                   {/* Title and profile image */}
-                  <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 className="text-xl font-semibold text-[#1ea600]">
-                      Employee Details
-                    </h2>
+                  {/* Header */}
+<div className="flex items-center justify-between mb-6 border-b pb-4">
 
-                    {/* Profile Picture Display */}
-                    <div className="flex flex-col items-center mr-16">
-                      {viewRow.profile_picture ? (
-                        <img
-                          src={
-                            viewRow.profile_picture.startsWith("http")
-                              ? viewRow.profile_picture
-                              : `${API_URL}${viewRow.profile_picture}`
-                          }
-                          alt="Profile"
-                          className="w-24 h-28 rounded-md object-cover border-2 border-gray-200 shadow-sm"
-                        />
-                      ) : (
-                        <div className="w-24 h-28 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
-                          No Photo
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  {/* Title */}
+  <h2 className="text-xl font-semibold text-[#1ea600]">
+    Employee Details
+  </h2>
+
+  {/* Profile Picture */}
+  <div className="flex items-center gap-6">
+
+    {viewRow.profile_picture ? (
+      <img
+        src={
+          viewRow.profile_picture.startsWith("http")
+            ? viewRow.profile_picture
+            : `${API_URL}${viewRow.profile_picture}`
+        }
+        alt="Profile"
+        className="w-20 h-24 rounded-md object-cover border-2 border-gray-200 shadow-sm"
+      />
+    ) : (
+      <div className="w-20 h-24 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
+        No Photo
+      </div>
+    )}
+
+    {/* Action Icons */}
+    <div className="flex items-center gap-4">
+      {/* Download */}
+      {/* <button
+        title="Download"
+        onClick={() => handleDownload(viewRow)}
+        className="text-gray-500 hover:text-green-600"
+      >
+        <IoMdDownload size={26} />
+      </button> */}
+
+      {/* Print */}
+      <button
+        title="Print"
+        onClick={() => window.print()}
+        className="text-gray-500 hover:text-green-600"
+      >
+        <TfiPrinter size={24} />
+      </button>
+
+      {/* Close */}
+      <button
+        title="Close"
+        onClick={closeViewModal}
+        className="text-gray-500 hover:text-red-500"
+      >
+        <IoIosCloseCircle size={26} />
+      </button>
+    </div>
+
+  </div>
+</div>
+
+{/* body */}
+<div className="pr-2 overflow-y-auto ">
                   {/* Candidate Info */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p>
                       <b>Company:</b>{" "}
-                      {companyOptions.find(
-                        (c) => c.value === viewRow.company_id,
-                      )?.label || "-"}
+                      {companyOptions.find(c => c.value === viewRow.company_id)?.label || "-"}
+                    </p>
+                     <p>
+                      <b>Branch:</b>{" "}
+                      {branchOptions.find(b => b.value === viewRow.company_id)?.label || "-"}
                     </p>
                     <p>
                       <b>Name:</b> {viewRow.name || "-"}
@@ -2228,7 +2272,13 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>Phone:</b> {viewRow.phone_number || "-"}
                     </p>
                     <p>
-                      <b>Aadhar:</b> {viewRow.aadhar_number || "-"}
+                      <b>Aadhar Number:</b> {viewRow.aadhar_number || "-"}
+                    </p>
+                    <p>
+                      <b>Pan Number:</b> {viewRow.pan_number || "-"}
+                    </p>
+                    <p>
+                      <b>Bank Name:</b> {viewRow.bank_name || "-"}
                     </p>
                     <p>
                       <b>Account Name:</b> {viewRow.acc_no || "-"}
@@ -2240,8 +2290,17 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>Address:</b> {viewRow.address || "-"}
                     </p>
                     <p>
-                      <b>Date of Birth:</b>{" "}
-                      {formatToDDMMYYYY(viewRow.date_of_birth) || "-"}
+                      <b>City:</b> {viewRow.city || "-"}
+                    </p>
+                    <p>
+                      <b>State:</b> {viewRow.state || "-"}
+                    </p>
+                    <p>
+                      <b>Current Address:</b> {viewRow.current_address || "-"}
+                    </p>
+                    
+                    <p>
+                      <b>Date of Birth:</b> {formatToDDMMYYYY(viewRow.date_of_birth) || "-"}
                     </p>
                     <p>
                       <b>Father Name:</b> {viewRow.father_name || "-"}
@@ -2259,39 +2318,59 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>UAN Number:</b> {viewRow.uan_number || "-"}
                     </p>
                     <p>
-                      <b>Status:</b>{" "}
-                      {viewRow.status === 1 ? "Active" : "Inactive"}
+                      <b>Status:</b> {viewRow.status === 1 ? "Active" : "Inactive"}
                     </p>
                     <p>
-                      <b>Joining Date:</b>{" "}
-                      {formatToDDMMYYYY(viewRow.joining_date) || "-"}
+                      <b>Joining Date:</b> {formatToDDMMYYYY(viewRow.joining_date) || "-"}
                     </p>
                     <p>
                       <b>Employee ID:</b> {viewRow.employee_id || "-"}
                     </p>
 
+                  {/* emergency contact */}
+
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Emergency Contacts</h3>
+
+              {viewRow.emergency_contacts?.length > 0 ? (
+                <table className="w-full border text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border p-2">Name</th>
+                      <th className="border p-2">Relation</th>
+                      <th className="border p-2">Phone Number</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {viewRow.emergency_contacts
+                      ?.filter((c) => e.name && e.relation && e.phone_number)
+                      .map((e, i) => (
+                        <tr key={i}>
+                          <td className="border p-2">{c.name || "-"}</td>
+                          <td className="border p-2">{c.relation || "-"}</td>
+                          <td className="border p-2">{c.phone_number || "-"}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500">No contacts available</p>
+              )}
+            </div>
                     <div className="col-span-2 pt-4">
                       <b className="block mb-2 text-gray-700">Documents:</b>
                       {/* Check if documents is an array and has items */}
                       {viewRow.documents && viewRow.documents.length > 0 ? (
                         <div className="space-y-2">
                           {viewRow.documents.map((doc, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border"
-                            >
+                            <div key={index} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border">
                               <span className="text-gray-600 truncate flex-1">
                                 {doc.original_name || `Document ${index + 1}`}
                               </span>
 
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() =>
-                                    window.open(
-                                      `${API_URL}${doc.document_path}`,
-                                      "_blank",
-                                    )
-                                  }
+                                  onClick={() => window.open(`${API_URL}/${doc.document_path}`, "_blank")}
                                   className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-blue-100"
                                 >
                                   View/Print
@@ -2309,12 +2388,12 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500 italic">
-                          No documents uploaded.
-                        </p>
+                        <p className="text-gray-500 italic">No documents uploaded.</p>
                       )}
                     </div>
+
                   </div>
+</div>
                 </div>
               </div>
             )}

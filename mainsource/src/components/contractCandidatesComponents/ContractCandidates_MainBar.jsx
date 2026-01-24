@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { TfiPencilAlt } from "react-icons/tfi";
+import { TfiPencilAlt, TfiPrinter } from "react-icons/tfi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
 
@@ -2446,43 +2446,80 @@ const referenceFormOptions = [
               </div>
             )}
 
-            {isViewModalOpen && viewRow && (
-              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative animate-fadeIn">
+             {isViewModalOpen && viewRow && (
+              <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+                <div className="bg-white w-full max-w-3xl rounded-xl shadow-lg p-6 relative max-h-[90vh] flex flex-col animate-fadeIn">
                   {/* Close Button */}
-                  <button
+                  {/* <button
                     onClick={closeViewModal}
                     className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
                   >
                     <IoIosCloseCircle size={28} />
-                  </button>
+                  </button> */}
 
                   {/* Title and profile picture */}
-          <div className="flex justify-between items-center mb-6 border-b pb-4">
+                            {/* Header */}
+<div className="flex items-center justify-between mb-6 border-b pb-4">
+
+  {/* Title */}
   <h2 className="text-xl font-semibold text-[#1ea600]">
-    Contract Candidate Details
+   Contract Candidate Details
   </h2>
-  
-  {/* Profile Picture Display */}
-  <div className="flex flex-col items-center mr-10">
+
+  {/* Profile Picture */}
+  <div className="flex items-center gap-6">
+
     {viewRow.profile_picture ? (
       <img
-         src={
-      viewRow.profile_picture.startsWith("http")
-        ? viewRow.profile_picture
-        : `${API_URL}${viewRow.profile_picture}`
-    }
+        src={
+          viewRow.profile_picture.startsWith("http")
+            ? viewRow.profile_picture
+            : `${API_URL}${viewRow.profile_picture}`
+        }
         alt="Profile"
-        className="w-24 h-28 rounded-md object-cover border-2 border-gray-200 shadow-sm"
+        className="w-20 h-24 rounded-md object-cover border-2 border-gray-200 shadow-sm"
       />
     ) : (
-      <div className="w-24 h-28 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
+      <div className="w-20 h-24 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border border-dashed text-xs">
         No Photo
       </div>
     )}
+
+    {/* Action Icons */}
+    <div className="flex items-center gap-4">
+      {/* Download */}
+      {/* <button
+        title="Download"
+        onClick={() => handleDownload(viewRow)}
+        className="text-gray-500 hover:text-green-600"
+      >
+        <IoMdDownload size={26} />
+      </button> */}
+
+      {/* Print */}
+      <button
+        title="Print"
+        onClick={() => window.print()}
+        className="text-gray-500 hover:text-green-600"
+      >
+        <TfiPrinter size={24} />
+      </button>
+
+      {/* Close */}
+      <button
+        title="Close"
+        onClick={closeViewModal}
+        className="text-gray-500 hover:text-red-500"
+      >
+        <IoIosCloseCircle size={26} />
+      </button>
+    </div>
+
   </div>
 </div>
 
+{/* body */}
+<div className="pr-2 overflow-y-auto ">
                   {/* Candidate Info */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
 
@@ -2499,9 +2536,12 @@ const referenceFormOptions = [
                     </p>
 
                     <p>
-                      <b>Aadhar:</b> {viewRow.aadhar_number}
+                      <b>Aadhar Number:</b> {viewRow.aadhar_number}
                     </p>
 
+<p>
+                      <b>Pan Number:</b> {viewRow.pan_number || "-"}
+                    </p>
 <p>
   <b>Education:</b>{" "}
   {educationOptions.find(e => e.value === viewRow.education)?.label || "-"}
@@ -2581,6 +2621,7 @@ const referenceFormOptions = [
   )}
 </div>
                   </div>
+                </div>
                 </div>
               </div>
             )}
