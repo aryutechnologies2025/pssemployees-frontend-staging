@@ -80,7 +80,14 @@ const DailyWork_Report_Main = () => {
         try {
             setLoading(true);
 
-            const res = await axiosInstance.get(`${API_URL}api/work-reports/${userid}`);
+            const res = await axiosInstance.get(
+      `${API_URL}api/employee/work-report`,
+      {
+        params: {
+          employee_id: userid, 
+        },
+      }
+    );
             console.log("list res", res);
 
             const reports = res.data?.data || [];

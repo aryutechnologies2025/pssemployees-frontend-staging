@@ -12,7 +12,7 @@ import { Dropdown } from "primereact/dropdown";
 import { useNavigate } from "react-router-dom";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { FiSearch } from "react-icons/fi";
+import { FiDownload, FiSearch } from "react-icons/fi";
 import { set, z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,12 +52,12 @@ const ContractCandidates_Mainbar = () => {
 
 
   const user = localStorage.getItem("pssemployee");
-  console.log("user", user);
+  // console.log("user", user);
 
   const userId = JSON.parse(user).id;
-  console.log("userId", userId);
+  // console.log("userId", userId);
   const userRole = JSON.parse(user).role_id;
-  console.log("userRole", userRole);
+  // console.log("userRole", userRole);
 
   const getTodayDate = () => {
     return new Date().toISOString().split("T")[0];
@@ -79,6 +79,7 @@ const ContractCandidates_Mainbar = () => {
       // fatherName: z.string().min(1, "Father's name is required"),
       // address: z.string().min(1, "Address is required"),
       gender: z.string().optional(),
+      marital: z.string().optional(),
       phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
       aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
       pan_number: z.string().optional(),
@@ -89,7 +90,13 @@ const ContractCandidates_Mainbar = () => {
       interviewStatus: z.string().min(1, "Interview status is required"),
       candidateStatus: z.string().min(1, "Candidate status is required"),
       reference: z.string().min(1, "Reference is required"),
-      education: z.string().optional(),
+      education: z
+        .number({
+          required_error: "Education is required",
+          invalid_type_error: "Education is required",
+        })
+        .int()
+        .positive("Education is required"),
       // Make these optional in base schema, they'll be conditionally required
       rejectReason: z.string().optional(),
       candidateStatus: z.string().optional(),
@@ -192,13 +199,14 @@ const ContractCandidates_Mainbar = () => {
       joinedDate: editData ? editData.joinedDate : "",
       reference: editData ? editData.reference : "",
       otherReference: editData ? editData.otherReference : "",
-      education: editData ? editData.education : "",
+      education: editData ? Number(editData.education_id) : null,
       profile_picture: editData ? editData.profile_picture : "",
       documents: editData ? editData.documents : [],
       // dob: editData ? editData.dob : "",
       // fatherName: editData ? editData.fatherName : "",
       // address: editData ? editData.address : "",
       gender: editData ? editData.gender : "",
+      marital: editData ? editData.marital_status : "",
     },
   });
   // const joining_date = watch("joinedDate");
@@ -213,8 +221,8 @@ const ContractCandidates_Mainbar = () => {
   // console.log("education", education);
 
 
-  console.log("notes_details", notes_details)
-  console.log("joining_date", joining_date);
+  // console.log("notes_details", notes_details)
+  // console.log("joining_date", joining_date);
   // console.log("company_name", company_name);
 
 
@@ -232,11 +240,11 @@ const ContractCandidates_Mainbar = () => {
   });
   const [filterInterviewStatus, setFilterInterviewStatus] = useState("");
   const [filterCandidateStatus, setFilterCandidateStatus] = useState("");
-  console.log("filterCandidateStatus", filterCandidateStatus)
+  // console.log("filterCandidateStatus", filterCandidateStatus)
   const [selectedReference, setSelectedReference] = useState("");
   const [selectedReferenceForm, setSelectedReferenceForm] = useState("");
   const [selectedEducation, setSelectedEducation] = useState("");
-console.log("selectedEducation.......:....",selectedEducation)
+// console.log("selectedEducation.......:....",selectedEducation)
   const [educationOptions, setEducationOptions] = useState([]);
   const [filterEducation, setFilterEducation] = useState("");
 
@@ -321,14 +329,14 @@ console.log("selectedEducation.......:....",selectedEducation)
   };
 
   const fetchId = async (payload) => {
-    console.log("payload", payload);
+    // console.log("payload", payload);
     try {
       const response = await axiosInstance.post(
         `api/contract-emp/move-candidate-emp`,
         payload
       );
 
-      console.log("Success:", response);
+      // console.log("Success:", response);
 
     } catch (error) {
       if (error.response) {
@@ -404,6 +412,7 @@ console.log("selectedEducation.......:....",selectedEducation)
       // company: null,
       company: "",
       gender: "",
+      marital: "",
       education: "",
       interviewDate: "",
       interviewStatus: "",
@@ -448,8 +457,8 @@ console.log("selectedEducation.......:....",selectedEducation)
         `${API_URL}api/contract-emp/edit/${row.id}`
       );
 
-      console.log("view res....:....", res);
-      console.log("view res....:....", res.data);
+      // console.log("view res....:....", res);
+      // console.log("view res....:....", res.data);
 
       if (res.data.success) {
         setViewRow(res.data.data);
@@ -666,7 +675,7 @@ console.log("selectedEducation.......:....",selectedEducation)
 
       // Debug: Check FormData contents
       for (let [key, value] of formData.entries()) {
-        console.log(key, value);
+        // console.log(key, value);
       }
 
       const response = await axiosInstance.post(
@@ -721,6 +730,7 @@ console.log("selectedEducation.......:....",selectedEducation)
       name: row.name || "",
       // address: row.address || "",
       gender: row.gender || "",
+      marital: row.marital_status || "",
       // fatherName: row.father_name || "",
       // dob: row.date_of_birth || "",
       phone: row.phone_number || "",
@@ -728,7 +738,7 @@ console.log("selectedEducation.......:....",selectedEducation)
       pan_number: row.pan_number || "",
 
       // education: row.education || "",
-      education: String(row.education),
+      education: row.education_id ? Number(row.education_id) : null,
       company: String(row.company_id),
       interviewDate: row.interview_date || "",
       interviewStatus: row.interview_status
@@ -766,7 +776,7 @@ console.log("selectedEducation.......:....",selectedEducation)
     const response = await axiosInstance.get(
       `/api/contract-emp/edit/${row.id}`
     );
-    console.log("openeditmodal:", response.data);
+    // console.log("openeditmodal:", response.data);
 
     if (response.data.success) {
       const rowData = response.data.data; // Get fresh data from API
@@ -852,22 +862,23 @@ setSelectedEducation(educationValue);
       setEmployeesList(data?.pssemployees || []);
 
       if (data.companies) {
-        const companies = setCompanyOptions(data.companies.map(c => ({
-          label: c.company_name,
-          value: String(c.id)
-        })));
-
+        const companies = data.companies.map(c => ({
+  label: c.company_name,
+  value: String(c.id)
+}));
+ setCompanyOptions(companies);
         console.log("Companies...:",companies);
       }
 
 
        
         if (data.educations) {
-       const educations = setEducationOptions(data.educations.map(e => ({
-          label: e.eduction_name, 
-          value: String(e.id)
-        })));
-
+       const educations = data.educations.map((edu) => ({
+  label: edu.eduction_name,  
+  value: edu.id, 
+  // value: String(edu.id)
+}));
+ setEducationOptions(educations);
         console.log("Educations...:",educations);
       }
       }
@@ -884,14 +895,14 @@ setSelectedEducation(educationValue);
   useEffect(() => {
     fetchContractCandidates();
     // fetchCompanyList();
-  }, []);
+  },[]);
 
-    const companyDropdown = companyOptions;
-  const educationDropdown = educationOptions;
+  //   const companyDropdown = companyOptions;
+  // const educationDropdown = educationOptions;
   
   // delete
   const handleDelete = async (id) => {
-    console.log("Deleting Contract Candidates ID:", id);
+    // console.log("Deleting Contract Candidates ID:", id);
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "This Contract Candidates will be deleted!",
@@ -912,6 +923,21 @@ setSelectedEducation(educationValue);
     }
   };
 
+    const handlCsvDownload = () => {
+    const link = window.document.createElement("a");
+    link.href = "/assets/csv/contarctformat.csv";
+    link.download = "contractformat.csv";
+
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+  };
+
+   const getEducationName = (educationId) => {
+    const edu = educationOptions.find(e => e.value === educationId);
+    return edu ? edu.label : "-";
+  };
+
   const columns = [
     {
       header: "S.No",
@@ -928,10 +954,14 @@ setSelectedEducation(educationValue);
       field: "phone_number",
       body: (row) => row.phone_number || "-",
     },
+    // {
+    //   header: "Education",
+    //   field: "education",
+    //   body: (row) => Capitalise(row.education) || row.education || "-"
+    // },
     {
       header: "Education",
-      field: "education",
-      body: (row) => Capitalise(row.education) || row.education || "-"
+      body: (row) => getEducationName(row.education_id),
     },
     // {
     //   header: "Interview Status",
@@ -1280,123 +1310,143 @@ setSelectedEducation(educationValue);
   //   };
 
 
-  const onSubmit = async (data) => {
-    try {
-      // Build notes array
-      const notesArray = [];
+const onSubmit = async (data) => {
+  setLoading(true);
 
+  try {
+    /* ---------------- NOTES ARRAY ---------------- */
+    const notesArray = [];
 
-      // Candidate not joined
-      if (data.candidateStatus === "not_joined" && data.notJoinedReason) {
-        notesArray.push({
-          notes: data.notJoinedReason,
-          note_status: "not_joined",
-        });
-      }
+    if (data.candidateStatus === "not_joined" && data.notJoinedReason) {
+      notesArray.push({
+        notes: data.notJoinedReason,
+        note_status: "not_joined",
+      });
+    }
 
-      // Interview status notes
-      // if (["rejected", "hold", "waiting"].includes(data.interviewStatus)) {
-      //   const note =
-      //     data.interviewStatus === "rejected"
-      //       ? data.rejectReason
-      //       : data.interviewStatus === "hold"
-      //         ? data.holdReason
-      //         : data.waitReason;
-
-      //   notesArray.push({
-      //     notes: note || data.notes_details.notes || "-",
-      //     note_status: data.interviewStatus,
-      //   });
-      // }
-
-        if (["rejected", "hold", "waiting"].includes(data.interviewStatus) && data.notes_details?.notes) {
+    if (
+      ["rejected", "hold", "waiting"].includes(data.interviewStatus) &&
+      data.notes_details?.notes
+    ) {
       notesArray.push({
         notes: data.notes_details.notes.trim(),
         note_status: data.interviewStatus,
       });
     }
 
-      // Payload
-      const createCandidate = {
-        name: data.name,
-        phone_number: data.phone,
-        aadhar_number: data.aadhar,
-        pan_number: data.pan,
-        address: data.address || "test",
+    /* ---------------- PAYLOAD ---------------- */
+    const createCandidate = {
+      name: data.name,
+      phone_number: data.phone,
+      aadhar_number: data.aadhar,
+      pan_number: data.pan_number,
+      address: data.address || "test",
+      gender: data.gender,
+      marital_status: data.marital,
+      company_id: Number(data.company),
+      education_id: data.education,
+      interview_date: formatDateToYMD(data.interviewDate),
+      interview_status: data.interviewStatus,
+      notes_details: notesArray,
+      reference: data.reference,
+      joining_status: data.candidateStatus,
+      joined_date:
+        data.candidateStatus === "joined"
+          ? formatDateToYMD(data.joinedDate)
+          : null,
+      joining_date:
+        data.interviewStatus === "selected"
+          ? formatDateToYMD(data.selectedJoiningDate)
+          : null,
+      other_reference:
+        data.reference === "other" ? data.otherReference : null,
+      status: 1,
+      created_by: userId,
+      role_id: userRole,
+    };
 
-        company_id: Number(data.company),
-        education: data.education,
-        interview_date: formatDateToYMD(data.interviewDate),
-        interview_status: data.interviewStatus,
-        // notes_details: notesArray,
-        notes_details: notesArray.length > 0 ? notesArray : [],
-        reference: data.reference,
-        joining_status: data.candidateStatus,
-        joined_date:
-          data.candidateStatus === "joined" ? formatDateToYMD(data.joinedDate) : null,
-        joining_date:
-          data.interviewStatus === "selected" ? formatDateToYMD(data.selectedJoiningDate) : null,
-        other_reference: data.reference === "other" ? data.otherReference : null,
-        status: 1,
-        created_by: userId,
-        role_id: userRole,
-      };
+    const formData = new FormData();
+    Object.entries(createCandidate).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(
+          key,
+          typeof value === "object" ? JSON.stringify(value) : value
+        );
+      }
+    });
 
-      const formData = new FormData();
-      Object.entries(createCandidate).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          formData.append(key, typeof value === "object" ? JSON.stringify(value) : value);
+    /* ---------------- PROFILE PIC ---------------- */
+    if (data.profile_picture instanceof File) {
+      formData.append("profile_picture", data.profile_picture);
+    } else if (typeof data.profile_picture === "string") {
+      formData.append("existing_profile_picture", data.profile_picture);
+    }
+
+    /* ---------------- DOCUMENTS ---------------- */
+    if (documents?.length) {
+      documents.forEach((doc) => {
+        if (doc instanceof File) {
+          formData.append("documents[]", doc);
+        } else if (doc.id) {
+          formData.append("documents[]", doc.id);
         }
       });
-
-      // Profile picture
-      if (data.profile_picture instanceof File) {
-        formData.append("profile_picture", data.profile_picture);
-      } else if (typeof data.profile_picture === "string") {
-        formData.append("existing_profile_picture", data.profile_picture);
-      }
-
-      // Documents
-      if (documents && documents.length > 0) {
-        documents.forEach((doc) => {
-          if (doc instanceof File) formData.append("documents[]", doc);
-          else if (doc.id) formData.append("documents[]", doc.id);
-        });
-      }
-
-      setLoading(true);
-
-      const url = editData
-        ? `/api/contract-emp/update/${editData.id}`
-        : `/api/contract-emp/create`;
-
-      await axiosInstance.post(url, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast.success(editData ? "Updated Successfully" : "Created Successfully");
-      closeAddModal();
-      fetchContractCandidates();
-
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
-  };
 
-  // const companyDropdown = companyOptions.map((c) => ({
-  //   label: c.label,
-  //   value: String(c.value),
-  // }));
+    /* ---------------- API CALL ---------------- */
+    const url = editData
+      ? `/api/contract-emp/update/${editData.id}`
+      : `/api/contract-emp/create`;
+
+    const response = await axiosInstance.post(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    /*  handle backend errors (success:false) */
+     if (response.data?.success === false) {
+      Object.values(response.data.errors || {})
+        .flat()
+        .forEach((msg) => toast.error(msg));
+      return;
+    }
+
+
+    /*  SUCCESS */
+    toast.success(editData ? "Updated Successfully" : "Created Successfully");
+    closeAddModal();
+    fetchContractCandidates();
+
+  } catch (error) {
+  const errors = error?.response?.data?.errors;
+
+  if (errors) {
+    Object.values(errors)
+      .flat()
+      .forEach((msg) => {
+        // toast.error(msg); // 👈 EXACT backend message
+      });
+  } else {
+    toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+
+  
+  }
+}finally {
+    setLoading(false);
+  }
+};
+
+
+  const companyDropdown = companyOptions.map((c) => ({
+    label: c.label,
+    value: String(c.value),
+  }));
 
   // console.log("companyDropdown", companyDropdown)
 
-  // const educationDropdown = educationOptions.map((c) => ({
-  //   label: c.label,
-  //   value: String(c.value),
-  // }));
+  const educationDropdown = educationOptions.map((c) => ({
+    label: c.label,
+    value: String(c.value),
+  }));
 
 
   // const educationOptions = [
@@ -1569,7 +1619,7 @@ setSelectedEducation(educationValue);
                   <label className="text-sm font-medium text-[#6B7280]">Education</label>
                   <Dropdown
                     value={filterEducation}
-                    options={educationDropdown}
+                    options={educationOptions}
                     onChange={(e) => setFilterEducation(e.value)}
                     placeholder="Select Education"
                     filter
@@ -1636,14 +1686,34 @@ setSelectedEducation(educationValue);
                         className="w-full pl-10 pr-3 py-2 rounded-md text-sm border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                       />
                     </div>
-                    {/* <div className="flex items-center">
+                    <div className="flex items-center">
                       <button
                         onClick={openImportAddModal}
                         className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium w-20 rounded-lg"
                       >
                         Import
                       </button>
-                    </div> */}
+                    </div>
+
+                      {/* sample csv format download */}
+                    <div className="flex items-center">
+                      <button
+                        onClick={handlCsvDownload}
+                        className="
+                          flex items-center gap-2
+                          px-5 py-2
+                          text-sm font-semibold
+                          text-green-700
+                          bg-green-100
+                          rounded-full
+                          hover:bg-green-200
+                          transition
+                        "
+                      >
+                        <FiDownload className="text-lg" /> Demo CSV
+                      </button>
+                    </div>
+
                     <button
                       onClick={openAddModal}
                       className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium  w-fit rounded-lg transition-all duration-200"
@@ -1931,8 +2001,8 @@ setSelectedEducation(educationValue);
                       <label className="block text-md font-medium">Company Name <span className="text-red-500">*</span></label>
                       <div className="w-[50%] md:w-[60%]">
                         <Dropdown
-                          // value={selectedCompany}
-                          value={watch("company")}
+                          value={selectedCompany}
+                          
                           options={companyDropdown}
                           optionLabel="label"
                           optionValue="value"
@@ -2081,6 +2151,42 @@ setSelectedEducation(educationValue);
                       </div>
                     </div>
 
+{/* marital */}
+                     <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Marital Status 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Married"
+                              {...register("marital", { required: "Marital Status is required" })}
+                              className="accent-[#1ea600]"
+                            />
+                            Married
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Unmarried"
+                              {...register("marital", { required: "Marital Status is required" })}
+                              className="accent-[#1ea600]"
+                            />
+                            Unmarried
+                          </label>
+                        </div>
+
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.marital?.message}
+                        </span> */}
+                      </div>
+                    </div>
+
 
                     {/* PHONE */}
                     <div className="mt-5 flex justify-between items-center">
@@ -2113,11 +2219,12 @@ setSelectedEducation(educationValue);
                       </label>
                       <div className="w-[50%] md:w-[60%] rounded-lg">
                         <input
-                          type="number"
-                          name="aadhar"
+                         type="text"
+  inputMode="numeric"
+  name="aadhar"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           {...register("aadhar")}
-                          inputMode="numeric"
+                          
                           maxLength={12}
                           onInput={(e) => {
                             e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
@@ -2141,7 +2248,7 @@ setSelectedEducation(educationValue);
                           type="text"
                           name="pan"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("pan")}
+                          {...register("pan_number")}
 
                           maxLength={10}
                           onInput={(e) => {
@@ -2182,13 +2289,16 @@ setSelectedEducation(educationValue);
                       <label className="block text-md font-medium">Education <span className="text-red-500">*</span></label>
                       <div className="w-full md:w-[60%]">
                         <Dropdown
-                          // value={selectedEducation}
-                          value={watch("education")}
-                          onChange={(e) => {
+                          value={selectedEducation}
+                          // value={watch("education")}
+                           onChange={(e) => {
                             setSelectedEducation(e.value);
-                            setValue("education", String(e.value), { shouldValidate: true });
+                            setValue("education", e.value, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
                           }}
-                          options={educationDropdown}
+                          options={educationOptions}
                           optionLabel="label"
                           optionValue="value"
                           filter
@@ -2563,7 +2673,7 @@ setSelectedEducation(educationValue);
 
                     {/* Title */}
                     <h2 className="text-xl font-semibold text-[#1ea600]">
-                      Contract Candidate Details
+                      Interview Candidate Details
                     </h2>
 
                     {/* Profile Picture */}
@@ -2623,10 +2733,12 @@ setSelectedEducation(educationValue);
                     {/* Candidate Info */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
 
-                      <p>
-                        <b>Company:</b>{" "}
-                        {companyOptions.find(c => c.value === viewRow.company_id)?.label || "-"}
-                      </p>
+                     <p>
+  <b>Company:</b>{" "}
+  {companyOptions.find(
+    c => c.value === String(viewRow.company_id)
+  )?.label || "-"}
+</p>
 
                       <p>
                         <b>Name:</b> {viewRow.name}
@@ -2642,12 +2754,18 @@ setSelectedEducation(educationValue);
                       <p>
                         <b>Pan Number:</b> {viewRow.pan_number || "-"}
                       </p>
+
                       <p>
-                        <b>Education:</b>{" "}
-                        {educationOptions.find(e => e.value === String(viewRow.education))?.label || viewRow.education_name || "-"}
+                        <b>Gender:</b> {viewRow.gender || "-"}
                       </p>
-
-
+                      <p>
+                        <b>Marital Status:</b> {viewRow.marital_status || "-"}
+                      </p>
+                      {/* <p><b>Education:</b> {educationOptions.find(e => e.value === String(viewRow.education_id || viewRow.education))?.label || viewRow.education || "-"}</p> */}
+<p>
+ <b>Education:</b>{" "}
+                        {viewRow.education?.eduction_name || "-"}
+                      </p>
                       <p>
                         <b>Interview Date:</b> {formatToDDMMYYYY(viewRow.interview_date) || "-"}
                       </p>
@@ -2679,12 +2797,12 @@ setSelectedEducation(educationValue);
                         </p>
                       )}
 
-{/* 
+
                       <p className="col-span-2">
                         <b>Reason For Notes:</b>{" "}
                         {viewRow.notes_details?.[0]?.notes ||
                           "No notes available"}
-                      </p> */}
+                      </p>
 
 <p className="col-span-2">
   <b>Reason For Notes:</b>{" "}
