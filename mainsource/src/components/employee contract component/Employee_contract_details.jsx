@@ -11,7 +11,7 @@ import { Dropdown } from "primereact/dropdown";
 import { useNavigate } from "react-router-dom";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { FiSearch } from "react-icons/fi";
+import { FiDownload, FiSearch } from "react-icons/fi";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,16 +58,18 @@ const Employee_contract_details = () => {
     dob: z.string().min(1, "Date of birth is required"),
     fatherName: z.string().min(1, "Father's name is required"),
     address: z.string().min(1, "Address is required"),
-    gender: z.string().min(1, "Gender is required"),
+    gender: z.string().optional(),
     marital_status: z.string().optional(),
     phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
     currentAddress: z.string().optional(),
       state: z.string().optional(),
       city: z.string().optional(),
       bankName: z.string().optional(),
-      bank_branch: z.string().optional(),
+      branch: z.string().optional(),
       emergency_contact: z.string().optional(),
-      pan_number: z.string().optional(),  
+      panNumber: z.string().optional(),
+      boardingPoint: z.string().min(1, "Boarding Point is required"),
+      education: z.string().optional(),
     aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
     company: z.string().min(1, "Company is required"),
     joinedDate: z.string().min(1, "Joined date is required"),
@@ -103,6 +105,8 @@ const Employee_contract_details = () => {
       fatherName: editData ? editData.fatherName : "",
       address: editData ? editData.address : "",
       gender: editData ? editData.gender : "",
+      boardingPoint: editData ? editData.boardingPoint : "",
+      education: editData ? editData.education : "",
       marital_status: editData ? editData.marital_status : "",
       joinedDate: editData ? editData.joinedDate : "",
       currentAddress: editData ? editData.currentAddress : "",
@@ -145,6 +149,7 @@ const Employee_contract_details = () => {
   const [filterInterviewStatus, setFilterInterviewStatus] = useState("");
   const [filterCandidateStatus, setFilterCandidateStatus] = useState("");
   const [selectedReference, setSelectedReference] = useState("");
+
 
   const [companyEmpType, setCompanyEmpType] = useState([]);
 
@@ -292,6 +297,7 @@ const Employee_contract_details = () => {
       state: "",
       city: "",
       bankName: "",
+      boardingPoint: null,
       emergency_contact: "",
       otherReference: "",
       notJoinedReason: "",
@@ -592,6 +598,12 @@ const Employee_contract_details = () => {
     }
   };
 
+  const [selectedBoarding, setSelectedBoarding] = useState(null);
+   const [boardingOptions, setBoardingOptions] = useState([]);
+
+       
+  const [selectedEducation, setSelectedEducation] = useState(null);
+  const [educationOptions, setEducationOptions] = useState([]);
   const normalizeEditData = (row) => {
     console.log("rowedit", row);
     return {
@@ -605,6 +617,15 @@ const Employee_contract_details = () => {
       phone: row.phone_number || "",
       aadhar: row.aadhar_number || "",
       company: row?.company_id ? Number(row?.company_id) : "",
+      panNumber: row.pan_number || "",
+      currentAddress: row.current_address || "",
+    state: row.state || "",
+    city: row.city || "",
+    bankName: row.bank_name || "",
+    branch: row.branch_name || "",
+    emergency_contact: row.emr_contact_number || "",
+    boardingPoint: row.boarding_point_id ? String(row.boarding_point_id) : "",
+    education: row.education_id ? String(row.education_id) : "",
       // companyLabel: row.company?.company_name || "",
       joinedDate: row.joining_date || "",
       accountName: row.acc_no || "",
@@ -628,6 +649,12 @@ const Employee_contract_details = () => {
       // joinedDate: row.joined_date || "",
       profile_picture: row.profile_picture || "",
       documents: row.documents || [],
+      boardingPoint: row.boarding_point_id
+        ? String(row.boarding_point_id)
+        : "",
+      education: row.education_id
+        ? String(row.education_id)
+        : "",
     };
   };
 
@@ -688,6 +715,8 @@ const Employee_contract_details = () => {
         ...normalizedData,
         company: String(normalizedData.company),
       });
+            setSelectedBoarding(normalizedData.boardingPoint);
+      setSelectedEducation(normalizedData.education);
     }
   };
 
@@ -710,6 +739,7 @@ const Employee_contract_details = () => {
 const [emergencyContacts, setEmergencyContacts] = useState([
     { name: "", phone: "", relation: "" },
   ]);
+
 
   
     const addEmergencyContact = () => {
@@ -747,6 +777,33 @@ const [emergencyContacts, setEmergencyContacts] = useState([
     { label: "Sibling", value: "Sibling" },
     { label: "Friend", value: "Friend" },
   ];
+
+    const [boardingPoints, setBoardingPoints] = useState([]);
+  const [educations, setEducations] = useState([]);
+
+  // Boarding Point dropdown options
+  const boardingDropdown = boardingPoints.map((b) => ({
+    label: b.point_name,
+    value: String(b.id),
+  }));
+
+  // Education dropdown options
+  const educationDropdown = educations.map((e) => ({
+    label: e.eduction_name,
+    value: String(e.id),
+  }));
+
+  console.log("educationDropdown", educationDropdown);
+
+
+  const handlCsvDownload = () => {
+    const link = document.createElement("a");
+    link.href = "/assets/csv/contarctformat.csv";
+    link.download = "contractformat.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   // contract api
   const fetchContractCandidates = async () => {
     try {
@@ -764,6 +821,10 @@ const [emergencyContacts, setEmergencyContacts] = useState([
       const response = await axiosInstance.get(
         `api/contract-employee?${queryParams}`,
       );
+       if (response.data.success) {
+        setBoardingPoints(response.data.data.boardingpoints || []);
+        setEducations(response.data.data.educations || []);
+      }
       const employees = response?.data?.data?.employees || [];
 
       console.log("response emp check", response);
@@ -937,7 +998,15 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         date_of_birth: formatDateToYMD(data.dob),
         father_name: data.fatherName,
         gender: data.gender,
-        marital_status: data.marital_status,
+        marital_status: data.maritalStatus,
+        boarding_point_id: Number(data.boardingPoint),
+        education_id: Number(data.education),
+        pan_number: data.panNumber,
+        city: data.city,
+        state: data.state,
+         branch_name: data.branch,
+      current_address: data.currentAddress,
+
         phone_number: data.phone,
         aadhar_number: data.aadhar,
         company_id: Number(data.company),
@@ -948,7 +1017,8 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         uan_number: data.uannumber,
         esic: data.esciNumber,
         employee_id: data.manual_value,
-
+bank_name: data.bankName,
+      emr_contact_number: data.emergency_contact,
         status: data.status,
         created_by: userId,
         role_id: userRole,
@@ -1012,12 +1082,23 @@ const [emergencyContacts, setEmergencyContacts] = useState([
       closeAddModal();
       fetchContractCandidates();
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const errors = error?.response?.data?.errors;
+
+  if (errors) {
+    Object.values(errors)
+      .flat()
+      .forEach((msg) => {
+        // toast.error(msg); // 👈 EXACT backend message
+      });
+  } else {
+    toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+
+  
+  }
+}finally {
+    setLoading(false);
+  }
+};
 
   const companyDropdown = companyOptions.map((c) => ({
     label: c.label,
@@ -1028,7 +1109,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
   console.log("companyDropdown", companyDropdown);
 
   return (
-    <div className="bg-gray-100 flex flex-col justify-between w-screen min-h-screen px-5 pt-2 md:pt-10">
+    <div className="bg-gray-100 flex flex-col justify-between w-full overflow-x-auto min-h-screen px-5 pt-2 md:pt-10">
       {loading ? (
         <Loader />
       ) : (
@@ -1193,6 +1274,24 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                         Import
                       </button>
                     </div>
+                      {/* sample csv format download */}
+                    <div className="flex items-center">
+                      <button
+                        onClick={handlCsvDownload}
+                        className="
+      flex items-center gap-2
+      px-5 py-2
+      text-sm font-semibold
+      text-green-700
+      bg-green-100
+      rounded-full
+      hover:bg-green-200
+      transition
+    "
+                      >
+                        <FiDownload className="text-lg" /> Demo CSV
+                      </button>
+                    </div>
                     <button
                       onClick={openAddModal}
                       className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium  w-fit rounded-lg transition-all duration-200"
@@ -1295,12 +1394,24 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <div className="w-[60%] md:w-[50%]">
                         <Dropdown
                           value={selectedCompany}
-                          onChange={(e) => setSelectedCompany(e.value)}
-                          options={companyOptions}
+                          options={companyDropdown}
                           optionLabel="label"
+                          optionValue="value"
                           placeholder="Select Company"
                           filter
                           className="w-full border border-gray-300 rounded-lg"
+                          onChange={(e) => {
+                            setSelectedCompany(e.value);
+                            const obj = companyDropdown.find(
+                              (item) => item.value === e.value,
+                            );
+                            setCompanyEmpType(
+                              obj.company_emp_id?.toLowerCase(),
+                            );
+                            setValue("company", Number(e.value), {
+                              shouldValidate: true,
+                            });
+                          }}
                         />
                       </div>
                     </div>
@@ -1515,7 +1626,64 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       </div>
                     </div>
 
+                     {/* boarding Point */}{" "}
+                    <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        Boarding Point
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
 
+                      <div className="w-[50%] md:w-[60%]">
+                        <Dropdown
+                          value={selectedBoarding}
+                          options={boardingDropdown}
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Select Boarding Point"
+                          filter
+                          className="w-full border border-gray-300 rounded-lg"
+                          onChange={(e) => {
+                            setSelectedBoarding(e.value);
+                            setValue("boardingPoint", e.value, { shouldValidate: true });
+                          }}
+                        />
+
+                        {errors.boardingPoint && (
+                          <p className="text-red-500 text-sm">
+                            {errors.boardingPoint.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {/* Education */}
+                    <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium">
+                        Education
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%]">
+                        <Dropdown
+                          value={selectedEducation}
+                          options={educationDropdown}
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Select Education"
+                          filter
+                          className="w-full border border-gray-300 rounded-lg"
+                          onChange={(e) => {
+                            setSelectedEducation(e.value);
+                            setValue("education", e.value, { shouldValidate: true });
+                          }}
+                        />
+
+                        {errors.education && (
+                          <p className="text-red-500 text-sm">
+                            {errors.education.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
                     {/* NAME */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1571,6 +1739,46 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                         <span className="text-red-500 text-sm">
                           {errors.fatherName?.message}
                         </span>
+                      </div>
+                    </div>
+
+                    {/* marital status */}
+                     <div className="mt-5 flex justify-between items-center">
+                      <label className="block text-md font-medium mb-2">
+                        Marital_Status 
+                        {/* <span className="text-red-500">*</span> */}
+                      </label>
+
+                      <div className="w-[50%] md:w-[60%] rounded-lg">
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Single"
+                              {...register("marital_status", {
+                                required: "Marital Status Is Required",
+                              })}
+                              className="accent-[#1ea600]"
+                            />
+                            Single
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="Married"
+                              {...register("marital_status", {
+                                required: "Marital Status Is Required",
+                              })}
+                              className="accent-[#1ea600]"
+                            />
+                            Married
+                          </label>
+                        </div>
+
+                        {/* <span className="text-red-500 text-sm">
+                          {errors.marital_status?.message}
+                        </span> */}
                       </div>
                     </div>
 
@@ -1647,7 +1855,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                         <textarea
                           type="text"
                           name="currentaddress"
-                          {...register("currentaddress")}
+                          {...register("currentAddress")}
 
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           placeholder="Enter The Address"
@@ -1698,45 +1906,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       </div>
                     </div>
 
-{/* marital status */}
-                     <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Marital_Status 
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
 
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <div className="flex gap-6">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Single"
-                              {...register("marital_status", {
-                                required: "Marital Status Is Required",
-                              })}
-                              className="accent-[#1ea600]"
-                            />
-                            Single
-                          </label>
-
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Married"
-                              {...register("marital_status", {
-                                required: "Marital Status Is Required",
-                              })}
-                              className="accent-[#1ea600]"
-                            />
-                            Married
-                          </label>
-                        </div>
-
-                        {/* <span className="text-red-500 text-sm">
-                          {errors.marital_status?.message}
-                        </span> */}
-                      </div>
-                    </div>
 
                     {/* PHONE */}
                     <div className="mt-5 flex justify-between items-center">
@@ -1797,9 +1967,9 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <div className="w-[50%] md:w-[60%] rounded-lg">
                         <input
                           type="text"
-                          name="pan"
+                          name="pannumber"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("pan")}
+                          {...register("panNumber")}
                           
                           maxLength={10}
                           onInput={(e) => {
@@ -1905,7 +2075,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <div className="w-[50%] md:w-[60%]">
                          <input
                           type="text"
-                          name="bank_branch"
+                          name="branch"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           {...register("bank_branch")}
                           placeholder="Enter Branch Name"
@@ -2302,6 +2472,12 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>Company:</b>{" "}
                       {companyOptions.find(c => c.value === viewRow.company_id)?.label || "-"}
                     </p>
+<p>
+                    <b>Boarding Point:</b> {boardingPoints.find(b => b.id === viewRow.boarding_point_id)?.point_name || "-"}
+</p>
+<p>
+  <b>Education:</b> {educations.find(e => e.id === viewRow.education_id)?.eduction_name || "-"}
+</p>
                      
                     <p>
                       <b>Name:</b> {viewRow.name || "-"}
@@ -2319,7 +2495,7 @@ const [emergencyContacts, setEmergencyContacts] = useState([
                       <b>Bank Name:</b> {viewRow.bank_name || "-"}
                     </p>
                          <p>
-                      <b>Branch Name:</b> {viewRow.bank_branch || "-"}
+                      <b>Branch Name:</b> {viewRow.branch_name || "-"}
                     </p>
                     <p>
                       <b>Account Name:</b> {viewRow.acc_no || "-"}
