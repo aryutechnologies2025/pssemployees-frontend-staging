@@ -46,17 +46,23 @@ const DailyWork_Report_Main = () => {
     const storedDetatis = localStorage.getItem("pssemployee");
     const parsedDetails = JSON.parse(storedDetatis);
     const userid = parsedDetails ? parsedDetails.id : null;
-    console.log("userId", userid)
+    // console.log("userId", userid)
 
     const [rows, setRows] = useState(10);
     const [globalFilter, setGlobalFilter] = useState("");;
     const [viewMessage, setViewMessage] = useState(null);
     const [workReports, setWorkReports] = useState([]);
     const [employeeOptions, setEmployeeOptions] = useState([]);
+const [employees, setEmployees] = useState([]);
+ const [allWorkReports, setAllWorkReports] = useState([]);
+
+    const today = new Date().toISOString().split("T")[0];
+
     const [dailyForm, setDailyForm] = useState({
-        report_date: "",
+        report_date: today,
         report: ""
     });
+
 
     const [editDailyForm, setEditDailyForm] = useState({
         id: null,
@@ -64,16 +70,47 @@ const DailyWork_Report_Main = () => {
         report: ""
     });
 
-    const today = new Date().toISOString().split("T")[0];
+    
     const [filters, setFilters] = useState({
         from_date: today,
         to_date: today,
         employee_id: ""
     });
+    const [isFilterApplied, setIsFilterApplied] = useState(false);
     const [tableData, setTableData] = useState([]);
-    const displayedData = tableData.length ? tableData : workReports;
+    // const displayedData = tableData.length ? tableData : workReports;
+    const displayedData = isFilterApplied ? tableData : workReports;
 
 
+
+      const applyFilters = () => {
+        let filtered = [...allWorkReports];
+
+        // Start Date
+        if (filters.from_date) {
+            filtered = filtered.filter(item =>
+                new Date(item.report_date) >= new Date(filters.from_date)
+            );
+        }
+
+        // End Date
+        if (filters.to_date) {
+            filtered = filtered.filter(item =>
+                new Date(item.report_date) <= new Date(filters.to_date)
+            );
+        }
+
+        // Employee
+        if (filters.employee_id) {
+            filtered = filtered.filter(
+                item => item.employee?.id === filters.employee_id
+            );
+        }
+
+
+        setWorkReports(filtered);
+        setTotalRecords(filtered.length);
+    };
 
     // list
     const fetchWorkReports = async () => {
@@ -114,7 +151,7 @@ const DailyWork_Report_Main = () => {
             setTotalRecords(reports.length);
 
         } catch (err) {
-            toast.error("Failed to fetch Daily work reports");
+            toast.error("Failed To Fetch Daily Work Reports");
         } finally {
             setLoading(false);
         }
@@ -129,7 +166,7 @@ const DailyWork_Report_Main = () => {
     const handleCreateWorkReport = async () => {
 
         if (!dailyForm.report_date || !dailyForm.report) {
-            toast.error("All fields required");
+            toast.error("All Fields Required");
             return;
         }
 
@@ -149,7 +186,7 @@ const DailyWork_Report_Main = () => {
 
             console.log("CREATE RESPONSE:", res);
 
-            toast.success("Daily work added");
+            toast.success("Daily Work Added");
             closeAddModal();
             fetchWorkReports();
 
@@ -161,7 +198,7 @@ const DailyWork_Report_Main = () => {
 
         } catch (error) {
             console.error("CREATE ERROR:", error.response || error);
-            toast.error("Failed to create Daily Work Report");
+            toast.error("Failed To Create Daily Work Report");
         }
     };
 
@@ -170,7 +207,7 @@ const DailyWork_Report_Main = () => {
     const handleUpdateWorkReport = async () => {
 
         if (!editDailyForm.report_date || !editDailyForm.report) {
-            toast.error("All fields required");
+            toast.error("All Fields Required");
             return;
         }
 
@@ -186,13 +223,13 @@ const DailyWork_Report_Main = () => {
                 payload
             );
 
-            toast.success("Daily work Report updated");
+            toast.success("Daily Work Report Updated");
             closeEditModal();
             fetchWorkReports();
 
         } catch (error) {
             console.error(error);
-            toast.error("Failed to Update Daily Work Report");
+            toast.error("Failed To Update Daily Work Report");
         }
     };
 
@@ -232,7 +269,7 @@ const DailyWork_Report_Main = () => {
 
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load report");
+            toast.error("Failed To Load Report");
         }
     };
 
@@ -261,12 +298,14 @@ const DailyWork_Report_Main = () => {
 
         setTableData([]);                       // clear filter
         setTotalRecords(workReports.length);   // restore full list
+        setIsFilterApplied(false);
     };
 
 
+    
     const handleApplyFilter = async () => {
         if (!filters.from_date || !filters.to_date) {
-            toast.error("Please select start and end date");
+            toast.error("Please Select Start And End Date");
             return;
         }
 
@@ -279,18 +318,24 @@ const DailyWork_Report_Main = () => {
                     params: {
                         from_date: filters.from_date,
                         to_date: filters.to_date,
-                        employee_id: filters.employee_id || undefined
+                        // employee_id: filters.employee_id || undefined
+                         employee_id: userid 
                     }
                 }
             );
+
+            const rawData = response.data?.data ?? [];
+
+            
 
             const filteredData = response.data?.data || [];
 
             setTableData(filteredData);           
             setTotalRecords(filteredData.length);
+            setIsFilterApplied(true);
 
         } catch (error) {
-            toast.error("Failed to apply filter");
+            toast.error("Failed To Apply Filter");
         } finally {
             setLoading(false);
         }
@@ -314,10 +359,14 @@ const DailyWork_Report_Main = () => {
         {
             field: "employee.gen_employee_id",
             header: "Employee ID",
+            body: (row) =>
+    row.employee?.gen_employee_id || row.employee_id || "-"
         },
         {
             field: "employee.full_name",
             header: "Employee Name",
+            body: (row) =>
+    row.employee?.full_name || "-"
         },
         {
             field: "message",

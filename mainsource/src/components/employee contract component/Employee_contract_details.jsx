@@ -391,8 +391,9 @@ const Employee_contract_details = () => {
         `${API_URL}api/contract-employee/edit/${row.id}`,
       );
 
-      console.log("view res....:....", res);
-      console.log("view res....:....", res.data);
+    console.log("view res data:", res.data);
+    console.log("contact_details in response:", res.data.data?.contact_details);
+    console.log("Type of contact_details:", typeof res.data.data?.contact_details);
 
       if (res.data.success) {
         setViewRow(res.data.data);
@@ -605,7 +606,37 @@ const Employee_contract_details = () => {
   const [selectedEducation, setSelectedEducation] = useState(null);
   const [educationOptions, setEducationOptions] = useState([]);
   const normalizeEditData = (row) => {
+    
     console.log("rowedit", row);
+  
+  // Normalize contact_details from backend
+  let normalizedContacts = [];
+  if (row.contact_details) {
+    // If it's already an array
+    if (Array.isArray(row.contact_details)) {
+      normalizedContacts = row.contact_details.map(c => ({
+        name: c.name || "",
+        relationship: c.relationship || "",
+        phone_number: c.phone_number || ""
+      }));
+    } 
+    // If it's a JSON string
+    else if (typeof row.contact_details === 'string') {
+      try {
+        const parsed = JSON.parse(row.contact_details);
+        if (Array.isArray(parsed)) {
+          normalizedContacts = parsed.map(c => ({
+            name: c.name || "",
+            relationship: c.relationship || "",
+            phone_number: c.phone_number || ""
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to parse contact_details:", e);
+      }
+    }
+  }
+  
     return {
       id: row.id || null,
       name: row?.name || "",
@@ -623,7 +654,7 @@ const Employee_contract_details = () => {
     city: row.city || "",
     bankName: row.bank_name || "",
     branch: row.branch_name || "",
-    emergency_contact: row.emr_contact_number || "",
+    emergency_contact: row.contact_details || "",
     boardingPoint: row.boarding_point_id ? String(row.boarding_point_id) : "",
     education: row.education_id ? String(row.education_id) : "",
       // companyLabel: row.company?.company_name || "",
@@ -655,6 +686,10 @@ const Employee_contract_details = () => {
       education: row.education_id
         ? String(row.education_id)
         : "",
+        
+        // Add contact_details to normalized data
+    contact_details: normalizedContacts
+
     };
   };
 
@@ -682,6 +717,20 @@ const Employee_contract_details = () => {
       } else {
         setPhoto(null);
       }
+
+ // ✅ emergency contacts
+    const normalizedEmergencyContacts =
+      Array.isArray(rowData.contact_details) &&
+      rowData.contact_details.length > 0
+        ? rowData.contact_details.map((c) => ({
+            name: c.name || "",
+            relationship: c.relationship || "",
+            phone_number: c.phone_number || "",
+          }))
+        : [{ name: "", relationship: "", phone_number: "" }];
+
+    setEmergencyContacts(normalizedEmergencyContacts);
+  
 
       let normalizedDocs = [];
       if (rowData.document_groups) {
@@ -717,6 +766,7 @@ const Employee_contract_details = () => {
       });
             setSelectedBoarding(normalizedData.boardingPoint);
       setSelectedEducation(normalizedData.education);
+      
     }
   };
 
@@ -737,16 +787,16 @@ const Employee_contract_details = () => {
 
   const [selectedCompanyfilter, setSelectedCompanyfilter] = useState("");
 const [emergencyContacts, setEmergencyContacts] = useState([
-    { name: "", phone: "", relation: "" },
-  ]);
+  { name: "", relationship: "", phone_number: "" }
+]);
 
 
   
     const addEmergencyContact = () => {
       const last = emergencyContacts[emergencyContacts.length - 1];
       // Only add if last contact is filled
-      if (last.name && last.phone && last.relation) {
-        setEmergencyContacts([...emergencyContacts, { name: "", phone: "", relation: "" }]);
+      if (last.name && last.phone_number && last.relationship) {
+        setEmergencyContacts([...emergencyContacts, { name: "", phone_number: "", relationship: "" }]);
       } else {
         Swal.fire({
           icon: "warning",
@@ -991,6 +1041,17 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         documents: data.documents,
         documents_length: data.documents?.length,
       });
+console.log("Emergency contacts state:", emergencyContacts);
+ const formattedEmergencyContacts = emergencyContacts
+      .filter(item => item.name && item.relationship && item.phone_number) // Only include valid contacts
+      .map(item => ({
+        name: item.name,
+        relationship: item.relationship, // Changed from 'role' to 'relationship'
+        phone_number: item.phone_number
+      }));
+
+    console.log("Formatted emergency contacts:", formattedEmergencyContacts);
+
       const createCandidate = {
         name: data.name,
         address: data.address || "test",
@@ -998,9 +1059,12 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         date_of_birth: formatDateToYMD(data.dob),
         father_name: data.fatherName,
         gender: data.gender,
-        marital_status: data.maritalStatus,
+        marital_status: data.marital_status,
         boarding_point_id: Number(data.boardingPoint),
-        education_id: Number(data.education),
+        education_id:
+  data.education && !isNaN(Number(data.education))
+    ? Number(data.education)
+    : null,
         pan_number: data.panNumber,
         city: data.city,
         state: data.state,
@@ -1018,7 +1082,8 @@ const [emergencyContacts, setEmergencyContacts] = useState([
         esic: data.esciNumber,
         employee_id: data.manual_value,
 bank_name: data.bankName,
-      emr_contact_number: data.emergency_contact,
+      // emr_contact_number: data.emergency_contact,
+      contact_details: formattedEmergencyContacts,
         status: data.status,
         created_by: userId,
         role_id: userRole,
@@ -1067,6 +1132,13 @@ bank_name: data.bankName,
         });
       }
 
+if (formattedEmergencyContacts.length > 0) {
+      formData.append('contact_details', JSON.stringify(formattedEmergencyContacts));
+      console.log("Added contact_details to formData:", formattedEmergencyContacts);
+    }else {
+      formData.append('contact_details', '[]');
+    }
+
       console.log("Create candidate ,.... : .....", createCandidate);
       setLoading(true);
 
@@ -1074,10 +1146,18 @@ bank_name: data.bankName,
         ? `/api/contract-employee/update/${editData.id}`
         : `/api/contract-employee/create`;
 
-      await axiosInstance.post(url, formData, {
+      const response = await axiosInstance.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+          /*  handle backend errors (success:false) */
+    //  if (response.data?.success === false) {
+    //   Object.values(response.data.errors || {})
+    //     .flat()
+    //     .forEach((msg) => toast.error(msg));
+    //   return;
+    // }
+       
       toast.success(editData ? "Updated Successfully" : "Created Successfully");
       closeAddModal();
       fetchContractCandidates();
@@ -1091,7 +1171,8 @@ bank_name: data.bankName,
         // toast.error(msg); // 👈 EXACT backend message
       });
   } else {
-    toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+    // console.log("error...",error.message)
+    toast.error(error?.message || "Server Error. Please Try Again.");
 
   
   }
@@ -2272,9 +2353,9 @@ bank_name: data.bankName,
         {/* Relation */}
         <div className="flex flex-col mt-1">
           <select
-            value={item.relation}
+            value={item.relationship}
             onChange={(e) =>
-              updateEmergencyContact(index, "relation", e.target.value)
+              updateEmergencyContact(index, "relationship", e.target.value)
             }
             className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
           >
@@ -2292,11 +2373,11 @@ bank_name: data.bankName,
           <input
             type="text"
             placeholder="Phone Number"
-            value={item.phone}
+            value={item.phone_number}
             onChange={(e) => {
               const value = e.target.value.replace(/\D/g, "");
               if (value.length <= 10) {
-                updateEmergencyContact(index, "phone", value);
+                updateEmergencyContact(index, "phone_number", value);
               }
             }}
             className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
@@ -2546,34 +2627,36 @@ bank_name: data.bankName,
 
                   {/* emergency contact */}
 
-            <div className="mt-4">
-              <h3 className="font-semibold mb-2">Emergency Contacts</h3>
+<div className="mt-4">
+  <h3 className="font-semibold mb-2">Emergency Contacts</h3>
 
-              {viewRow.emergency_contacts?.length > 0 ? (
-                <table className="w-full border text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="border p-2">Name</th>
-                      <th className="border p-2">Relation</th>
-                      <th className="border p-2">Phone Number</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {viewRow.emergency_contacts
-                      ?.filter((c) => e.name && e.relation && e.phone_number)
-                      .map((e, i) => (
-                        <tr key={i}>
-                          <td className="border p-2">{c.name || "-"}</td>
-                          <td className="border p-2">{c.relation || "-"}</td>
-                          <td className="border p-2">{c.phone_number || "-"}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="text-gray-500">No contacts available</p>
-              )}
-            </div>
+ {viewRow?.contact_details && Array.isArray(viewRow.contact_details) && viewRow.contact_details.length > 0 ? (
+    <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="border p-2">Name</th>
+          <th className="border p-2">Relation</th>
+          <th className="border p-2">Phone Number</th>
+        </tr>
+      </thead>
+      <tbody>
+        {viewRow.contact_details.map((c, i) => (
+          <tr key={i}>
+            <td className="border p-2">{c.name}</td>
+            <td className="border p-2">{c.relationship}</td>
+            <td className="border p-2">{c.phone_number}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <p className="text-gray-500">No contacts available</p>
+  )}
+</div>
+
+
+
+
                     <div className="col-span-2 pt-4">
                       <b className="block mb-2 text-gray-700">Documents:</b>
                       {/* Check if documents is an array and has items */}
