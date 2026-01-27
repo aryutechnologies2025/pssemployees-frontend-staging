@@ -127,15 +127,16 @@ const ContractCandidates_Mainbar = () => {
           code: z.ZodIssueCode.custom,
         });
       }
-      if (["rejected", "hold", "waiting"].includes(data.interviewStatus)) {
-      if (!data.notes_details?.notes?.trim()) {
-        ctx.addIssue({
-          path: ["notes_details", "notes"],
-          message: "Reason is required",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-    }
+     if (
+           ["rejected", "hold", "waiting"].includes(data.interviewStatus) &&
+           !data.notes_details?.notes?.trim()
+         ) {
+           ctx.addIssue({
+             path: ["notes_details", "notes"],
+             message: "Reason is required",
+             code: z.ZodIssueCode.custom,
+           });
+         }
       // Candidate status specific validations
       if (data.candidateStatus === "joined" && !data.joinedDate?.trim()) {
         ctx.addIssue({
@@ -1324,12 +1325,16 @@ const onSubmit = async (data) => {
       });
     }
 
-    if (
-      ["rejected", "hold", "waiting"].includes(data.interviewStatus) &&
-      data.notes_details?.notes
-    ) {
+    if (["rejected", "hold", "waiting"].includes(data.interviewStatus)) {
+      const note = 
+        data.interviewStatus === "rejected"
+          ? data.rejectReason
+          : data.interviewStatus === "hold"
+            ? data.holdReason
+            : data.waitReason;
+
       notesArray.push({
-        notes: data.notes_details.notes.trim(),
+        notes: note ||data.notes_details.notes || "-",
         note_status: data.interviewStatus,
       });
     }
@@ -1403,12 +1408,12 @@ const onSubmit = async (data) => {
     });
 
     /*  handle backend errors (success:false) */
-     if (response.data?.success === false) {
-      Object.values(response.data.errors || {})
-        .flat()
-        .forEach((msg) => toast.error(msg));
-      return;
-    }
+    //  if (response.data?.success === false) {
+    //   Object.values(response.data.errors || {})
+    //     .flat()
+    //     .forEach((msg) => toast.error(msg));
+    //   return;
+    // }
 
 
     /*  SUCCESS */
@@ -1426,7 +1431,8 @@ const onSubmit = async (data) => {
         // toast.error(msg); // 👈 EXACT backend message
       });
   } else {
-    toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+    // toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+    toast.error(error?.message || "Server Error. Please Try Again.");
 
   
   }
