@@ -45,24 +45,29 @@ pipeline {
     }
 
     stage('Deploy (FAST SYNC — SAFE MODE)') {
-      steps {
-        sh '''
-          set -e
+  steps {
+    sh '''
+      set -e
 
-          echo "Deploying into running container: ${CONTAINER_NAME}"
+      echo "Deploying into running container: ${CONTAINER_NAME}"
 
-          docker exec ${CONTAINER_NAME} mkdir -p /usr/local/apache2/htdocs_new
-          docker cp ${SOURCE_PATH}/dist/. ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new
+      docker exec ${CONTAINER_NAME} mkdir -p /usr/local/apache2/htdocs_new
 
-          echo "Atomic switch..."
-          docker exec ${CONTAINER_NAME} sh -c "
-            rm -rf /usr/local/apache2/htdocs_old || true
-            mv /usr/local/apache2/htdocs /usr/local/apache2/htdocs_old
-            mv /usr/local/apache2/htdocs_new /usr/local/apache2/htdocs
-          "
-        '''
-      }
-    }
+      echo "Copying build files..."
+      docker cp ${SOURCE_PATH}/dist/. ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new
+
+      echo "Copying .htaccess..."
+      docker cp .htaccess ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new/.htaccess
+
+      echo "Atomic switch..."
+      docker exec ${CONTAINER_NAME} sh -c "
+        rm -rf /usr/local/apache2/htdocs_old || true
+        mv /usr/local/apache2/htdocs /usr/local/apache2/htdocs_old
+        mv /usr/local/apache2/htdocs_new /usr/local/apache2/htdocs
+      "
+    '''
+  }
+}
 
     stage('Health Check') {
       steps {
