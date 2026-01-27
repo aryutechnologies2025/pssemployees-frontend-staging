@@ -13,7 +13,7 @@ import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { FiDownload, FiSearch } from "react-icons/fi";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { FaEye } from "react-icons/fa6";
@@ -53,6 +53,15 @@ const Employee_contract_details = () => {
     return new Date().toISOString().split("T")[0];
   };
 
+  /* Emergency Contact */
+ const emergencyContactSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  relationship: z.string().min(1, "Relation is required"),
+  phone_number: z
+    .string()
+    .regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
+});
+
   const candidateContractSchema = z.object({
     name: z.string().min(1, "Name is required"),
     dob: z.string().min(1, "Date of birth is required"),
@@ -82,7 +91,12 @@ const Employee_contract_details = () => {
     manual_value: z.string().optional(),
     profile_picture: z.any().optional(),
     documents: z.array(z.any()).optional(),
-  });
+  /* 🔥 Emergency Contacts */
+  emergencyContacts: z
+    .array(emergencyContactSchema)
+    .min(1, "At least one emergency contact is required"),
+});
+
 
   const [employeeIds, setEmployeeIds] = useState([]);
 
@@ -92,6 +106,7 @@ const Employee_contract_details = () => {
     watch,
     setValue,
     reset,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(candidateContractSchema),
@@ -114,7 +129,7 @@ const Employee_contract_details = () => {
       city: editData ? editData.city : "",
       bankName: editData ? editData.bankName : "",
       bank_branch: editData ? editData.bank_branch : "",
-      emergency_contact: editData ? editData.emergency_contact : "",
+     
       panNumber: editData ? editData.pan : "",
       accountName: editData ? editData.accountName : "",
       accountNumber: editData ? editData.accountNumber : "",
@@ -124,8 +139,16 @@ const Employee_contract_details = () => {
       status: editData ? editData.status : "",
       profile_picture: editData ? editData.profile_picture : "",
       documents: editData ? editData.documents : [],
+       emergencyContacts: [
+      { name: "", relationship: "", phone_number: "" },
+    ],
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+  control,
+  name: "emergencyContacts",
+});
 
   useEffect(() => {
     setValue("manual_value", employeeIds);
@@ -610,33 +633,16 @@ const Employee_contract_details = () => {
     console.log("rowedit", row);
   
   // Normalize contact_details from backend
-  let normalizedContacts = [];
-  if (row.contact_details) {
-    // If it's already an array
-    if (Array.isArray(row.contact_details)) {
-      normalizedContacts = row.contact_details.map(c => ({
-        name: c.name || "",
-        relationship: c.relationship || "",
-        phone_number: c.phone_number || ""
-      }));
-    } 
-    // If it's a JSON string
-    else if (typeof row.contact_details === 'string') {
-      try {
-        const parsed = JSON.parse(row.contact_details);
-        if (Array.isArray(parsed)) {
-          normalizedContacts = parsed.map(c => ({
-            name: c.name || "",
-            relationship: c.relationship || "",
-            phone_number: c.phone_number || ""
-          }));
-        }
-      } catch (e) {
-        console.error("Failed to parse contact_details:", e);
-      }
-    }
+ let normalizedContacts = [];
+
+  if (Array.isArray(row.contacts) && row.contacts.length > 0) {
+    normalizedContacts = row.contacts.map(c => ({
+      name: c.name || "",
+      relationship: c.relationship || "",
+      phone_number: c.phone_number || "",
+    }));
   }
-  
+
     return {
       id: row.id || null,
       name: row?.name || "",
@@ -687,8 +693,11 @@ const Employee_contract_details = () => {
         ? String(row.education_id)
         : "",
         
-        // Add contact_details to normalized data
-    contact_details: normalizedContacts
+        
+     emergencyContacts:
+      normalizedContacts.length > 0
+        ? normalizedContacts
+        : [{ name: "", relationship: "", phone_number: "" }],
 
     };
   };
@@ -729,7 +738,7 @@ const Employee_contract_details = () => {
           }))
         : [{ name: "", relationship: "", phone_number: "" }];
 
-    setEmergencyContacts(normalizedEmergencyContacts);
+    // setEmergencyContacts(normalizedEmergencyContacts);
   
 
       let normalizedDocs = [];
@@ -763,6 +772,7 @@ const Employee_contract_details = () => {
       reset({
         ...normalizedData,
         company: String(normalizedData.company),
+         emergencyContacts: normalizedData.emergencyContacts,
       });
             setSelectedBoarding(normalizedData.boardingPoint);
       setSelectedEducation(normalizedData.education);
@@ -786,40 +796,44 @@ const Employee_contract_details = () => {
   const [filterGender, setFilterGender] = useState("");
 
   const [selectedCompanyfilter, setSelectedCompanyfilter] = useState("");
-const [emergencyContacts, setEmergencyContacts] = useState([
-  { name: "", relationship: "", phone_number: "" }
-]);
+// const [emergencyContacts, setEmergencyContacts] = useState([
+//   { name: "", relationship: "", phone_number: "" }
+// ]);
+
+// console.log("emergencyContacts", emergencyContacts);
 
 
   
-    const addEmergencyContact = () => {
-      const last = emergencyContacts[emergencyContacts.length - 1];
-      // Only add if last contact is filled
-      if (last.name && last.phone_number && last.relationship) {
-        setEmergencyContacts([...emergencyContacts, { name: "", phone_number: "", relationship: "" }]);
-      } else {
-        Swal.fire({
-          icon: "warning",
-          title: "Incomplete Contact",
-          text: "Please complete the current contact before adding a new one",
-        });
-      }
-    };
+  //   const addEmergencyContact = () => {
+  //     const last = emergencyContacts[emergencyContacts.length - 1];
+  //     // Only add if last contact is filled
+  //     if (last.name && last.phone_number && last.relationship) {
+  //       setEmergencyContacts([...emergencyContacts, { name: "", phone_number: "", relationship: "" }]);
+  //     } else {
+  //       Swal.fire({
+  //         icon: "warning",
+  //         title: "Incomplete Contact",
+  //         text: "Please complete the current contact before adding a new one",
+  //       });
+  //     }
+  //   };
 
-      const removeEmergencyContact = (index) => {
-    if (emergencyContacts.length <= 1) {
-      Swal.fire({ icon: "warning", title: "Cannot remove", text: "At least one contact is required" });
-      return;
-    }
-    setEmergencyContacts(emergencyContacts.filter((_, i) => i !== index));
-  };
+  //     const removeEmergencyContact = (index) => {
+  //   if (emergencyContacts.length <= 1) {
+  //     Swal.fire({ icon: "warning", title: "Cannot remove", text: "At least one contact is required" });
+  //     return;
+  //   }
+  //   setEmergencyContacts(emergencyContacts.filter((_, i) => i !== index));
+  // };
 
-  // Update Emergency Contact
-  const updateEmergencyContact = (index, field, value) => {
-    const updatedContacts = [...emergencyContacts];
-    updatedContacts[index][field] = value;
-    setEmergencyContacts(updatedContacts);
-  };
+  // // Update Emergency Contact
+  // const updateEmergencyContact = (index, field, value) => {
+  //   const updatedContacts = [...emergencyContacts];
+  //   updatedContacts[index][field] = value;
+
+  //   // console.log("updatedContacts", updatedContacts);
+  //   setEmergencyContacts(updatedContacts);
+  // };
      const relationOptions = [
     { label: "Father", value: "Father" },
     { label: "Mother", value: "Mother" },
@@ -1034,23 +1048,27 @@ const [emergencyContacts, setEmergencyContacts] = useState([
   // create
   const onSubmit = async (data) => {
     try {
-      console.log("Form data before submit:", {
-        profile_picture: data.profile_picture,
-        profile_image_type: typeof data.profile_picture,
-        isFile: data.profile_picture instanceof File,
-        documents: data.documents,
-        documents_length: data.documents?.length,
-      });
-console.log("Emergency contacts state:", emergencyContacts);
- const formattedEmergencyContacts = emergencyContacts
-      .filter(item => item.name && item.relationship && item.phone_number) // Only include valid contacts
-      .map(item => ({
-        name: item.name,
-        relationship: item.relationship, // Changed from 'role' to 'relationship'
-        phone_number: item.phone_number
-      }));
+      // console.log("Form data before submit:", {
+      //   profile_picture: data.profile_picture,
+      //   profile_image_type: typeof data.profile_picture,
+      //   isFile: data.profile_picture instanceof File,
+      //   documents: data.documents,
+      //   documents_length: data.documents?.length,
+      // });
 
-    console.log("Formatted emergency contacts:", formattedEmergencyContacts);
+      console.log("🔥 onSubmit triggered");
+  console.log("Form values:", data);
+
+// console.log("Emergency contacts state:", emergencyContacts);
+//  const formattedEmergencyContacts = emergencyContacts
+//       .filter(item => item.name && item.relationship && item.phone_number) // Only include valid contacts
+//       .map(item => ({
+//         name: item.name,
+//         relationship: item.relationship, // Changed from 'role' to 'relationship'
+//         phone_number: item.phone_number
+//       }));
+
+    // console.log("Formatted emergency contacts:", formattedEmergencyContacts);
 
       const createCandidate = {
         name: data.name,
@@ -1083,7 +1101,13 @@ console.log("Emergency contacts state:", emergencyContacts);
         employee_id: data.manual_value,
 bank_name: data.bankName,
       // emr_contact_number: data.emergency_contact,
-      contact_details: formattedEmergencyContacts,
+  //     contact_details: emergencyContacts.map(c => ({
+  //   name: c.name,
+  //   relationship: c.relationship,
+  //   phone_number: c.phone_number
+  // })),
+  // contact_details: data.emergencyContacts,
+
         status: data.status,
         created_by: userId,
         role_id: userRole,
@@ -1091,14 +1115,28 @@ bank_name: data.bankName,
 
       const formData = new FormData();
 
-      Object.entries(createCandidate).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          formData.append(
-            key,
-            typeof value === "object" ? JSON.stringify(value) : value,
-          );
-        }
-      });
+ Object.entries(createCandidate).forEach(([key, value]) => {
+  if (value === null || value === undefined) return;
+  formData.append(key, value);
+});
+
+
+ // 🔥 emergency contacts (indexed)
+    const validContacts = data.emergencyContacts.filter(
+  c => c.name && c.relationship && c.phone_number
+);
+
+validContacts.forEach((contact, index) => {
+  formData.append(`contact_details[${index}][name]`, contact.name);
+  formData.append(
+    `contact_details[${index}][relationship]`,
+    contact.relationship
+  );
+  formData.append(
+    `contact_details[${index}][phone_number]`,
+    contact.phone_number
+  );
+});
 
       //  Profile image
       if (data.profile_picture instanceof File) {
@@ -1132,12 +1170,6 @@ bank_name: data.bankName,
         });
       }
 
-if (formattedEmergencyContacts.length > 0) {
-      formData.append('contact_details', JSON.stringify(formattedEmergencyContacts));
-      console.log("Added contact_details to formData:", formattedEmergencyContacts);
-    }else {
-      formData.append('contact_details', '[]');
-    }
 
       console.log("Create candidate ,.... : .....", createCandidate);
       setLoading(true);
@@ -2310,7 +2342,10 @@ if (formattedEmergencyContacts.length > 0) {
     </p>
     <IoAddCircleSharp
       className="text-[#1ea600] text-3xl cursor-pointer"
-      onClick={addEmergencyContact}
+      // onClick={addEmergencyContact}
+      onClick={() =>
+        append({ name: "", relationship: "", phone_number: "" })
+      }
     />
   </div>
 
@@ -2323,9 +2358,9 @@ if (formattedEmergencyContacts.length > 0) {
     </div>
 
     {/* Rows */}
-    {emergencyContacts.map((item, index) => (
+    {fields.map((field, index) => (
       <div
-        key={index}
+        key={field.id}
         className="relative grid grid-cols-3 gap-4 border p-3 rounded-[10px] mt-3 bg-gray-50"
       >
 
@@ -2333,12 +2368,13 @@ if (formattedEmergencyContacts.length > 0) {
         {index > 0 && (
           <IoIosCloseCircle
             className="absolute top-2 right-2 text-red-500 text-xl cursor-pointer"
-            onClick={() => removeEmergencyContact(index)}
+            // onClick={() => removeEmergencyContact(index)}
+            onClick={() => remove(index)}
           />
         )}
 
         {/* Name */}
-        <div className="flex flex-col mt-1">
+        {/* <div className="flex flex-col mt-1">
           <input
             type="text"
             placeholder="Full Name"
@@ -2348,10 +2384,20 @@ if (formattedEmergencyContacts.length > 0) {
             }
             className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
           />
-        </div>
+        </div> */}
+         <div>
+        <input
+          {...register(`emergencyContacts.${index}.name`)}
+          placeholder="Full Name"
+          className="border h-10 w-full rounded px-2"
+        />
+        <p className="text-red-500 text-xs">
+          {errors?.emergencyContacts?.[index]?.name?.message}
+        </p>
+      </div>
 
         {/* Relation */}
-        <div className="flex flex-col mt-1">
+        {/* <div className="flex flex-col mt-1">
           <select
             value={item.relationship}
             onChange={(e) =>
@@ -2366,10 +2412,27 @@ if (formattedEmergencyContacts.length > 0) {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
+        <div>
+        <select
+          {...register(`emergencyContacts.${index}.relationship`)}
+          className="border h-10 w-full rounded px-2"
+        >
+          <option value="">Select</option>
+          {relationOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-red-500 text-xs">
+          {errors?.emergencyContacts?.[index]?.relationship?.message}
+        </p>
+      </div>
+
 
         {/* Phone */}
-        <div className="flex flex-col mt-1">
+        {/* <div className="flex flex-col mt-1">
           <input
             type="text"
             placeholder="Phone Number"
@@ -2382,10 +2445,24 @@ if (formattedEmergencyContacts.length > 0) {
             }}
             className="border-2 ps-3 h-10 border-gray-300 w-full text-sm rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
           />
-        </div>
+        </div> */}
+        <div>
+        <input
+          {...register(`emergencyContacts.${index}.phone_number`)}
+          placeholder="Phone Number"
+          maxLength={10}
+          className="border h-10 w-full rounded px-2"
+        />
+        <p className="text-red-500 text-xs">
+          {errors?.emergencyContacts?.[index]?.phone_number?.message}
+        </p>
+      </div>
 
       </div>
     ))}
+    <p className="text-red-600 text-sm mt-2">
+    {errors?.emergencyContacts?.message}
+  </p>
   </div>
 </div>
 
@@ -2630,7 +2707,7 @@ if (formattedEmergencyContacts.length > 0) {
 <div className="mt-4">
   <h3 className="font-semibold mb-2">Emergency Contacts</h3>
 
- {viewRow?.contact_details && Array.isArray(viewRow.contact_details) && viewRow.contact_details.length > 0 ? (
+ {viewRow?.contacts && Array.isArray(viewRow.contacts) && viewRow.contacts.length > 0 ? (
     <table className="w-full border text-sm">
       <thead className="bg-gray-100">
         <tr>
@@ -2640,7 +2717,7 @@ if (formattedEmergencyContacts.length > 0) {
         </tr>
       </thead>
       <tbody>
-        {viewRow.contact_details.map((c, i) => (
+        {viewRow.contacts.map((c, i) => (
           <tr key={i}>
             <td className="border p-2">{c.name}</td>
             <td className="border p-2">{c.relationship}</td>
