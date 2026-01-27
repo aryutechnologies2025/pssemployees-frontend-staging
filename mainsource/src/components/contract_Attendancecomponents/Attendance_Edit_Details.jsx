@@ -13,6 +13,8 @@ import Mobile_Sidebar from "../Mobile_Sidebar";
 import Footer from "../Footer";
 import axiosInstance from "../../utils/axiosConfig";
 import { formatToDDMMYYYY } from "../../utils/dateformat";
+import { FiChevronDown } from "react-icons/fi";
+
 
 
 const Attendance_Edit_Page = () => {
@@ -143,30 +145,30 @@ setShiftOptions(
   };
 
 
-  const handleShiftChange = (employeeId, shiftId) => {
-    setAttendanceData(prev =>
-      prev.map(emp => {
-        if (emp.id !== employeeId) return emp;
+  // const handleShiftChange = (employeeId, shiftId) => {
+  //   setAttendanceData(prev =>
+  //     prev.map(emp => {
+  //       if (emp.id !== employeeId) return emp;
 
-        const exists = emp.shifts.some(s => s.id === shiftId);
+  //       const exists = emp.shifts.some(s => s.id === shiftId);
 
-        return {
-          ...emp,
-          shifts: exists
-            ? emp.shifts.filter(s => s.id !== shiftId)
-            : [
-              ...emp.shifts,
-              {
-                id: shiftId,
-                name: shiftOptions.find(
-                  s => s.id === shiftId
-                )?.shift_name
-              }
-            ],
-        };
-      })
-    );
-  };
+  //       return {
+  //         ...emp,
+  //         shifts: exists
+  //           ? emp.shifts.filter(s => s.id !== shiftId)
+  //           : [
+  //             ...emp.shifts,
+  //             {
+  //               id: shiftId,
+  //               name: shiftOptions.find(
+  //                 s => s.id === shiftId
+  //               )?.shift_name
+  //             }
+  //           ],
+  //       };
+  //     })
+  //   );
+  // };
 
 
   const attendanceData1 = attendanceData.map(emp => ({
@@ -283,6 +285,25 @@ setShiftOptions(
       )
     );
   };
+
+      const handleShiftChange = (empId, shiftId) => {
+    setAttendanceData(prev =>
+      prev.map(emp => {
+        if (emp.id !== empId) return emp;
+
+        const exists = emp.shifts.some(s => s.id === shiftId);
+
+        return {
+          ...emp,
+          shifts: exists
+            ? emp.shifts.filter(s => s.id !== shiftId)
+            : [...emp.shifts, shiftOptions.find(s => s.id === shiftId)]
+        };
+      })
+    );
+  };
+
+    const [showShiftPopup, setShowShiftPopup] = useState(false);
   // Columns configuration
   const columns = [
     {
@@ -325,41 +346,67 @@ setShiftOptions(
     // },
 
 
-    {
-      field: "shifts",
-      header: "Shift Allocation",
-      body: (rowData) => (
+    // {
+    //   field: "shifts",
+    //   header: "Shift Allocation",
+    //   body: (rowData) => (
 
     
-        <div className="flex flex-wrap justify-center items-center gap-3">
-          {shiftOptions.map((shift) => {
-            const checked = rowData.shifts?.some(
-              s => s.id === shift.id
-            );
+    //     <div className="flex flex-wrap justify-center items-center gap-3">
+    //       {shiftOptions.map((shift) => {
+    //         const checked = rowData.shifts?.some(
+    //           s => s.id === shift.id
+    //         );
 
-            return (
-              <label
-                key={shift.id}
-                className="flex flex-wrap  items-center gap-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  className="accent-green-600"
-                  onChange={() =>
-                    handleShiftChange(rowData.id, shift.id)
-                  }
-                />
-                {shift.shift_name}
-              </label>
-            );
-          })}
+    //         return (
+    //           <label
+    //             key={shift.id}
+    //             className="flex flex-wrap  items-center gap-2 text-sm"
+    //           >
+    //             <input
+    //               type="checkbox"
+    //               checked={checked}
+    //               className="accent-green-600"
+    //               onChange={() =>
+    //                 handleShiftChange(rowData.id, shift.id)
+    //               }
+    //             />
+    //             {shift.shift_name}
+    //           </label>
+    //         );
+    //       })}
+    //     </div>
+    //   )
+    
+    // },
+
+  {
+      field: "shifts",
+      header: (
+        <div
+          className="flex items-center justify-center gap-1 cursor-pointer"
+          onClick={() => setShowShiftPopup(true)}
+        >
+          <span>Shift Allocation</span>
+          <FiChevronDown />
+        </div>
+      ),
+      body: row => (
+        <div className="flex gap-3 justify-center">
+          {shiftOptions.map(shift => (
+            <label key={shift.id} className="flex gap-1 text-sm">
+              <input
+                type="checkbox"
+                className="accent-green-600"
+                checked={row.shifts.some(s => s.id === shift.id)}
+                onChange={() => handleShiftChange(row.id, shift.id)}
+              />
+              {shift.shift_name}
+            </label>
+          ))}
         </div>
       )
-    
     },
-
-
 
 
     // {
@@ -711,6 +758,65 @@ setShiftOptions(
                 ))}
               </DataTable>
             </div>
+
+                      {showShiftPopup && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setShowShiftPopup(false)}
+        >
+          <div
+            className="bg-white w-[400px] rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-4 border-b flex justify-between">
+              <h3 className="font-semibold">Shift Allocation</h3>
+              <button onClick={() => setShowShiftPopup(false)}>✕</button>
+            </div>
+
+            <div className="p-4 space-y-2">
+              {shiftOptions.map(shift => (
+                <label
+                  key={shift.id}
+                  className="flex justify-between items-center border p-2 rounded"
+                >
+                  <span>{shift.shift_name}</span>
+                  <input
+                    type="checkbox"
+                    className="accent-green-600"
+                    checked={attendanceData.every(emp =>
+                      emp.shifts.some(s => s.id === shift.id)
+                    )}
+                    onChange={() =>
+                      setAttendanceData(prev =>
+                        prev.map(emp => {
+                          const exists = emp.shifts.some(
+                            s => s.id === shift.id
+                          );
+                          return {
+                            ...emp,
+                            shifts: exists
+                              ? emp.shifts.filter(s => s.id !== shift.id)
+                              : [...emp.shifts, shift]
+                          };
+                        })
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="p-3 border-t flex justify-end">
+              <button
+                className="bg-green-600 text-white px-4 py-1 rounded"
+                onClick={() => setShowShiftPopup(false)}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
           </div>
         </>
       )}
