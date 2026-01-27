@@ -54,6 +54,24 @@ const Sidebar = () => {
     return savedState === "true";
   });
 
+
+  // imag icon
+
+   const AdminData = JSON.parse(
+    localStorage.getItem("pss_dateformat") || "null",
+  );
+
+  const sitelogo = AdminData?.site_logo;
+
+  const favicon = AdminData?.fav_icon;
+
+  const logoURL = `${API_URL.replace(/\/$/, "")}/${sitelogo}`;
+
+  const faviconURL = `${API_URL.replace(/\/$/, "")}/${favicon}`;
+  // const logoURL = sitelogo ? `${API_URL.sitelogo}` : "/pssAgenciesLogo.svg";
+
+  console.log("AdminData sitelogo", AdminData);
+
   const [currentOpen, setCurrentOpen] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
 
@@ -159,17 +177,18 @@ const Sidebar = () => {
           {arrowClicked ? (
             <div className="h-6 my-3 ms-2 text-xl font-semibold">
               <p className="text-[#4BB452]">
-                <img
-                  src="/pss-favicon.jpeg"
-                  alt="PSS Logo"
+                  <img
+                  // src={sitelogo ? sitelogo : "/pssAgenciesLogo.svg"}
+                  src={faviconURL ? faviconURL : "/pss-favicon.jpeg"}
+                  alt="Site Logo"
                   className="h-7 w-7 cursor-pointer rounded-full"
                   onClick={() => navigate("/")}
                 />
               </p>
             </div>
           ) : (
-            <img
-              src="/pssAgenciesLogo.svg"
+             <img
+              src={logoURL ? logoURL : "/pssAgenciesLogo.svg"}
               alt="PSS Logo"
               className="w-40 md:w-48 h-auto mx-auto mb-2 cursor-pointer"
               onClick={() => navigate("/")}

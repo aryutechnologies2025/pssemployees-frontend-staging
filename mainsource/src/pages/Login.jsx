@@ -6,9 +6,10 @@ import Footer from "../components/Footer";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { LuUser } from "react-icons/lu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosConfig";
 import { useForm } from "react-hook-form";
+import { API_URL } from "../config";
 // import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
@@ -49,6 +50,9 @@ const Login = () => {
 
         localStorage.setItem("psspermission", JSON.stringify(res.data.permission));
 
+        localStorage.setItem("pss_dateformat", JSON.stringify(res.data.setting));
+
+
         // Navigate to dashboard
         navigate("/dashboard", { replace: true });
 
@@ -66,12 +70,37 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
+
+    const [logoPreview, setLogoPreview] = useState("");
+
+  console.log("logoPreview", logoPreview);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axiosInstance.get(`${API_URL}api/settings`);
+
+      console.log("Fetch Settings Response:", res);
+      if (res.data?.data) {
+        const data = res.data.data;
+
+        // setFaviconPreview(data.fav_icon ? `${API_URL}${data.fav_icon}` : "");
+        setLogoPreview(data.site_logo ? `${API_URL}${data.site_logo}` : "");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <div>
         <div className="flex  items-center justify-center pt-3">
           <img
-            src="/pssAgenciesLogo.svg"
+            src={logoPreview ? logoPreview : "/pssAgenciesLogo.svg"}
             alt="PSS Logo"
             className="w-40 md:w-72 h-auto mx-auto mb-2 md:mt-7"
           />
@@ -79,11 +108,12 @@ const Login = () => {
         </div>
 
         <div className="flex items-center flex-wrap-reverse justify-center mt-20 md:mt-10 ">
+          <div className="lg:basis-[50%] flex flex-col items-center justify-center gap-3">
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="w-full max-w-sm space-y-4"
           >
-            <div className="lg:basis-[50%] flex flex-col items-center justify-center gap-3">
+            <div >
               <p className="text-black font-semibold text-xl md:text-2xl">
                 EMPLOYEE LOGIN
               </p>
@@ -197,9 +227,10 @@ const Login = () => {
               </button>
             </div>
           </form>
+          </div>
            <div className="basis-[50%]  ">
-            <img src={login_image} alt="" />
-            {/* <img src={login_img_pss} alt="" className="h-[500px] "/> */}
+            {/* <img src={login_image} alt="" /> */}
+            <img src={login_img_pss} alt="" className="h-[500px] "/>
           </div>
         </div>
       </div>
