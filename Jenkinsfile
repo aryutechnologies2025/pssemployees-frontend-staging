@@ -3,9 +3,10 @@ pipeline {
 
   environment {
     CONTAINER_NAME = "staging_employee"
-    SOURCE_PATH = "mainsource"
-    HEALTH_URL = "http://127.0.0.1:3002"
-    NODE_IMAGE = "node:18"
+    SOURCE_PATH   = "mainsource"
+    HEALTH_URL   = "http://127.0.0.1:3002"
+    NODE_IMAGE   = "node:18"
+    DEPLOY_BRANCH = "main"
   }
 
   options {
@@ -15,20 +16,23 @@ pipeline {
 
   stages {
 
-    // 1. Pull frontend code
-    stage('Checkout') {
+    stage('Checkout (LOCKED TO MAIN)') {
       steps {
-        checkout scm
-        sh 'git rev-parse HEAD'
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${DEPLOY_BRANCH}"]],
+          userRemoteConfigs: scm.userRemoteConfigs
+        ])
+        sh 'echo "DEPLOYING COMMIT:" && git log --oneline -1'
       }
     }
 
-    // 2. Build frontend (Vite)
     stage('Build Frontend') {
       steps {
         sh '''
           set -e
 
+          echo "Building frontend in Docker..."
           docker run --rm \
             -v "$(pwd)/${SOURCE_PATH}:/app" \
             -w /app \
@@ -40,22 +44,26 @@ pipeline {
       }
     }
 
-    // 3. Sync files into RUNNING container (FAST MODE)
-    stage('Deploy Files (Live Sync)') {
+    stage('Deploy (FAST SYNC — SAFE MODE)') {
       steps {
         sh '''
           set -e
 
-          echo "Cleaning old frontend files inside container..."
-          docker exec ${CONTAINER_NAME} rm -rf /usr/local/apache2/htdocs/*
+          echo "Deploying into running container: ${CONTAINER_NAME}"
 
-          echo "Copying new build into container..."
-          docker cp ${SOURCE_PATH}/dist/. ${CONTAINER_NAME}:/usr/local/apache2/htdocs/
+          docker exec ${CONTAINER_NAME} mkdir -p /usr/local/apache2/htdocs_new
+          docker cp ${SOURCE_PATH}/dist/. ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new
+
+          echo "Atomic switch..."
+          docker exec ${CONTAINER_NAME} sh -c "
+            rm -rf /usr/local/apache2/htdocs_old || true
+            mv /usr/local/apache2/htdocs /usr/local/apache2/htdocs_old
+            mv /usr/local/apache2/htdocs_new /usr/local/apache2/htdocs
+          "
         '''
       }
     }
 
-    // 4. Health check
     stage('Health Check') {
       steps {
         sh '''
@@ -69,10 +77,10 @@ pipeline {
 
   post {
     success {
-      echo "⚡ FAST STAGING DEPLOY SUCCESS — NO CONTAINER RESTART"
+      echo "✅ EMPLOYEE FRONTEND DEPLOYED FROM MAIN"
     }
     failure {
-      echo "❌ FAST DEPLOY FAILED — Container was NOT touched"
+      echo "❌ DEPLOY FAILED — CONTAINER NOT TOUCHED"
     }
   }
 }
