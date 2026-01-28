@@ -41,13 +41,14 @@ const Attendance_Mainbar = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [companyName, setCompanyName] = useState("ABC Company");
-  const [selectedCompany, setSelectedCompany] = useState("Company A");
+  const [selectedCompany, setSelectedCompany] = useState("");
+  const [selectCompanyfilter, setSelectCompanyfilter] = useState("");
   // const companyOptions = ["Company A", "Company B", "Company C"];
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
   const [companies, setCompanies] = useState([]);
-  // console.log("company", companies)
+  console.log("company", companies)
   const [attendanceData, setAttendanceData] = useState([]);
 
   const [createdbyData, setCreatedbyData] = useState([]);
@@ -76,7 +77,7 @@ const Attendance_Mainbar = () => {
             from_date: filterStartDate,
             to_date: filterEndDate,
             employee_id: empId,
-            emp_company_id: filterCompanyname,
+            emp_company_id: selectCompanyfilter,
           },
         },
       );
@@ -166,7 +167,7 @@ const Attendance_Mainbar = () => {
     setFilterStartDate(null);
     setFilterEndDate(null);
     setFilterCreatedBy("");
-    setFilterCompanyname("");
+    setSelectCompanyfilter("");
   };
 
   function onClickaddadtence() {
@@ -728,7 +729,7 @@ const Attendance_Mainbar = () => {
    const companyOptions = companies.map(company => ({
     label: company.name,
     value: company.id,
-    name: company.name // Keep original name for reference
+    name: company.name 
   }));
 
   return (
@@ -820,9 +821,11 @@ const Attendance_Mainbar = () => {
                     Company
                   </label>
                   <Dropdown
-                          value={filterCompanyname}
+                          value={selectCompanyfilter}
                           options={companyOptions}
-                          onChange={(e) => setSelectedCompany(e.value)}
+                          onChange={(e) => setSelectCompanyfilter(e.value)}
+                          optionLabel="label"
+                          optionValue="value"
                           placeholder="Select Company"
                           filter
                     className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
