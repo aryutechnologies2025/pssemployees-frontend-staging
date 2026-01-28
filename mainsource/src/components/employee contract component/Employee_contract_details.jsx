@@ -91,7 +91,7 @@ const Employee_contract_details = () => {
     manual_value: z.string().optional(),
     profile_picture: z.any().optional(),
     documents: z.array(z.any()).optional(),
-  /* 🔥 Emergency Contacts */
+  /*  Emergency Contacts */
   emergencyContacts: z
     .array(emergencyContactSchema)
     .min(1, "At least one emergency contact is required"),
@@ -176,7 +176,7 @@ const Employee_contract_details = () => {
 
   const [companyEmpType, setCompanyEmpType] = useState([]);
 
-  // console.log("companyEmpType", companyEmpType);
+  console.log("companyEmpType", companyEmpType);
 
   // Table states
   // const [page, setPage] = useState(1);
@@ -467,7 +467,7 @@ const Employee_contract_details = () => {
           company_emp_id: company.company_emp_id,
         }));
 
-        setCompanyOptions(companies);
+        // setCompanyOptions(companies);
       }
     } catch (error) {
       console.error("Error fetching companies:", error);
@@ -895,6 +895,15 @@ const Employee_contract_details = () => {
 
       setColumnData(response?.data?.data?.employees || []);
       setEmployeesList(response?.data?.data?.pssemployees || []);
+
+      const companies = response.data.data?.companies.map((company) => ({
+          // console.log("company", company),
+          label: company.company_name,
+          value: company.id,
+          company_emp_id: company.company_emp_id,
+        }));
+
+        setCompanyOptions(companies);
     } catch (error) {
       console.error("Error fetching contract candidates:", error);
     } finally {
@@ -2190,7 +2199,7 @@ validContacts.forEach((contact, index) => {
                           type="text"
                           name="branch"
                           className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("bank_branch")}
+                          {...register("branch")}
                           placeholder="Enter Branch Name"
                         />
                         
