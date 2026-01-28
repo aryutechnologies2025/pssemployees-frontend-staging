@@ -21,6 +21,7 @@ import { reverseGeocodeOSM } from "../../utils/geoLocation";
 import { API_URL } from "../../config";
 import CameraPhoto from "../../utils/CameraPhoto";
 import { FaUserCircle } from "react-icons/fa";
+import Loader from "../../pages/Loader";
 
 // Define Zod schema for form validation
 const attendanceSchema = z.object({
@@ -77,6 +78,7 @@ const Pss_Attendance_Mainbar = () => {
   });
 
   const [reason, setReason] = useState(null);
+  const [loading, setLoading] = useState(false);
   // console.log("reason", reason);
 
   const fetchData = async () => {
@@ -213,6 +215,7 @@ const Pss_Attendance_Mainbar = () => {
 
   // Submit handler
   const onSubmit = async (data) => {
+        setLoading(true);
     try {
       console.log("Form Data Submitted: ", data);
       // const newData = {
@@ -257,7 +260,7 @@ const Pss_Attendance_Mainbar = () => {
       formData.append("accuracy", geo.accuracy);
       formData.append("profile_picture", data.selfImage);
 
-      // 🔥 IMPORTANT: stringify object
+      //  IMPORTANT: stringify object
       formData.append("location_details", JSON.stringify(locationDetails));
 
       const res = await axiosInstance.post(
@@ -275,6 +278,8 @@ const Pss_Attendance_Mainbar = () => {
         fetchData();
         reset();
         setSelfImage(null);
+            setLoading(false);
+
       } else {
         setError(res.data.message);
         toast.error(res.data.message);
@@ -282,7 +287,9 @@ const Pss_Attendance_Mainbar = () => {
     } catch (error) {
       setError(error.message);
       toast.error(error.response?.data?.message || "Server Error");
-    }
+    }finally {
+    setLoading(false);
+  }
   };
 
   // const columns = [
@@ -473,7 +480,10 @@ const Pss_Attendance_Mainbar = () => {
   };
 
   return (
+    
+
     <div className="w-screen min-h-screen overflow-x-hidden flex flex-col justify-between bg-gray-100">
+        {/* {loading && <Loader />} */}
       <div className="px-3 py-3 md:px-7 lg:px-10 xl:px-16 md:py-10">
         <Mobile_Sidebar />
 
@@ -699,12 +709,40 @@ const Pss_Attendance_Mainbar = () => {
                   <p className="text-red-500 text-sm mt-1 ml-40">{error}</p>
                 )}
                 <div className="flex flex-col lg:flex-row gap-x-8 justify-center">
-                  <button
+                  {/* <button
                     type="submit"
                     className="bg-[#1ea600] text-white py-2 px-4 rounded-md hover:bg-[#188800] transition-colors"
                   >
                     Submit
-                  </button>
+                  </button> */}
+                  {/* <button
+  type="submit"
+  disabled={loading}
+  className={`py-2 px-4 rounded-md text-white
+    ${loading
+      ? "bg-green-300 cursor-not-allowed"
+      : "bg-[#1ea600] hover:bg-[#188800]"
+    }`}
+>
+  Submit
+</button> */}
+<button
+  type="submit"
+  disabled={loading}
+  className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md text-white transition-colors
+    ${loading
+      ? "bg-green-400 cursor-not-allowed"
+      : "bg-[#1ea600] hover:bg-[#188800]"
+    }`}
+>
+  {loading ? (
+    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+  ) : (
+    "Submit"
+  )}
+</button>
+
+
                 </div>
               </div>
             </div>
