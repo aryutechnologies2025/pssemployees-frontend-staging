@@ -617,10 +617,13 @@ const ContractCandidates_Mainbar = () => {
     }
   };
 
+const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileSubmit = async (e) => {
     // console.log("selectedAccount:1");
     e.preventDefault();
+    if (isSubmitting) return; 
+  setIsSubmitting(true);
 
     // Reset errors
     setError({ file: "", date: "", company: "", import: [] });
@@ -722,6 +725,8 @@ const ContractCandidates_Mainbar = () => {
       } else {
         toast.error(message);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1897,12 +1902,24 @@ const onSubmit = async (data) => {
                       >
                         Cancel
                       </button>
-                      <button
+                      {/* <button
                         className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleFileSubmit}
                       >
                         Submit
-                      </button>
+                      </button> */}
+                                            <button
+  onClick={handleFileSubmit}
+  disabled={isSubmitting}
+  className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] 
+             disabled:opacity-50 flex items-center gap-2"
+>
+  {isSubmitting && (
+    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+  )}
+  {isSubmitting ? "Uploading..." : "Submit"}
+</button>
+
                     </div>
                   </div>
                 </div>

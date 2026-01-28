@@ -62,42 +62,76 @@ const Employee_contract_details = () => {
     .regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
 });
 
-  const candidateContractSchema = z.object({
+//   const candidateContractSchema = z.object({
+//     name: z.string().min(1, "Name is required"),
+//     dob: z.string().min(1, "Date of birth is required"),
+//     fatherName: z.string().min(1, "Father's name is required"),
+//     address: z.string().min(1, "Address is required"),
+//     gender: z.string().optional(),
+//     marital_status: z.string().optional(),
+//     phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
+//     currentAddress: z.string().optional(),
+//       state: z.string().optional(),
+//       city: z.string().optional(),
+//       bankName: z.string().optional(),
+//       branch: z.string().optional(),
+//       emergency_contact: z.string().optional(),
+//       panNumber: z.string().optional(),
+//       boardingPoint: z.string().min(1, "Boarding Point is required"),
+//       education: z.string().optional(),
+//     aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
+//     company: z.string().min(1, "Company is required"),
+//     joinedDate: z.string().min(1, "Joined date is required"),
+//     accountName: z.string().min(1, "Account name is required"),
+//     accountNumber: z.string().min(1, "Account number is required"),
+//     ifsccode: z.string().min(1, "IFSC code is required"),
+//     uannumber: z.string().min(1, "UAN number is required"),
+//     esciNumber: z.string().min(1, "ESCI number is required"),
+//     status: z.string().min(1, "Status is required"),
+//     manual_value: z.string().optional(),
+//     profile_picture: z.any().optional(),
+//     documents: z.array(z.any()).optional(),
+//   /*  Emergency Contacts */
+//   emergencyContacts: z
+//     .array(emergencyContactSchema)
+//     .min(1, "At least one emergency contact is required"),
+// });
+
+const candidateContractSchema = z.object({
     name: z.string().min(1, "Name is required"),
     dob: z.string().min(1, "Date of birth is required"),
     fatherName: z.string().min(1, "Father's name is required"),
     address: z.string().min(1, "Address is required"),
-    gender: z.string().optional(),
-    marital_status: z.string().optional(),
-    phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
     currentAddress: z.string().optional(),
-      state: z.string().optional(),
-      city: z.string().optional(),
-      bankName: z.string().optional(),
-      branch: z.string().optional(),
-      emergency_contact: z.string().optional(),
-      panNumber: z.string().optional(),
-      boardingPoint: z.string().min(1, "Boarding Point is required"),
-      education: z.string().optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    bankName: z.string().optional(),
+    branch: z.string().optional(),
+    emergency_contact: z.string().optional(),
+    gender: z.string().min(1, "Gender is required"),
+    phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
     aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be exactly 12 digits"),
     company: z.string().min(1, "Company is required"),
     joinedDate: z.string().min(1, "Joined date is required"),
-    accountName: z.string().min(1, "Account name is required"),
+    education: z.string().optional(),
+    boardingPoint: z.string().optional(),
+   maritalStatus: z.string().nullable().optional(),
+    panNumber: z.string().optional(),
+    accountName: z.string().optional(),
     accountNumber: z.string().min(1, "Account number is required"),
     ifsccode: z.string().min(1, "IFSC code is required"),
     uannumber: z.string().min(1, "UAN number is required"),
     esciNumber: z.string().min(1, "ESCI number is required"),
     status: z.string().min(1, "Status is required"),
+    // isRejoining: z.string().optional(),
     manual_value: z.string().optional(),
     profile_picture: z.any().optional(),
     documents: z.array(z.any()).optional(),
-  /*  Emergency Contacts */
-  emergencyContacts: z
-    .array(emergencyContactSchema)
-    .min(1, "At least one emergency contact is required"),
-});
-
-
+    /*  Emergency Contacts */
+    emergencyContacts: z
+      .array(emergencyContactSchema)
+      .min(1, "At least one emergency contact is required"),
+  });
   const [employeeIds, setEmployeeIds] = useState([]);
 
   const {
@@ -294,6 +328,7 @@ const Employee_contract_details = () => {
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewRow, setViewRow] = useState(null);
+  console.log("viewRow", viewRow);
 
   // Open and close modals
   const openAddModal = () => {
@@ -320,7 +355,7 @@ const Employee_contract_details = () => {
       state: "",
       city: "",
       bankName: "",
-      boardingPoint: null,
+      boardingPoint: "",
       emergency_contact: "",
       otherReference: "",
       notJoinedReason: "",
@@ -514,11 +549,14 @@ const Employee_contract_details = () => {
       fileInputRef.current.value = "";
     }
   };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // select file
   const handleFileSubmit = async (e) => {
     // console.log("selectedAccount:1");
     e.preventDefault();
+    if (isSubmitting) return; 
+    setIsSubmitting(true);
 
     // Reset errors
     setError({ file: "", date: "", company: "", import: [] });
@@ -619,6 +657,8 @@ const Employee_contract_details = () => {
       } else {
         toast.error(message);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1087,7 +1127,11 @@ const Employee_contract_details = () => {
         father_name: data.fatherName,
         gender: data.gender,
         marital_status: data.marital_status,
-        boarding_point_id: Number(data.boardingPoint),
+        // boarding_point_id: Number(data.boardingPoint),
+        boarding_point_id: data.boardingPoint
+  ? Number(data.boardingPoint)
+  : null,
+
         education_id:
   data.education && !isNaN(Number(data.education))
     ? Number(data.education)
@@ -1604,10 +1648,25 @@ validContacts.forEach((contact, index) => {
                       >
                         Cancel
                       </button>
-                      <button
+                      {/* <button
                         className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleFileSubmit}
                       >
+                        Submit
+                      </button> */}
+                       <button
+                        // className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                        onClick={handleFileSubmit}
+                         disabled={isSubmitting}
+  className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] 
+             disabled:opacity-50 flex items-center gap-2"
+             >
+
+  {isSubmitting && (
+    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+  )}
+  {isSubmitting ? "Uploading..." : "Submit"}
+                      
                         Submit
                       </button>
                     </div>
@@ -2634,6 +2693,7 @@ validContacts.forEach((contact, index) => {
 {/* body */}
 <div className="pr-2 overflow-y-auto ">
                   {/* Candidate Info */}
+<div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <p>
                       <b>Company:</b>{" "}
@@ -2710,6 +2770,11 @@ validContacts.forEach((contact, index) => {
                     <p>
                       <b>Employee ID:</b> {viewRow.employee_id || "-"}
                     </p>
+
+                      <p>
+                        <b>Marital Status:</b> {viewRow.marital_status || "-"}
+                      </p>
+                      </div>
 
                   {/* emergency contact */}
 
