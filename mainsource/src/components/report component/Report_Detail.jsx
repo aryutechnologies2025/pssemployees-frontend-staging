@@ -12,7 +12,6 @@ import "primereact/resources/primereact.min.css";
 // import "react-datepicker/dist/react-datepicker.css";
 // import axiosInstance from "../../axiosConfig";
 // import { Capitalise } from "../../hooks/useCapitalise";
-// import { formatIndianDateTime12Hr, formatToDDMMYYYY, } from "../../Utils/dateformat";
 // import Footer from "../Footer";
 // import Loader from "../Loader";
 import Mobile_Sidebar from "../Mobile_Sidebar";
@@ -200,7 +199,6 @@ function Report_Detail() {
     {
       header: "DATE",
       field: "date",
-      body: (row) => formatToDDMMYYYY(row.date),
     },
     {
       header: "STATUS",
