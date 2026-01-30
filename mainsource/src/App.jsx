@@ -17,6 +17,7 @@ import Employee_Main from "./pages/Employee_Main";
 import LeadManagement from "./pages/LeadManagement";
 import DailyWork_Report from "./components/Daily Work Report/DailyWork_Report";
 import Finance from "./pages/Finance";
+import Report_Main from "./components/report component/Report_Main";
 
 function App() {
 
@@ -63,7 +64,7 @@ function App() {
           <Route path="/message" element={<Message />} />
           <Route path="/dailywork_report" element={<DailyWork_Report />} />
           <Route path="lead-engine" element={<LeadManagement />} />
-
+          <Route path="report" element={<Report_Main />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

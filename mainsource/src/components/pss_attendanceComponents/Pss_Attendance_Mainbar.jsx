@@ -22,6 +22,7 @@ import { API_URL } from "../../config";
 import CameraPhoto from "../../utils/CameraPhoto";
 import { FaUserCircle } from "react-icons/fa";
 import Loader from "../../pages/Loader";
+import { useNavigate } from "react-router-dom";
 
 // Define Zod schema for form validation
 const attendanceSchema = z.object({
@@ -30,7 +31,9 @@ const attendanceSchema = z.object({
   selfImage: z.instanceof(File, { message: "Self image is required" }),
 });
 
+
 const Pss_Attendance_Mainbar = () => {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("pssemployee") || "{}");
   const companyID = user.company_id;
   const EmpId = user.id;
@@ -76,6 +79,16 @@ const Pss_Attendance_Mainbar = () => {
       selfImage: null,
     },
   });
+
+    function onClickMonthlyDetails() {
+    navigate("/report");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
+  }
+
 
   const [reason, setReason] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -490,7 +503,16 @@ const Pss_Attendance_Mainbar = () => {
         <div className="flex gap-2 items-center">
           <p className="text-xs md:text-sm text-[#1ea600]">Attendance</p>
           <p>{">"}</p>
-        </div>
+        </div>  
+
+        <section className="flex flex-col md:flex-row justify-end ">
+          <button
+            onClick={onClickMonthlyDetails}
+            className="px-2 py-1 md:px-4 md:py-2 mt-5 md:mt-8 w-fit cursor-pointer rounded-full text-white bg-[#1ea600] hover:bg-[#188800] duration-300  font-medium"
+          >
+            Monthly Details
+          </button>
+        </section>
 
         <div className="bg-[url('././assets/zigzaglines_large.svg')] bg-no-repeat bg-cover bg-center rounded-3xl bg-opacity-25 mt-8 px-5 py-3">
           <p className="text-2xl md:text-3xl font-semibold">Attendance</p>
