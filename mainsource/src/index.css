@@ -33,6 +33,10 @@ html {
   scrollbar-gutter: stable;
 }
 
+.react-datepicker-popper {
+  z-index: 9999;
+}
+
 .sidebar-icon {
   width: 18px;
   height: 18px;
