@@ -26,8 +26,8 @@ import { formatToDDMMYYYY } from "../../utils/dateformat";
 function Report_Detail() {
   const navigate = useNavigate();
   const storedDetatis = localStorage.getItem("pssemployee");
-    const parsedDetails = JSON.parse(storedDetatis);
-    const userid = parsedDetails ? parsedDetails.id : null;
+  const parsedDetails = JSON.parse(storedDetatis);
+  const userid = parsedDetails ? parsedDetails.id : null;
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [globalFilter, setGlobalFilter] = useState("");
   const [monthlyReportList, setMonthlyReportList] = useState([]);
@@ -121,6 +121,7 @@ function Report_Detail() {
 
       const formattedData = response.data.data.map((item, index) => ({
         id: index + 1,
+        employee_id: item.employee_id,
         employee_name: item.employee_name,
         date: item.date,
         status: item.status,
@@ -150,6 +151,7 @@ function Report_Detail() {
 
     const headers = [
       "S.No",
+      "Employee ID",
       "Employee",
       "Date",
       "Status",
@@ -163,6 +165,7 @@ function Report_Detail() {
     const rows = data.map((item, index) => [
       index + 1,
       `"${item.employee_name}"`,
+      `"${item.employee_id}"`,
       `"${item.date}"`,
       item.status,
       item.login_time,
@@ -194,8 +197,19 @@ function Report_Detail() {
     },
     {
       header: "EMPLOYEE",
-      field: "employee_name",
+      body: (row) => {
+        const name = row.employee_name || "-";
+        const id = row.employee_id || "-";
+        console.log("check id",id)
+        return (
+          <div>
+            <div>{name}</div>
+            <div style={{  fontSize: "14px", color: "#6b7280"  }}>{id}</div>
+          </div>
+        );
+      },
     },
+
     {
       header: "DATE",
       field: "date",
@@ -274,7 +288,7 @@ function Report_Detail() {
 
               {/* filter */}
               <div className="flex flex-wrap md:flex-nowrap gap-3 md:gap-8 justify-between items-center md:mt-5 h-auto rounded-2xl bg-white 
-  shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6  ">
+  shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6   ">
                 {/* Global Search Input */}
                 <div className="card flex flex-wrap md:flex-nowrap gap-5 md:z-50">
                   <DatePicker
@@ -289,6 +303,7 @@ function Report_Detail() {
                     popperClassName="datepicker-popper"
                     portalId="root"
                   />
+                
 
                   {/* Global Search Input */}
                   {/* <Dropdown
@@ -319,6 +334,7 @@ function Report_Detail() {
 
                 </div>
               </div>
+              
 
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
@@ -326,20 +342,20 @@ function Report_Detail() {
                   <span className="text-xl md:text-2xl font-bold text-[#7C7C7C]">{summary.total_working_days}</span>
                 </div>
 
-                <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
+                {/* <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
                   <p className="text-sm md:text-base text-[#4A4A4A]">Late Login</p>
                   <p className="text-xl md:text-2xl font-bold text-[#7C7C7C]">{summary.lateLogin}</p>
-                </div>
+                </div> */}
 
                 <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
                   <p className="text-sm md:text-base text-[#4A4A4A]">Present Days</p>
                   <p className="text-xl md:text-2xl font-bold text-[#7C7C7C]">{summary.present_days}</p>
                 </div>
 
-                <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
+                {/* <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
                   <p className="text-sm md:text-base text-[#4A4A4A]">Last Thon & Hours</p>
                   <p className="text-xl md:text-2xl font-bold text-[#7C7C7C]">{summary.lateThonHours}</p>
-                </div>
+                </div> */}
 
                 <div className="flex gap-2 justify-center items-center bg-white p-4 rounded-lg shadow-sm border">
                   <p className="text-sm md:text-base text-[#4A4A4A]">Absent Days</p>
