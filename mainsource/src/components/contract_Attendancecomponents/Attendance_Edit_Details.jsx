@@ -23,6 +23,7 @@ const Attendance_Edit_Page = () => {
   const navigate = useNavigate();
   const [companyId, setCompanyId] = useState(null);
   const [shiftOptions, setShiftOptions] = useState([]);
+  
   // console.log("shiftOptions:", shiftOptions);
 
   const { company, date, attendanceId } = location.state || {};
