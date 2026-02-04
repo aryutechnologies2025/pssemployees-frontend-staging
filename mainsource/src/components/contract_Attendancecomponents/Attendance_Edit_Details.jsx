@@ -12,9 +12,8 @@ import Loader from "../Loader";
 import { FiSearch } from "react-icons/fi";
 import { API_URL } from "../../config";
 import axiosInstance from "../../utils/axiosConfig";
-import { formatToDDMMYYYY } from "../../Utils/dateformat";
-
 import TimeDropdown from "../../utils/TimeDropdown";
+import { formatToDDMMYYYY } from "../../utils/dateformat";
 
 
 const Attendance_Edit_Page = () => {
@@ -965,7 +964,7 @@ function generateTimeOptions() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => navigate("/attendance")}
+                    onClick={() => navigate("/contractattendance")}
                     className=" hover:bg-[#FEE2E2] hover:border-[#FEE2E2] text-sm md:text-base border border-[#7C7C7C]  text-[#7C7C7C] hover:text-[#DC2626] px-2 md:px-5  py-1 md:py-2  rounded-lg transition-all duration-200"
                   >
                     Cancel
