@@ -2,11 +2,10 @@ pipeline {
   agent any
 
   environment {
-    CONTAINER_NAME = "staging_employee"
-    SOURCE_PATH   = "mainsource"
-    HEALTH_URL   = "http://127.0.0.1:3002"
-    NODE_IMAGE   = "node:18"
+    CONTAINER_NAME = "staging_employee"      // frontend container
     DEPLOY_BRANCH = "main"
+    HEALTH_URL = "http://127.0.0.1:3002"    // frontend exposed port
+    WEB_ROOT = "/usr/local/apache2/htdocs" // change if nginx
   }
 
   options {
@@ -27,47 +26,47 @@ pipeline {
       }
     }
 
-    stage('Build Frontend') {
+    stage('Verify Frontend Build (Root Level)') {
       steps {
         sh '''
           set -e
+          echo "🔍 Verifying frontend build files..."
 
-          echo "Building frontend in Docker..."
-          docker run --rm \
-            -v "$(pwd)/${SOURCE_PATH}:/app" \
-            -w /app \
-            ${NODE_IMAGE} \
-            sh -c "npm ci && npm run build"
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html missing at repo root"
+            exit 1
+          fi
 
-          test -d ${SOURCE_PATH}/dist
+          if [ ! -d "assets" ]; then
+            echo "❌ assets/ folder missing"
+            exit 1
+          fi
+
+          echo "✅ Build files verified"
         '''
       }
     }
 
-    stage('Deploy (FAST SYNC — SAFE MODE)') {
-  steps {
-    sh '''
-      set -e
+    stage('Deploy (ATOMIC CONTAINER SYNC)') {
+      steps {
+        sh '''
+          set -e
+          echo "🚀 Deploying into container: ${CONTAINER_NAME}"
 
-      echo "Deploying into running container: ${CONTAINER_NAME}"
+          docker exec ${CONTAINER_NAME} mkdir -p ${WEB_ROOT}_new
 
-      docker exec ${CONTAINER_NAME} mkdir -p /usr/local/apache2/htdocs_new
+          echo "📦 Copying frontend files..."
+          docker cp . ${CONTAINER_NAME}:${WEB_ROOT}_new
 
-      echo "Copying build files..."
-      docker cp ${SOURCE_PATH}/dist/. ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new
-
-      echo "Copying .htaccess..."
-      docker cp .htaccess ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new/.htaccess
-
-      echo "Atomic switch..."
-      docker exec ${CONTAINER_NAME} sh -c "
-        rm -rf /usr/local/apache2/htdocs_old || true
-        mv /usr/local/apache2/htdocs /usr/local/apache2/htdocs_old
-        mv /usr/local/apache2/htdocs_new /usr/local/apache2/htdocs
-      "
-    '''
-  }
-}
+          echo "🔁 Atomic switch..."
+          docker exec ${CONTAINER_NAME} sh -c "
+            rm -rf ${WEB_ROOT}_old || true
+            mv ${WEB_ROOT} ${WEB_ROOT}_old || true
+            mv ${WEB_ROOT}_new ${WEB_ROOT}
+          "
+        '''
+      }
+    }
 
     stage('Health Check') {
       steps {
@@ -82,10 +81,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ EMPLOYEE FRONTEND DEPLOYED FROM MAIN"
+      echo "✅ FRONTEND DEPLOYED INTO DOCKER CONTAINER"
     }
     failure {
-      echo "❌ DEPLOY FAILED — CONTAINER NOT TOUCHED"
+      echo "❌ DEPLOY FAILED — CONTAINER NOT MODIFIED"
     }
   }
 }
