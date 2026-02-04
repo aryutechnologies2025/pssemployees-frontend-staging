@@ -57,7 +57,7 @@ function App() {
             element={<Employee_Main />}
           />
           <Route
-            path="/contractattendance-view/:id"
+            path="/attendance-view/:id"
             element={<Attendance_view_Main />}
           />
           <Route path="/contractcandidates" element={<ContractCandidates />} />
