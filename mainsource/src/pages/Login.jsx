@@ -77,7 +77,7 @@ const Login = () => {
 
   const fetchSettings = async () => {
     try {
-      const res = await axiosInstance.get(`${API_URL}api/settings`);
+      const res = await axiosInstance.get(`${API_URL}api/login-setting`);
 
       console.log("Fetch Settings Response:", res);
       if (res.data?.data) {

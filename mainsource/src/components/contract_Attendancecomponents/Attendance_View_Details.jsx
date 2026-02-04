@@ -11,7 +11,7 @@ import Footer from "../../components/Footer";
 import Loader from "../Loader";
 import { FiSearch } from "react-icons/fi";
 import { API_URL } from "../../config";
-import axiosInstance from "../../Utils/axiosConfig";
+import axiosInstance from "../../utils/axiosConfig";
 import { formatToDDMMYYYY } from "../../Utils/dateformat";
 import TimeDropdown from "../../utils/TimeDropdown";
 
