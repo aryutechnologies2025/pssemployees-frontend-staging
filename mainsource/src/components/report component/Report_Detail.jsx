@@ -17,11 +17,11 @@ import "primereact/resources/primereact.min.css";
 import Mobile_Sidebar from "../Mobile_Sidebar";
 import { FiSearch } from "react-icons/fi";
 import { API_URL } from "../../config";
-import axiosInstance from "../../utils/axiosConfig";
+import axiosInstance from "../../Utils/axiosConfig";
 import Footer from "../Footer";
 import Loader from "../../pages/Loader";
 import DatePicker from "react-datepicker";
-import { formatToDDMMYYYY } from "../../utils/dateformat";
+import { formatToDDMMYYYY } from "../../Utils/dateformat";
 
 function Report_Detail() {
   const navigate = useNavigate();

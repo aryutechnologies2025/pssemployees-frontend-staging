@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import Loader from "../Loader";
 import { API_URL } from "../../config.jsx";
-import axiosInstance from "../../utils/axiosConfig.jsx";
+import axiosInstance from "../../Utils/axiosConfig.jsx";
 import { TfiPencilAlt } from "react-icons/tfi";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import ReactDOM from "react-dom";
@@ -27,8 +27,8 @@ import {
 import { FiSearch } from "react-icons/fi";
 import { FaEye } from "react-icons/fa6";
 import { IoIosCloseCircle } from "react-icons/io"
-import { Capitalise } from "../../utils/useCapitalise.jsx";
-import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../utils/dateformat.js";
+import { Capitalise } from "../../Utils/useCapitalise.jsx";
+import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../Utils/dateformat.js";
 import { Editor } from "primereact/editor";
 
 

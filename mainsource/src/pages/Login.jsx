@@ -7,7 +7,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { LuUser } from "react-icons/lu";
 import { useEffect, useState } from "react";
-import axiosInstance from "../utils/axiosConfig";
+import axiosInstance from "../Utils/axiosConfig";
 import { useForm } from "react-hook-form";
 import { API_URL } from "../config";
 // import ReCAPTCHA from "react-google-recaptcha";

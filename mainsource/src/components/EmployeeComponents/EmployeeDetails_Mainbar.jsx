@@ -422,9 +422,9 @@ import { FaFileWord } from "react-icons/fa";
 import { FaFilePdf } from "react-icons/fa6";
 import { FaFileImage } from "react-icons/fa";
 import Mobile_Sidebar from "../Mobile_Sidebar";
-import axiosInstance from "../../utils/axiosConfig";
+import axiosInstance from "../../Utils/axiosConfig";
 import { API_URL } from "../../config";
-import { formatToYYYYMMDD } from "../../utils/dateformat";
+import { formatToYYYYMMDD } from "../../Utils/dateformat";
 
 const EmployeeDetails_Mainbar = () => {
   let navigate = useNavigate();
