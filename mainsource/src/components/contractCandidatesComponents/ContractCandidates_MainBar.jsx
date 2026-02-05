@@ -3,7 +3,6 @@ import { TfiPencilAlt, TfiPrinter } from "react-icons/tfi";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
 
-
 import { DataTable } from "primereact/datatable";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -24,22 +23,37 @@ import Swal from "sweetalert2";
 import { IoIosCloseCircle } from "react-icons/io";
 import { AiFillDelete } from "react-icons/ai";
 
-
-
 import { id } from "zod/v4/locales";
 import { API_URL } from "../../config";
-import axiosInstance from "../../utils/axiosConfig";
-import { formatToDDMMYYYY } from "../../utils/dateformat";
+import axiosInstance from "../../Utils/axiosConfig";
+import { formatToDDMMYYYY } from "../../Utils/dateformat";
 import Loader from "../Loader";
 import Mobile_Sidebar from "../Mobile_Sidebar";
 import Footer from "../Footer";
-import { Capitalise } from "../../utils/useCapitalise";
-import CameraPhoto from "../../utils/CameraPhoto";
-
-
-
+import { Capitalise } from "../../Utils/useCapitalise";
+import CameraPhoto from "../../Utils/CameraPhoto";
 
 const ContractCandidates_Mainbar = () => {
+  // permission all
+  const Psspermission = JSON.parse(
+    localStorage.getItem("psspermission") || "{}",
+  );
+
+  const candidatePermission = Psspermission.modules.find(
+    (mod) => mod.module === "candidate",
+  );
+
+  const canCreate = candidatePermission?.is_create === "1";
+  const canEdit = candidatePermission?.is_edit === "1";
+  const canView = candidatePermission?.is_view === "1";
+  const canDelete = candidatePermission?.is_delete === "1";
+  const canFilter = candidatePermission?.is_filter === "1";
+  const canImport = candidatePermission?.is_import === "1";
+  const canExport = candidatePermission?.is_export === "1";
+
+  // console.log("Psspermission", Psspermission);
+
+  // console.log("canCreate", canFilter);
   //navigation
   const navigate = useNavigate();
   const [editData, setEditData] = useState(null);
@@ -50,9 +64,13 @@ const ContractCandidates_Mainbar = () => {
   const [backendValidationError, setBackendValidationError] = useState(null);
   const [employeeIds, setEmployeeIds] = useState([]);
 
-
   const user = localStorage.getItem("pssemployee");
   // console.log("user", user);
+
+  const [joinedType, setJoinedType] = useState(0);
+
+  console.log("joinedType", joinedType);
+
 
   const userId = JSON.parse(user).id;
   // console.log("userId", userId);
@@ -85,7 +103,6 @@ const ContractCandidates_Mainbar = () => {
       pan_number: z.string().optional(),
       company: z.string().min(1, "Company is required"),
 
-
       interviewDate: z.string().min(1, "Interview date is required"),
       interviewStatus: z.string().min(1, "Interview status is required"),
       candidateStatus: z.string().min(1, "Candidate status is required"),
@@ -107,10 +124,10 @@ const ContractCandidates_Mainbar = () => {
       joinedDate: z.string().optional(),
       reference: z.string().optional(),
       otherReference: z.string().optional(),
- notes_details: z.object({
-      notes: z.string().optional(),
-      note_status: z.string().optional(),
-    }),
+      notes_details: z.object({
+        notes: z.string().optional(),
+        note_status: z.string().optional(),
+      }),
       profile_picture: z.any().optional(),
       documents: z.array(z.any()).optional(),
     })
@@ -127,16 +144,16 @@ const ContractCandidates_Mainbar = () => {
           code: z.ZodIssueCode.custom,
         });
       }
-     if (
-           ["rejected", "hold", "waiting"].includes(data.interviewStatus) &&
-           !data.notes_details?.notes?.trim()
-         ) {
-           ctx.addIssue({
-             path: ["notes_details", "notes"],
-             message: "Reason is required",
-             code: z.ZodIssueCode.custom,
-           });
-         }
+      if (
+        ["rejected", "hold", "waiting"].includes(data.interviewStatus) &&
+        !data.notes_details?.notes?.trim()
+      ) {
+        ctx.addIssue({
+          path: ["notes_details", "notes"],
+          message: "Reason is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
       // Candidate status specific validations
       if (data.candidateStatus === "joined" && !data.joinedDate?.trim()) {
         ctx.addIssue({
@@ -166,7 +183,6 @@ const ContractCandidates_Mainbar = () => {
         });
       }
     });
-
 
   const {
     register,
@@ -221,11 +237,9 @@ const ContractCandidates_Mainbar = () => {
   // console.log("documents", document);
   // console.log("education", education);
 
-
   // console.log("notes_details", notes_details)
   // console.log("joining_date", joining_date);
   // console.log("company_name", company_name);
-
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -245,7 +259,7 @@ const ContractCandidates_Mainbar = () => {
   const [selectedReference, setSelectedReference] = useState("");
   const [selectedReferenceForm, setSelectedReferenceForm] = useState("");
   const [selectedEducation, setSelectedEducation] = useState("");
-// console.log("selectedEducation.......:....",selectedEducation)
+  // console.log("selectedEducation.......:....",selectedEducation)
   const [educationOptions, setEducationOptions] = useState([]);
   const [filterEducation, setFilterEducation] = useState("");
 
@@ -289,7 +303,6 @@ const ContractCandidates_Mainbar = () => {
       setValue("waitingReason", "");
     }
 
-
     if (interviewStatus !== "Hold") {
       setValue("holdReason", "");
     }
@@ -301,6 +314,13 @@ const ContractCandidates_Mainbar = () => {
     }
   }, [candidateStatus, setValue]);
 
+
+ 
+useEffect(() => {
+  if (candidateStatus !== "joined") {
+    setJoinedType(0); // Reset to 0 when not joined
+  }
+}, [candidateStatus]);
   const [ModalOpen, setIsModalOpen] = useState(false);
 
   const handleApplyFilter = () => {
@@ -334,11 +354,10 @@ const ContractCandidates_Mainbar = () => {
     try {
       const response = await axiosInstance.post(
         `api/contract-emp/move-candidate-emp`,
-        payload
+        payload,
       );
 
       // console.log("Success:", response);
-
     } catch (error) {
       if (error.response) {
         console.log("Backend error:", error.response.data);
@@ -349,7 +368,6 @@ const ContractCandidates_Mainbar = () => {
       }
     }
   };
-
 
   // const onPageChange = (e) => {
   //   setPage(e.page + 1); // PrimeReact is 0-based
@@ -383,13 +401,13 @@ const ContractCandidates_Mainbar = () => {
   const [isImportAddModalOpen, setIsImportAddModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companyOptions, setCompanyOptions] = useState([]);
-  
+
   const fileInputRef = useRef(null);
   const fileInputRefEdit = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [attachment, setAttachment] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -432,12 +450,12 @@ const ContractCandidates_Mainbar = () => {
     setPhoto(null);
     setDocuments([]);
     setEditData(null);
+    setJoinedType(0);
     reset(mappedData);
     setTimeout(() => {
       setIsModalOpen(false);
       setIsAnimating(false);
       setBackendValidationError(null);
-
     }, 250);
   };
 
@@ -452,10 +470,9 @@ const ContractCandidates_Mainbar = () => {
   };
 
   const handleView = async (row) => {
-
     try {
       const res = await axiosInstance.get(
-        `${API_URL}api/contract-emp/edit/${row.id}`
+        `${API_URL}api/contract-emp/edit/${row.id}`,
       );
 
       // console.log("view res....:....", res);
@@ -525,10 +542,7 @@ const ContractCandidates_Mainbar = () => {
     register("profile_picture", { required: !editData });
   }, [register, editData]);
 
-
   const handlePhotoChange = (e) => {
-
-
     const file = e.target.files[0];
 
     if (file) {
@@ -547,19 +561,14 @@ const ContractCandidates_Mainbar = () => {
 
     // If camera gives Blob → convert to File
     if (!(fileOrBlob instanceof File)) {
-      file = new File(
-        [fileOrBlob],
-        `camera-${Date.now()}.png`,
-        { type: fileOrBlob.type || "image/png" }
-      );
+      file = new File([fileOrBlob], `camera-${Date.now()}.png`, {
+        type: fileOrBlob.type || "image/png",
+      });
     }
 
     setPhoto(file);
     setValue("profile_picture", file, { shouldValidate: true });
   };
-
-
-
 
   const handleDocumentChange = (e) => {
     const files = Array.from(e.target.files);
@@ -617,13 +626,13 @@ const ContractCandidates_Mainbar = () => {
     }
   };
 
-const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileSubmit = async (e) => {
     // console.log("selectedAccount:1");
     e.preventDefault();
-    if (isSubmitting) return; 
-  setIsSubmitting(true);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     // Reset errors
     setError({ file: "", date: "", company: "", import: [] });
@@ -688,8 +697,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         {
           headers: { "Content-Type": "multipart/form-data" },
           // Add timeout for debugging
-        }
-
+        },
       );
 
       // console.log("response:", response.data);
@@ -729,8 +737,10 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       setIsSubmitting(false);
     }
   };
+  const [editLoading, setEditLoading] = useState(false);
 
   const normalizeEditData = (row) => {
+    console.log("row", row);
     return {
       id: row.id || null,
       name: row.name || "",
@@ -750,20 +760,18 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       interviewStatus: row.interview_status
         ? row.interview_status.toLowerCase()
         : "",
-      candidateStatus:
-        row.joining_status == "joined"
-          ? "joined"
-          : row.joining_status == "not joined"
-            ? "not_joined"
-            : "",
+     candidateStatus: row.joining_status === "joined"
+      ? "joined"
+      : row.joining_status === "not_joined"
+        ? "not_joined"
+        : "",
       selectedJoiningDate: row.joining_date || "",
       joinedDate: row.joined_date || "",
       reference: row.reference || "",
       otherReference: row.other_reference || "",
       rejectReason:
         row.notes?.find((n) => n.note_status === "reject")?.notes || "",
-      holdReason:
-        row.notes?.find((n) => n.note_status === "hold")?.notes || "",
+      holdReason: row.notes?.find((n) => n.note_status === "hold")?.notes || "",
       waitReason:
         row.notes?.find((n) => n.note_status === "waiting")?.notes || "",
       notJoinedReason:
@@ -773,77 +781,90 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     };
   };
 
-
   const openEditModal = async (row) => {
-
+    console.log("rowopen", row);
     setIsModalOpen(true);
     setTimeout(() => setIsAnimating(true), 10);
 
-    const response = await axiosInstance.get(
-      `/api/contract-emp/edit/${row.id}`
-    );
-    // console.log("openeditmodal:", response.data);
+    setEditLoading(true);
+    try {
+      const response = await axiosInstance.get(
+        `/api/contract-emp/edit/${row.id}`,
+      );
+      // console.log("openeditmodal:", response.data);
 
-    if (response.data.success) {
-      const rowData = response.data.data; // Get fresh data from API
-      const normalizedData = normalizeEditData(rowData);
+      if (response.data.success) {
+        const rowData = response.data.data; // Get fresh data from API
+        const normalizedData = normalizeEditData(rowData);
 
-      setEditData(normalizedData);
-      // setSelectedEducation(normalizedData.education || null);
+        setEditData(normalizedData);
+        // setSelectedEducation(normalizedData.education || null);
 
-      if (normalizedData.profile_picture) {
-        // If it's already a full URL, use it; otherwise, append base URL
-        const imageUrl = normalizedData.profile_picture.startsWith('http')
-          ? normalizedData.profile_picture
-          : `${API_URL}/${normalizedData.profile_picture}`;
-        setPhoto(imageUrl);
-        setValue("profile_picture", normalizedData.profile_picture);
-      } else {
-        setPhoto(null);
-      }
+        if (normalizedData.profile_picture) {
+          // If it's already a full URL, use it; otherwise, append base URL
+          const imageUrl = normalizedData.profile_picture.startsWith("http")
+            ? normalizedData.profile_picture
+            : `${API_URL}/${normalizedData.profile_picture}`;
+          setPhoto(imageUrl);
+          setValue("profile_picture", normalizedData.profile_picture);
+        } else {
+          setPhoto(null);
+        }
 
-      let normalizedDocs = [];
-      if (rowData.document_groups) {
-        normalizedDocs = rowData.document_groups.flatMap(group =>
-          group.documents.map(doc => ({
+        let normalizedDocs = [];
+        if (rowData.document_groups) {
+          normalizedDocs = rowData.document_groups.flatMap((group) =>
+            group.documents.map((doc) => ({
+              ...doc,
+              id: doc.id,
+              title: group.title,
+              existing: true, // marker for your UI
+            })),
+          );
+        } else if (rowData.documents) {
+          normalizedDocs = rowData.documents.map((doc) => ({
             ...doc,
-            id: doc.id,
-            title: group.title,
-            existing: true // marker for your UI
-          }))
-        );
-      } else if (rowData.documents) {
-        normalizedDocs = rowData.documents.map(doc => ({
-          ...doc,
-          existing: true
-        }));
+            existing: true,
+          }));
+        }
+
+        setDocuments(normalizedDocs); // Update local state for the file list UI
+
+        setSelectedCompany(normalizedData.company);
+        const educationValue = normalizedData.education
+          ? String(normalizedData.education)
+          : null;
+
+        setSelectedEducation(educationValue);
+        // setValue("education", normalizedData.education);
+        // setValue("company", normalizedData.company);
+        setSelectedEducation(normalizedData.education);
+        setSelectedReferenceForm(normalizedData.reference || "");
+
+        reset({
+          ...normalizedData,
+          company: String(normalizedData.company),
+          education: normalizedData.education,
+          reference: normalizedData.reference || "",
+          otherReference: normalizedData.otherReference || "",
+                  candidateStatus: normalizedData.candidateStatus || "",
+
+        });
+
+        // reset({
+        //   ...normalizedData,
+        //   company: String(normalizedData.company),
+        //   education: String(normalizedData.education),
+        // });
       }
-
-      setDocuments(normalizedDocs); // Update local state for the file list UI
-
-      setSelectedCompany(normalizedData.company);
-const educationValue = normalizedData.education
-  ? String(normalizedData.education)
-  : null;
-
-setSelectedEducation(educationValue);
-// setValue("education", normalizedData.education);
-// setValue("company", normalizedData.company);
-     
-
-
-      reset({
-        ...normalizedData,
-        company: String(normalizedData.company),
-        education: String(normalizedData.education),
-      });
+    } catch (err) {
+      console.log("Edit API Error:", err);
+    } finally {
+      setEditLoading(false);
     }
-
   };
 
   const fetchContractCandidates = async () => {
-
-
     try {
       setLoading(true);
       const payload = {
@@ -853,44 +874,40 @@ setSelectedEducation(educationValue);
         education: filterEducation,
         interview_status: filterInterviewStatus,
         joining_status: filterCandidateStatus,
-
       };
       const queryParams = new URLSearchParams(payload).toString();
 
-      const response = await axiosInstance.get(`api/contract-emp?${queryParams}`);
-      console.log("contract candidates response .... : ....", response)
+      const response = await axiosInstance.get(
+        `api/contract-emp?${queryParams}`,
+      );
+      console.log("contract candidates response .... : ....", response);
       const employees = response?.data?.data?.employees || [];
 
       if (response?.data?.success) {
-      const data = response?.data?.data;
+        const data = response?.data?.data;
 
-          setColumnData(data?.employees || []);
-      setEmployeesList(data?.pssemployees || []);
+        setColumnData(data?.employees || []);
+        setEmployeesList(data?.pssemployees || []);
 
-      if (data.companies) {
-        const companies = data.companies.map(c => ({
-  label: c.company_name,
-  value: String(c.id)
-}));
- setCompanyOptions(companies);
-        console.log("Companies...:",companies);
-      }
+        if (data.companies) {
+          const companies = data.companies.map((c) => ({
+            label: c.company_name,
+            value: String(c.id),
+          }));
+          setCompanyOptions(companies);
+          console.log("Companies...:", companies);
+        }
 
-
-       
         if (data.educations) {
-       const educations = data.educations.map((edu) => ({
-  label: edu.eduction_name,  
-  value: edu.id, 
-  // value: String(edu.id)
-}));
- setEducationOptions(educations);
-        console.log("Educations...:",educations);
+          const educations = data.educations.map((edu) => ({
+            label: edu.eduction_name,
+            value: edu.id,
+            // value: String(edu.id)
+          }));
+          setEducationOptions(educations);
+          console.log("Educations...:", educations);
+        }
       }
-      }
-
-  
-      
     } catch (error) {
       console.error("Error fetching contract candidates:", error);
     } finally {
@@ -901,11 +918,11 @@ setSelectedEducation(educationValue);
   useEffect(() => {
     fetchContractCandidates();
     // fetchCompanyList();
-  },[]);
+  }, []);
 
   //   const companyDropdown = companyOptions;
   // const educationDropdown = educationOptions;
-  
+
   // delete
   const handleDelete = async (id) => {
     // console.log("Deleting Contract Candidates ID:", id);
@@ -929,7 +946,7 @@ setSelectedEducation(educationValue);
     }
   };
 
-    const handlCsvDownload = () => {
+  const handlCsvDownload = () => {
     const link = window.document.createElement("a");
     link.href = "/assets/csv/contarctformat.csv";
     link.download = "contractformat.csv";
@@ -939,8 +956,8 @@ setSelectedEducation(educationValue);
     window.document.body.removeChild(link);
   };
 
-   const getEducationName = (educationId) => {
-    const edu = educationOptions.find(e => e.value === educationId);
+  const getEducationName = (educationId) => {
+    const edu = educationOptions.find((e) => e.value === educationId);
     return edu ? edu.label : "-";
   };
 
@@ -1012,7 +1029,6 @@ setSelectedEducation(educationValue);
       body: (row) => {
         const data = row.interview_status;
 
-
         if (!data) {
           return <span>-</span>;
         }
@@ -1061,10 +1077,9 @@ setSelectedEducation(educationValue);
         return (
           <span
             className={`inline-block px-3 py-1 rounded-full text-xs font-medium
-          ${isJoined
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-600"
-              }
+          ${
+            isJoined ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+          }
         `}
             style={{ minWidth: "100px", textAlign: "center" }}
           >
@@ -1072,43 +1087,66 @@ setSelectedEducation(educationValue);
           </span>
         );
       },
-    }
-    ,
+    },
 
+    // {
+    //   header: "Reference",
+    //   field: "reference",
+    //   body: (row) => Capitalise(row.reference) || row.reference || "-",
+    // },
     {
       header: "Reference",
-      field: "reference",
-      body: (row) => Capitalise(row.reference) || row.reference || "-",
+      body: (row) => {
+        const ref = row.reference || "-";
+
+        if (ref.toLowerCase() === "other") {
+          return (
+            <div className="leading-tight">
+              <div className="font-medium">Other</div>
+              <div className="text-xs text-gray-500">
+                {row.other_reference ? Capitalise(row.other_reference) : "-"}
+              </div>
+            </div>
+          );
+        }
+
+        return <span>{Capitalise(ref)}</span>;
+      },
     },
+
     {
       header: "Action",
       body: (row) => (
         <div className="flex gap-4 justify-center items-center">
-          <button
-            onClick={() => handleView(row)}
-            className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
-          >
-            <FaEye />
-          </button>
-
-          <button
-            className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
-            onClick={() => openEditModal(row)}
-          >
-            <TfiPencilAlt />
-          </button>
-          <button
-            className="p-2 bg-[#FFD1D1] text-[#DC2626] hover:bg-[#FFE2E2] rounded-[10px] "
-            onClick={() => handleDelete(row.id)}
-          >
-            <MdOutlineDeleteOutline />
-          </button>
+          {canView && (
+            <button
+              onClick={() => handleView(row)}
+              className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
+            >
+              <FaEye />
+            </button>
+          )}
+          {canEdit && (
+            <button
+              className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
+              onClick={() => openEditModal(row)}
+            >
+              <TfiPencilAlt />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              className="p-2 bg-[#FFD1D1] text-[#DC2626] hover:bg-[#FFE2E2] rounded-[10px] "
+              onClick={() => handleDelete(row.id)}
+            >
+              <MdOutlineDeleteOutline />
+            </button>
+          )}
         </div>
       ),
       style: { textAlign: "center", width: "120px" },
     },
   ];
-
 
   // create
   //   const onSubmit = async (data) => {
@@ -1131,7 +1169,7 @@ setSelectedEducation(educationValue);
   //         aadhar_number: data.aadhar,
   //         pan_number: data.pan_number,
   //         company_id: Number(data.company),
-  //      education: data.education, 
+  //      education: data.education,
 
   //         interview_date: formatDateToYMD(data.interviewDate),
   //         interview_status: data.interviewStatus,
@@ -1188,7 +1226,6 @@ setSelectedEducation(educationValue);
   //       };
 
   //       const formData = new FormData();
-
 
   // Object.entries(createCandidate).forEach(([key, value]) => {
   //       if (value !== null && value !== undefined) {
@@ -1293,7 +1330,7 @@ setSelectedEducation(educationValue);
   // //         closeAddModal();
   // //         fetchContractCandidates();
   // //         toast.success("Candidate added successfully")
-  // //         // toast.success("Candidate added successfully", 
+  // //         // toast.success("Candidate added successfully",
   // //         //   {
   // //         //   onClose: () => {
   // //         //     fetchContractCandidates();
@@ -1315,137 +1352,136 @@ setSelectedEducation(educationValue);
   // //     }
   //   };
 
+  const onSubmit = async (data) => {
+    setLoading(true);
 
-const onSubmit = async (data) => {
-  setLoading(true);
+    try {
+      /* ---------------- NOTES ARRAY ---------------- */
+      const notesArray = [];
 
-  try {
-    /* ---------------- NOTES ARRAY ---------------- */
-    const notesArray = [];
-
-    if (data.candidateStatus === "not_joined" && data.notJoinedReason) {
-      notesArray.push({
-        notes: data.notJoinedReason,
-        note_status: "not_joined",
-      });
-    }
-
-    if (["rejected", "hold", "waiting"].includes(data.interviewStatus)) {
-      const note = 
-        data.interviewStatus === "rejected"
-          ? data.rejectReason
-          : data.interviewStatus === "hold"
-            ? data.holdReason
-            : data.waitReason;
-
-      notesArray.push({
-        notes: note ||data.notes_details.notes || "-",
-        note_status: data.interviewStatus,
-      });
-    }
-
-    /* ---------------- PAYLOAD ---------------- */
-    const createCandidate = {
-      name: data.name,
-      phone_number: data.phone,
-      aadhar_number: data.aadhar,
-      pan_number: data.pan_number,
-      address: data.address || "test",
-      gender: data.gender,
-      marital_status: data.marital,
-      company_id: Number(data.company),
-      education_id: data.education,
-      interview_date: formatDateToYMD(data.interviewDate),
-      interview_status: data.interviewStatus,
-      notes_details: notesArray,
-      reference: data.reference,
-      joining_status: data.candidateStatus,
-      joined_date:
-        data.candidateStatus === "joined"
-          ? formatDateToYMD(data.joinedDate)
-          : null,
-      joining_date:
-        data.interviewStatus === "selected"
-          ? formatDateToYMD(data.selectedJoiningDate)
-          : null,
-      other_reference:
-        data.reference === "other" ? data.otherReference : null,
-      status: 1,
-      created_by: userId,
-      role_id: userRole,
-    };
-
-    const formData = new FormData();
-    Object.entries(createCandidate).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(
-          key,
-          typeof value === "object" ? JSON.stringify(value) : value
-        );
+      if (data.candidateStatus === "not_joined" && data.notJoinedReason) {
+        notesArray.push({
+          notes: data.notJoinedReason,
+          note_status: "not_joined",
+        });
       }
-    });
 
-    /* ---------------- PROFILE PIC ---------------- */
-    if (data.profile_picture instanceof File) {
-      formData.append("profile_picture", data.profile_picture);
-    } else if (typeof data.profile_picture === "string") {
-      formData.append("existing_profile_picture", data.profile_picture);
-    }
+      if (["rejected", "hold", "waiting"].includes(data.interviewStatus)) {
+        const note =
+          data.interviewStatus === "rejected"
+            ? data.rejectReason
+            : data.interviewStatus === "hold"
+              ? data.holdReason
+              : data.waitReason;
 
-    /* ---------------- DOCUMENTS ---------------- */
-    if (documents?.length) {
-      documents.forEach((doc) => {
-        if (doc instanceof File) {
-          formData.append("documents[]", doc);
-        } else if (doc.id) {
-          formData.append("documents[]", doc.id);
+        notesArray.push({
+          notes: note || data.notes_details.notes || "-",
+          note_status: data.interviewStatus,
+        });
+      }
+
+      /* ---------------- PAYLOAD ---------------- */
+      const createCandidate = {
+        name: data.name,
+        phone_number: data.phone,
+        aadhar_number: data.aadhar,
+        pan_number: data.pan_number,
+        address: data.address || "test",
+        gender: data.gender,
+        marital_status: data.marital,
+        company_id: Number(data.company),
+        education_id: data.education,
+        interview_date: formatDateToYMD(data.interviewDate),
+        interview_status: data.interviewStatus,
+        notes_details: notesArray,
+        reference: data.reference,
+        joining_status: data.candidateStatus,
+        joined_date:
+          data.candidateStatus === "joined"
+            ? formatDateToYMD(data.joinedDate)
+            : null,
+
+      joined_type: data.candidateStatus === "joined" ? joinedType : 0, 
+
+        joining_date:
+          data.interviewStatus === "selected"
+            ? formatDateToYMD(data.selectedJoiningDate)
+            : null,
+        other_reference:
+          data.reference === "other" ? data.otherReference : null,
+        status: 1,
+        created_by: userId,
+        role_id: userRole,
+      };
+
+      const formData = new FormData();
+      Object.entries(createCandidate).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(
+            key,
+            typeof value === "object" ? JSON.stringify(value) : value,
+          );
         }
       });
-    }
 
-    /* ---------------- API CALL ---------------- */
-    const url = editData
-      ? `/api/contract-emp/update/${editData.id}`
-      : `/api/contract-emp/create`;
+      /* ---------------- PROFILE PIC ---------------- */
+      if (data.profile_picture instanceof File) {
+        formData.append("profile_picture", data.profile_picture);
+      } else if (typeof data.profile_picture === "string") {
+        formData.append("existing_profile_picture", data.profile_picture);
+      }
 
-    const response = await axiosInstance.post(url, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      /* ---------------- DOCUMENTS ---------------- */
+      if (documents?.length) {
+        documents.forEach((doc) => {
+          if (doc instanceof File) {
+            formData.append("documents[]", doc);
+          } else if (doc.id) {
+            formData.append("documents[]", doc.id);
+          }
+        });
+      }
 
-    /*  handle backend errors (success:false) */
-    //  if (response.data?.success === false) {
-    //   Object.values(response.data.errors || {})
-    //     .flat()
-    //     .forEach((msg) => toast.error(msg));
-    //   return;
-    // }
 
+console.log("createCandidate",createCandidate)
+      /* ---------------- API CALL ---------------- */
+      const url = editData
+        ? `/api/contract-emp/update/${editData.id}`
+        : `/api/contract-emp/create`;
 
-    /*  SUCCESS */
-    toast.success(editData ? "Updated Successfully" : "Created Successfully");
-    closeAddModal();
-    fetchContractCandidates();
-
-  } catch (error) {
-  const errors = error?.response?.data?.errors;
-
-  if (errors) {
-    Object.values(errors)
-      .flat()
-      .forEach((msg) => {
-        // toast.error(msg); // 👈 EXACT backend message
+      const response = await axiosInstance.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-  } else {
-    // toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
-    toast.error(error?.message || "Server Error. Please Try Again.");
 
-  
-  }
-}finally {
-    setLoading(false);
-  }
-};
+      /*  handle backend errors (success:false) */
+      //  if (response.data?.success === false) {
+      //   Object.values(response.data.errors || {})
+      //     .flat()
+      //     .forEach((msg) => toast.error(msg));
+      //   return;
+      // }
 
+      /*  SUCCESS */
+      toast.success(editData ? "Updated Successfully" : "Created Successfully");
+      closeAddModal();
+      fetchContractCandidates();
+    } catch (error) {
+      const errors = error?.response?.data?.errors;
+
+      if (errors) {
+        Object.values(errors)
+          .flat()
+          .forEach((msg) => {
+            // toast.error(msg); // 👈 EXACT backend message
+          });
+      } else {
+        // toast.error(error?.errors?.aadhar_number[0] || "Server error. Please try again.");
+        toast.error(error?.message || "Server Error. Please Try Again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const companyDropdown = companyOptions.map((c) => ({
     label: c.label,
@@ -1458,7 +1494,6 @@ const onSubmit = async (data) => {
     label: c.label,
     value: String(c.value),
   }));
-
 
   // const educationOptions = [
   //   { label: "10th Standard/SSLC", value: "10th_standard/sslc" },
@@ -1515,13 +1550,12 @@ const onSubmit = async (data) => {
   // ];
 
   const referenceOptions = [
-    ...employeesList.map(emp => ({
+    ...employeesList.map((emp) => ({
       label: emp.full_name,
       value: emp.full_name,
     })),
     { label: "Other", value: "other" },
   ];
-
 
   return (
     <div className="bg-gray-100 flex flex-col justify-between w-full overflow-x-auto min-h-screen px-5 pt-2 md:pt-10">
@@ -1547,118 +1581,117 @@ const onSubmit = async (data) => {
             </div>
 
             {/* Filter Section */}
-            <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end w-full">
-                  {/* Start Date */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={filterStartDate || ""}
-                      onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                    />
-                  </div>
 
-                  {/* End Date */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={filterEndDate || ""}
-                      onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                    />
-                  </div>
+            {canFilter && (
+              <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end w-full">
+                    {/* Start Date */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={filterStartDate || ""}
+                        onChange={(e) => setFilterStartDate(e.target.value)}
+                        className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                      />
+                    </div>
 
+                    {/* End Date */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={filterEndDate || ""}
+                        onChange={(e) => setFilterEndDate(e.target.value)}
+                        className="px-2 py-2 rounded-md border border-[#D9D9D9] text-sm text-[#7C7C7C] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                      />
+                    </div>
 
-                  {/* Reference */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">
-                      Reference
-                    </label>
+                    {/* Reference */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        Reference
+                      </label>
 
-                    <Dropdown
-                      value={selectedReference}
-                      onChange={(e) => setSelectedReference(e.value)}
-                      className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
-                      options={referenceOptions}
-                      placeholder="Select Reference"
-                      filter
-                    />
+                      <Dropdown
+                        value={selectedReference}
+                        onChange={(e) => setSelectedReference(e.value)}
+                        className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
+                        options={referenceOptions}
+                        placeholder="Select Reference"
+                        filter
+                      />
+                    </div>
 
+                    {/* Interview Status */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        Interview Status
+                      </label>
+                      <Dropdown
+                        value={filterInterviewStatus}
+                        options={interviewStatusOptions}
+                        onChange={(e) => setFilterInterviewStatus(e.value)}
+                        placeholder="Select Status "
+                        filter
+                        className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
+                      />
+                    </div>
 
-                  </div>
+                    {/* Candidate Status */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        Candidate Status
+                      </label>
+                      <Dropdown
+                        value={filterCandidateStatus}
+                        options={candidateStatusOptions}
+                        filter
+                        onChange={(e) => setFilterCandidateStatus(e.value)}
+                        placeholder="Select Status "
+                        className="w-full border border-gray-300 text-sm text-[#7C7C7C] rounded-md placeholder:text-gray-400"
+                      />
+                    </div>
 
-                  {/* Interview Status */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">
-                      Interview Status
-                    </label>
-                    <Dropdown
-                      value={filterInterviewStatus}
-                      options={interviewStatusOptions}
-                      onChange={(e) => setFilterInterviewStatus(e.value)}
-                      placeholder="Select Status "
-                      filter
-                      className="w-full border border-gray-300 text-sm  text-[#7C7C7C] rounded-md"
-                    />
-                  </div>
+                    {/* education */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-medium text-[#6B7280]">
+                        Education
+                      </label>
+                      <Dropdown
+                        value={filterEducation}
+                        options={educationOptions}
+                        onChange={(e) => setFilterEducation(e.value)}
+                        placeholder="Select Education"
+                        filter
+                        className="w-full border border-gray-300 text-sm text-[#7C7C7C] rounded-md"
+                      />
+                    </div>
 
-                  {/* Candidate Status */}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-[#6B7280]">
-                      Candidate Status
-                    </label>
-                    <Dropdown
-                      value={filterCandidateStatus}
-                      options={candidateStatusOptions}
-                      filter
-                      onChange={(e) => setFilterCandidateStatus(e.value)}
-                      placeholder="Select Status "
-                      className="w-full border border-gray-300 text-sm text-[#7C7C7C] rounded-md placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* education */}
-                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-[#6B7280]">Education</label>
-                  <Dropdown
-                    value={filterEducation}
-                    options={educationOptions}
-                    onChange={(e) => setFilterEducation(e.value)}
-                    placeholder="Select Education"
-                    filter
-                    className="w-full border border-gray-300 text-sm text-[#7C7C7C] rounded-md"
-                  />
-                </div>
-
-
-
-
-                  {/* Buttons */}
-                  <div className="col-span-1 md:col-span-2 lg:col-span-5 flex justify-end gap-4">
-                    <button
-                      onClick={fetchContractCandidates}
-                      className="h-10 rounded-lg px-2 md:px-2 py-2  bg-[#1ea600] text-white font-medium w-20 hover:bg-[#33cd10] transition "
-                    >
-                      Apply
-                    </button>
-                    <button
-                      onClick={handleResetFilter}
-                      className="h-10 rounded-lg bg-gray-100 px-2 md:px-2 py-2  text-[#7C7C7C] font-medium w-20 hover:bg-gray-200 transition "
-                    >
-                      Reset
-                    </button>
+                    {/* Buttons */}
+                    <div className="col-span-1 md:col-span-2 lg:col-span-5 flex justify-end gap-4">
+                      <button
+                        onClick={fetchContractCandidates}
+                        className="h-10 rounded-lg px-2 md:px-2 py-2  bg-[#1ea600] text-white font-medium w-20 hover:bg-[#33cd10] transition "
+                      >
+                        Apply
+                      </button>
+                      <button
+                        onClick={handleResetFilter}
+                        className="h-10 rounded-lg bg-gray-100 px-2 md:px-2 py-2  text-[#7C7C7C] font-medium w-20 hover:bg-gray-200 transition "
+                      >
+                        Reset
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Table Section */}
             <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6">
@@ -1697,16 +1730,18 @@ const onSubmit = async (data) => {
                         className="w-full pl-10 pr-3 py-2 rounded-md text-sm border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                       />
                     </div>
-                    <div className="flex items-center">
-                      <button
-                        onClick={openImportAddModal}
-                        className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium w-20 rounded-lg"
-                      >
-                        Import
-                      </button>
-                    </div>
+                    {canImport && (
+                      <div className="flex items-center">
+                        <button
+                          onClick={openImportAddModal}
+                          className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium w-20 rounded-lg"
+                        >
+                          Import
+                        </button>
+                      </div>
+                    )}
 
-                      {/* sample csv format download */}
+                    {/* sample csv format download */}
                     <div className="flex items-center">
                       <button
                         onClick={handlCsvDownload}
@@ -1724,13 +1759,14 @@ const onSubmit = async (data) => {
                         <FiDownload className="text-lg" /> Demo CSV
                       </button>
                     </div>
-
-                    <button
-                      onClick={openAddModal}
-                      className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium  w-fit rounded-lg transition-all duration-200"
-                    >
-                      + Add Candidate
-                    </button>
+                    {canCreate && (
+                      <button
+                        onClick={openAddModal}
+                        className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium  w-fit rounded-lg transition-all duration-200"
+                      >
+                        + Add Candidate
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1778,8 +1814,9 @@ const onSubmit = async (data) => {
                 </div>
 
                 <div
-                  className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${isAnimating ? "translate-x-0" : "translate-x-full"
-                    }`}
+                  className={`fixed top-0 right-0 h-screen overflow-y-auto w-screen sm:w-[90vw] md:w-[45vw] bg-white shadow-lg  transform transition-transform duration-500 ease-in-out ${
+                    isAnimating ? "translate-x-0" : "translate-x-full"
+                  }`}
                 >
                   <div
                     className="w-6 h-6 rounded-full  mt-2 ms-2  border-2 transition-all duration-500 bg-white border-gray-300 flex items-center justify-center cursor-pointer"
@@ -1908,18 +1945,17 @@ const onSubmit = async (data) => {
                       >
                         Submit
                       </button> */}
-                                            <button
-  onClick={handleFileSubmit}
-  disabled={isSubmitting}
-  className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] 
+                      <button
+                        onClick={handleFileSubmit}
+                        disabled={isSubmitting}
+                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] 
              disabled:opacity-50 flex items-center gap-2"
->
-  {isSubmitting && (
-    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-  )}
-  {isSubmitting ? "Uploading..." : "Submit"}
-</button>
-
+                      >
+                        {isSubmitting && (
+                          <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        )}
+                        {isSubmitting ? "Uploading..." : "Submit"}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1947,120 +1983,133 @@ const onSubmit = async (data) => {
                     <IoIosArrowForward className="w-3 h-3" />
                   </div>
 
-                  <div className="p-2 md:p-5">
-                    <p className="text-xl md:text-2xl font-medium">
-                      {" "}
-                      {!editData ? "ADD" : "Edit"} Candidates
-                    </p>
-                    {backendValidationError && (
-                      <span className=" text-red-600 text-sm">
-                        {backendValidationError}
-                      </span>
-                    )}
+                  {editLoading ? (
+                    <div className="flex justify-center items-center py-20">
+                      <div className="w-10 h-10 border-4 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>
+                    </div>
+                  ) : (
+                    <div className="p-2 md:p-5">
+                      <p className="text-xl md:text-2xl font-medium">
+                        {" "}
+                        {!editData ? "ADD" : "Edit"} Candidates
+                      </p>
+                      {backendValidationError && (
+                        <span className=" text-red-600 text-sm">
+                          {backendValidationError}
+                        </span>
+                      )}
 
+                      {/* Upload Photo */}
+                      <div className="flex justify-end">
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="font-medium">
+                            {photo ? "Change Photo" : "Upload Photo"}{" "}
+                            <span className="text-red-500">*</span>
+                          </p>
 
-                    {/* Upload Photo */}
-                    <div className="flex justify-end">
-                      <div className="flex flex-col items-center gap-2">
+                          {/* Preview */}
+                          <div className="relative">
+                            {photo ? (
+                              <img
+                                src={
+                                  photo instanceof File
+                                    ? URL.createObjectURL(photo)
+                                    : photo
+                                }
+                                className="w-32 h-40 rounded-md object-cover border"
+                              />
+                            ) : (
+                              <div className="w-32 h-40 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                                Upload
+                              </div>
+                            )}
+                          </div>
 
-                        <p className="font-medium">
-                          {photo ? "Change Photo" : "Upload Photo"} <span className="text-red-500">*</span>
-                        </p>
-
-                        {/* Preview */}
-                        <div className="relative">
-                          {photo ? (
-                            <img
-                              src={photo instanceof File ? URL.createObjectURL(photo) : photo}
-                              className="w-32 h-40 rounded-md object-cover border"
-                            />
-                          ) : (
-                            <div className="w-32 h-40 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                          {/* Buttons */}
+                          <div className="flex gap-2">
+                            <label className="cursor-pointer bg-gray-200 px-3 py-1 rounded">
                               Upload
-                            </div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={handlePhotoChange}
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => setOpenCamera(true)}
+                              className="bg-gray-200 px-3 py-1 rounded"
+                            >
+                              Camera
+                            </button>
+                          </div>
+
+                          {errors.profile_picture && (
+                            <p className="text-red-500 text-sm">
+                              {errors.profile_picture.message}
+                            </p>
                           )}
                         </div>
+                      </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-2">
-                          <label className="cursor-pointer bg-gray-200 px-3 py-1 rounded">
-                            Upload
-                            <input
-                              type="file"
-                              accept="image/*"
-                              hidden
-                              onChange={handlePhotoChange}
-                            />
-                          </label>
+                      {openCamera && (
+                        <CameraPhoto
+                          onCapture={handleCameraCapture}
+                          onClose={() => setOpenCamera(false)}
+                        />
+                      )}
 
-                          <button
-                            type="button"
-                            onClick={() => setOpenCamera(true)}
-                            className="bg-gray-200 px-3 py-1 rounded"
-                          >
-                            Camera
-                          </button>
+                      {/* Company */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium">
+                          Company Name <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-[50%] md:w-[60%]">
+                          <Dropdown
+                            value={selectedCompany}
+                            options={companyDropdown}
+                            optionLabel="label"
+                            optionValue="value"
+                            onChange={(e) => {
+                              setSelectedCompany(e.value);
+                              setValue("company", String(e.value), {
+                                shouldValidate: true,
+                              });
+                            }}
+                            placeholder="Select Company"
+                            filter
+                            className="w-full border border-gray-300 rounded-lg"
+                          />
+                          {errors.company && (
+                            <p className="text-red-500 text-sm">
+                              {errors.company.message}
+                            </p>
+                          )}
                         </div>
-
-                        {errors.profile_picture && (
-                          <p className="text-red-500 text-sm">{errors.profile_picture.message}</p>
-                        )}
                       </div>
-                    </div>
 
-                    {openCamera && (
-                      <CameraPhoto
-                        onCapture={handleCameraCapture}
-                        onClose={() => setOpenCamera(false)}
-                      />
-                    )}
-
-
-
-
-
-                    {/* Company */}
-                  <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium">Company Name <span className="text-red-500">*</span></label>
-                      <div className="w-[50%] md:w-[60%]">
-                        <Dropdown
-                          value={selectedCompany}
-                          
-                          options={companyDropdown}
-                          optionLabel="label"
-                          optionValue="value"
-                          onChange={(e) => {
-                            setSelectedCompany(e.value);
-                            setValue("company", String(e.value), { shouldValidate: true });
-                          }}
-                          placeholder="Select Company"
-                          filter
-                          className="w-full border border-gray-300 rounded-lg"
-                        />
-                        {errors.company && <p className="text-red-500 text-sm">{errors.company.message}</p>}
+                      {/* NAME */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Name <span className="text-red-600">*</span>
+                        </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <input
+                            type="text"
+                            name="name"
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            placeholder="Enter Name"
+                            {...register("name")}
+                          />
+                          <span className="text-red-500 text-sm">
+                            {errors.name?.message}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* NAME */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Name <span className="text-red-600">*</span>
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <input
-                          type="text"
-                          name="name"
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          placeholder="Enter Name"
-                          {...register("name")}
-                        />
-                        <span className="text-red-500 text-sm">
-                          {errors.name?.message}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* dob
+                      {/* dob
                     <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         DOB <span className="text-red-500">*</span>
@@ -2086,8 +2135,7 @@ const onSubmit = async (data) => {
 
                     {/* fathername */}
 
-
-                    {/* <div className="mt-5 flex justify-between items-center">
+                      {/* <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Father Name <span className="text-red-500">*</span>
                       </label>
@@ -2110,11 +2158,8 @@ const onSubmit = async (data) => {
                       </div>
                     </div> */}
 
-
-
-
-                    {/* address */}
-                    {/* <div className="mt-5 flex justify-between items-center">
+                      {/* address */}
+                      {/* <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Address <span className="text-red-500">*</span>
                       </label>
@@ -2137,159 +2182,169 @@ const onSubmit = async (data) => {
                       </div>
                     </div> */}
 
-                    {/* gender */}
+                      {/* gender */}
 
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Gender
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Gender
+                          {/* <span className="text-red-500">*</span> */}
+                        </label>
 
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <div className="flex gap-6">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Male"
-                              {...register("gender", { required: "Gender is required" })}
-                              className="accent-[#1ea600]"
-                            />
-                            Male
-                          </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <div className="flex gap-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="Male"
+                                {...register("gender", {
+                                  required: "Gender is required",
+                                })}
+                                className="accent-[#1ea600]"
+                              />
+                              Male
+                            </label>
 
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Female"
-                              {...register("gender", { required: "Gender is required" })}
-                              className="accent-[#1ea600]"
-                            />
-                            Female
-                          </label>
-                        </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="Female"
+                                {...register("gender", {
+                                  required: "Gender is required",
+                                })}
+                                className="accent-[#1ea600]"
+                              />
+                              Female
+                            </label>
+                          </div>
 
-                        {/* <span className="text-red-500 text-sm">
+                          {/* <span className="text-red-500 text-sm">
                           {errors.gender?.message}
                         </span> */}
-                      </div>
-                    </div>
-
-{/* marital */}
-                     <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Marital Status 
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
-
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <div className="flex gap-6">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Married"
-                              {...register("marital", { required: "Marital Status is required" })}
-                              className="accent-[#1ea600]"
-                            />
-                            Married
-                          </label>
-
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              value="Unmarried"
-                              {...register("marital", { required: "Marital Status is required" })}
-                              className="accent-[#1ea600]"
-                            />
-                            Unmarried
-                          </label>
                         </div>
+                      </div>
 
-                        {/* <span className="text-red-500 text-sm">
+                      {/* marital */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Marital Status
+                          {/* <span className="text-red-500">*</span> */}
+                        </label>
+
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <div className="flex gap-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="Married"
+                                {...register("marital", {
+                                  required: "Marital Status is required",
+                                })}
+                                className="accent-[#1ea600]"
+                              />
+                              Married
+                            </label>
+
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="Unmarried"
+                                {...register("marital", {
+                                  required: "Marital Status is required",
+                                })}
+                                className="accent-[#1ea600]"
+                              />
+                              Unmarried
+                            </label>
+                          </div>
+
+                          {/* <span className="text-red-500 text-sm">
                           {errors.marital?.message}
                         </span> */}
+                        </div>
                       </div>
-                    </div>
 
-
-                    {/* PHONE */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Phone <span className="text-red-500">*</span>
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <input
-                          type="tel"
-                          name="phone"
-                          {...register("phone")}
-                          inputMode="numeric"
-                          maxLength={10}
-                          onInput={(e) => {
-                            e.target.value = e.target.value.replace(/\D/g, "");
-                          }}
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          placeholder="Enter Phone Number"
-                        />
-                        <span className="text-red-500 text-sm">
-                          {errors.phone?.message}
-                        </span>
+                      {/* PHONE */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Phone <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <input
+                            type="tel"
+                            name="phone"
+                            {...register("phone")}
+                            inputMode="numeric"
+                            maxLength={10}
+                            onInput={(e) => {
+                              e.target.value = e.target.value.replace(
+                                /\D/g,
+                                "",
+                              );
+                            }}
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            placeholder="Enter Phone Number"
+                          />
+                          <span className="text-red-500 text-sm">
+                            {errors.phone?.message}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Aadhaar */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Aadhaar Number <span className="text-red-500">*</span>
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <input
-                         type="text"
-  inputMode="numeric"
-  name="aadhar"
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("aadhar")}
-                          
-                          maxLength={12}
-                          onInput={(e) => {
-                            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
-                          }}
-                          placeholder="Enter AadharNumber"
-                        />
-                        <span className="text-red-500 text-sm">
-                          {errors.aadhar?.message}
-                        </span>
+                      {/* Aadhaar */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Aadhaar Number <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            name="aadhar"
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            {...register("aadhar")}
+                            maxLength={12}
+                            onInput={(e) => {
+                              e.target.value = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 12);
+                            }}
+                            placeholder="Enter AadharNumber"
+                          />
+                          <span className="text-red-500 text-sm">
+                            {errors.aadhar?.message}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* pan no */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Pan Number
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <input
-                          type="text"
-                          name="pan"
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("pan_number")}
-
-                          maxLength={10}
-                          onInput={(e) => {
-                            e.target.value = e.target.value
-                              .toUpperCase()              // convert to uppercase
-                              .replace(/[^A-Z0-9]/g, "")  // allow only letters & numbers
-                              .slice(0, 10);              // max 10 chars
-                          }}
-                          placeholder="Enter Pan Number"
-                        />
-                        {/* <span className="text-red-500 text-sm">
+                      {/* pan no */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Pan Number
+                          {/* <span className="text-red-500">*</span> */}
+                        </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <input
+                            type="text"
+                            name="pan"
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            {...register("pan_number")}
+                            maxLength={10}
+                            onInput={(e) => {
+                              e.target.value = e.target.value
+                                .toUpperCase() // convert to uppercase
+                                .replace(/[^A-Z0-9]/g, "") // allow only letters & numbers
+                                .slice(0, 10); // max 10 chars
+                            }}
+                            placeholder="Enter Pan Number"
+                          />
+                          {/* <span className="text-red-500 text-sm">
                           {errors.pan?.message}
                         </span> */}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Education */}
-                    {/* <div className="mt-5 flex justify-between items-center">
+                      {/* Education */}
+                      {/* <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Education <span className="text-red-600">*</span>
                       </label>
@@ -2307,218 +2362,220 @@ const onSubmit = async (data) => {
                       </div>
                     </div> */}
 
-                    {/* Education */}
-                  <div className="mt-4 mb-3 flex flex-col md:flex-row md:justify-between md:items-center">
-                      <label className="block text-md font-medium">Education <span className="text-red-500">*</span></label>
-                      <div className="w-full md:w-[60%]">
-                        <Dropdown
-                          value={selectedEducation}
-                          // value={watch("education")}
-                           onChange={(e) => {
-                            setSelectedEducation(e.value);
-                            setValue("education", e.value, {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                          }}
-                          options={educationOptions}
-                          optionLabel="label"
-                          optionValue="value"
-                          filter
-                          placeholder="Select Education"
-                          className={`uniform-field w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1ea600] border ${errors.education ? "border-red-500" : "border-gray-300"}`}
-                        />
-                        {errors.education && <p className="text-red-500 text-sm mt-1">{errors.education.message}</p>}
-                      </div>
-                    </div>
-
-                    {/* interview date */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Interview Date <span className="text-red-500">*</span>
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <input
-                          type="date"
-                          name="interviewDate"
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          {...register("interviewDate")}
-                          placeholder="Enter interview Date"
-                        />
-                        <span className="text-red-500 text-sm">
-                          {errors.interviewDate?.message}
-                        </span>
-                        {/* {errors?.interviewDate && <p className="text-red-500 text-sm mt-1">{errors?.interviewDate}</p>} */}
-                      </div>
-                    </div>
-
-                    {/* Interview Status */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Interview Status <span className="text-red-500">*</span>
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <select
-                          {...register("interviewStatus")}
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          name="interviewStatus"
-                        >
-                          <option value="">Select Status</option>
-                          <option value="selected">Selected</option>
-                          <option value="rejected">Rejected</option>
-                          <option value="hold">Hold</option>
-                          <option value="waiting">Waiting</option>
-                        </select>
-                        <span className="text-red-500 text-sm">
-                          {errors.interviewStatus?.message}
-                        </span>
-                        {/* {errors.interviewStatus && <p className="text-red-500 text-sm mt-1">{errors.interviewStatus}</p>} */}
-                      </div>
-                    </div>
-
-                    {/* Conditional fields */}
-
-                    {["rejected", "hold", "waiting"].includes(interviewStatus) && (
-                      <div className="mt-5 flex justify-between items-center">
-                        <label className="block text-md font-medium mb-2">
-                          Reason{" "}
-                          {interviewStatus === "rejected"
-                            ? "for Rejection"
-                            : interviewStatus === "hold"
-                              ? "for Hold"
-                              : "for Waiting"}
-                          <span className="text-red-500">*</span>
+                      {/* Education */}
+                      <div className="mt-4 mb-3 flex flex-col md:flex-row md:justify-between md:items-center">
+                        <label className="block text-md font-medium">
+                          Education <span className="text-red-500">*</span>
                         </label>
-
-                        <div className="w-[50%] md:w-[60%] rounded-lg">
-                          <textarea
-                            {...register("notes_details.notes")}
-                            className="w-full px-2 py-2 border border-gray-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                            placeholder="Enter Reason"
+                        <div className="w-full md:w-[60%]">
+                          <Dropdown
+                            value={selectedEducation}
+                            // value={watch("education")}
+                            onChange={(e) => {
+                              setSelectedEducation(e.value);
+                              setValue("education", e.value, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                            options={educationOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            filter
+                            placeholder="Select Education"
+                            className={`uniform-field w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1ea600] border ${errors.education ? "border-red-500" : "border-gray-300"}`}
                           />
-
-                          <span className="text-red-500 text-sm">
-                            {errors.notes_details?.notes?.message}
-                          </span>
+                          {errors.education && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.education.message}
+                            </p>
+                          )}
                         </div>
                       </div>
-                    )}
 
-                    {interviewStatus === "selected" && (
+                      {/* interview date */}
                       <div className="mt-5 flex justify-between items-center">
                         <label className="block text-md font-medium mb-2">
-                          Joining Date
-                          <span className="text-red-500">*</span>
+                          Interview Date <span className="text-red-500">*</span>
                         </label>
                         <div className="w-[50%] md:w-[60%] rounded-lg">
                           <input
                             type="date"
-                            {...register("selectedJoiningDate")}
+                            name="interviewDate"
                             className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            {...register("interviewDate")}
+                            placeholder="Enter interview Date"
                           />
                           <span className="text-red-500 text-sm">
-                            {errors.selectedJoiningDate?.message}
+                            {errors.interviewDate?.message}
                           </span>
-                          {/* {errors.selectedJoiningDate && <p className="text-red-500 text-sm mt-1">{errors.selectedJoiningDate}</p>} */}
+                          {/* {errors?.interviewDate && <p className="text-red-500 text-sm mt-1">{errors?.interviewDate}</p>} */}
                         </div>
                       </div>
-                    )}
 
-                    {/* candidate Status */}
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Candidate Status
-
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <select
-                          {...register("candidateStatus")}
-                          className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                        >
-                          <option value="">Select Status</option>
-                          <option value="joined">Joined</option>
-                          <option value="not_joined">Not Joined</option>
-                        </select>
-
-                        {errors.candidateStatus && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.candidateStatus.message}
-                          </p>
-                        )}
-
-                        {/* {errors.candidateStatus && <p className="text-red-500 text-sm mt-1">{errors.candidateStatus}</p>} */}
-                      </div>
-                    </div>
-
-                    {/* Conditional fields based on Candidate Status */}
-                    {candidateStatus === "joined" && (
+                      {/* Interview Status */}
                       <div className="mt-5 flex justify-between items-center">
-                        <label className="block text-md font-medium mb-2 mt-3">
-                          Joined Date
-
+                        <label className="block text-md font-medium mb-2">
+                          Interview Status{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="w-[50%] md:w-[60%] rounded-lg">
-                          {/* <input type="date"
+                          <select
+                            {...register("interviewStatus")}
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            name="interviewStatus"
+                          >
+                            <option value="">Select Status</option>
+                            <option value="selected">Selected</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="hold">Hold</option>
+                            <option value="waiting">Waiting</option>
+                          </select>
+                          <span className="text-red-500 text-sm">
+                            {errors.interviewStatus?.message}
+                          </span>
+                          {/* {errors.interviewStatus && <p className="text-red-500 text-sm mt-1">{errors.interviewStatus}</p>} */}
+                        </div>
+                      </div>
+
+                      {/* Conditional fields */}
+
+                      {["rejected", "hold", "waiting"].includes(
+                        interviewStatus,
+                      ) && (
+                        <div className="mt-5 flex justify-between items-center">
+                          <label className="block text-md font-medium mb-2">
+                            Reason{" "}
+                            {interviewStatus === "rejected"
+                              ? "for Rejection"
+                              : interviewStatus === "hold"
+                                ? "for Hold"
+                                : "for Waiting"}
+                            <span className="text-red-500">*</span>
+                          </label>
+
+                          <div className="w-[50%] md:w-[60%] rounded-lg">
+                            <textarea
+                              {...register("notes_details.notes")}
+                              className="w-full px-2 py-2 border border-gray-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                              placeholder="Enter Reason"
+                            />
+
+                            <span className="text-red-500 text-sm">
+                              {errors.notes_details?.notes?.message}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {interviewStatus === "selected" && (
+                        <div className="mt-5 flex justify-between items-center">
+                          <label className="block text-md font-medium mb-2">
+                            Joining Date
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <div className="w-[50%] md:w-[60%] rounded-lg">
+                            <input
+                              type="date"
+                              {...register("selectedJoiningDate")}
+                              className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            />
+                            <span className="text-red-500 text-sm">
+                              {errors.selectedJoiningDate?.message}
+                            </span>
+                            {/* {errors.selectedJoiningDate && <p className="text-red-500 text-sm mt-1">{errors.selectedJoiningDate}</p>} */}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* candidate Status */}
+                      <div className="mt-5 flex justify-between items-center">
+                        <label className="block text-md font-medium mb-2">
+                          Candidate Status
+                        </label>
+                        <div className="w-[50%] md:w-[60%] rounded-lg">
+                          <select
+                            {...register("candidateStatus")}
+                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          >
+                            <option value="">Select Status</option>
+                            <option value="joined">Joined</option>
+                            <option value="not_joined">Not Joined</option>
+                          </select>
+
+                          {errors.candidateStatus && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.candidateStatus.message}
+                            </p>
+                          )}
+
+                          {/* {errors.candidateStatus && <p className="text-red-500 text-sm mt-1">{errors.candidateStatus}</p>} */}
+                        </div>
+                      </div>
+
+                      {/* Conditional fields based on Candidate Status */}
+                      {candidateStatus === "joined" && (
+                        <div className="mt-5 flex justify-between items-center">
+                          <label className="block text-md font-medium mb-2 mt-3">
+                            Joined Date
+                          </label>
+                          <div className="w-[50%] md:w-[60%] rounded-lg">
+                            {/* <input type="date"
                                   name="joinedDate"
                                   className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
           
                                 /> */}
-                          <input
-                            type="date"
-                            {...register("joinedDate", {
-                              onChange: (e) => {
-
-                                fetchId({
-                                  // date_of_joining: e.target.value,
-                                  company_id: selectedCompany,
-                                  name: watch("name"),
-                                  // address: watch("address"),
-                                  phone_number: watch("phone"),
-                                  aadhar_number: watch("aadhar"),
-                                  joining_date: e.target.value,
-                                  // joined_date: e.target.value
-                                });
-
-                              },
-                            })}
-                            name="joinedDate"
-                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          />
-                          <span className="text-red-500 text-sm">
-                            {errors.joinedDate?.message}
-                          </span>
-                          {/* {errors.joinedDate && <p className="text-red-500 text-sm mt-1">{errors.joinedDate}</p>} */}
+                            <input
+                              type="date"
+              {...register("joinedDate", {
+          onChange: (e) => {
+            setValue("joinedDate", e.target.value, { shouldDirty: true });
+            // Check if joined date is being set (not null/empty)
+            if (e.target.value) {
+              setJoinedType(1); // Set to 1 when date is selected
+            } else {
+              setJoinedType(0); // Set to 0 when date is cleared
+            }
+          },
+        })}
+                              name="joinedDate"
+                              className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            />
+                            <span className="text-red-500 text-sm">
+                              {errors.joinedDate?.message}
+                            </span>
+                            {/* {errors.joinedDate && <p className="text-red-500 text-sm mt-1">{errors.joinedDate}</p>} */}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {candidateStatus === "not_joined" && (
-                      <div className="mt-5 flex justify-between items-center">
-                        <label className="block text-md font-medium mb-2 mt-3">
-                          Reason for Not Joining
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <div className="w-[50%] md:w-[60%] rounded-lg">
-                          {/* <textarea
+                      {candidateStatus === "not_joined" && (
+                        <div className="mt-5 flex justify-between items-center">
+                          <label className="block text-md font-medium mb-2 mt-3">
+                            Reason for Not Joining
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <div className="w-[50%] md:w-[60%] rounded-lg">
+                            {/* <textarea
           
                                   className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
           
                                   name="notJoinedReason"
                                 ></textarea> */}
-                          <textarea
-                            {...register("notJoinedReason")}
-                            className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          />
-                          <span className="text-red-500 text-sm">
-                            {errors.notJoinedReason?.message}
-                          </span>
-                          {/* {errors.notJoinedReason && <p className="text-red-500 text-sm mt-1">{errors.notJoinedReason}</p>} */}
+                            <textarea
+                              {...register("notJoinedReason")}
+                              className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            />
+                            <span className="text-red-500 text-sm">
+                              {errors.notJoinedReason?.message}
+                            </span>
+                            {/* {errors.notJoinedReason && <p className="text-red-500 text-sm mt-1">{errors.notJoinedReason}</p>} */}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Reference */}
-                    {/* <div className="mt-5 flex justify-between items-center">
+                      {/* Reference */}
+                      {/* <div className="mt-5 flex justify-between items-center">
                       <label className="block text-md font-medium mb-2">
                         Reference 
                        
@@ -2561,120 +2618,126 @@ const onSubmit = async (data) => {
                       </div>
                     )} */}
 
-                    <div className="mt-5 flex justify-between items-center">
-                      <label className="block text-md font-medium mb-2">
-                        Reference
-
-                      </label>
-                      <div className="w-[50%] md:w-[60%] rounded-lg">
-                        <Dropdown
-                          value={selectedReferenceForm}
-                          onChange={(e) => {
-                            setSelectedReferenceForm(e.value);
-                            setValue("reference", e.value, { shouldValidate: true });
-                          }}
-                          className="uniform-field w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
-                          options={referenceOptions}
-                          optionLabel="label"
-                          optionValue="value"
-                          placeholder="Select Reference"
-                          filter
-                        />
-
-                        <span className="text-red-500 text-sm">
-                          {errors.reference?.message}
-                        </span>
-
-                      </div>
-                    </div>
-
-                    {selectedReferenceForm === "other" && (
                       <div className="mt-5 flex justify-between items-center">
                         <label className="block text-md font-medium mb-2">
-                          Other Reference <span className="text-red-500">*</span>
+                          Reference
                         </label>
                         <div className="w-[50%] md:w-[60%] rounded-lg">
-                          <input
-                            type="text"
-                            {...register("otherReference")}
-                            placeholder="Specify Reference"
-                            className="w-full px-3 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                          <Dropdown
+                            value={selectedReferenceForm}
+                            onChange={(e) => {
+                              setSelectedReferenceForm(e.value);
+                              setValue("reference", e.value, {
+                                shouldValidate: true,
+                              });
+                            }}
+                            className="uniform-field w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            options={referenceOptions}
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select Reference"
+                            filter
                           />
+
                           <span className="text-red-500 text-sm">
-                            {errors.otherReference?.message}
+                            {errors.reference?.message}
                           </span>
                         </div>
                       </div>
-                    )}
 
-                    {/* Documents */}
+                      {selectedReferenceForm === "other" && (
+                        <div className="mt-5 flex justify-between items-center">
+                          <label className="block text-md font-medium mb-2">
+                            Other Reference{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <div className="w-[50%] md:w-[60%] rounded-lg">
+                            <input
+                              type="text"
+                              {...register("otherReference")}
+                              placeholder="Specify Reference"
+                              className="w-full px-3 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
+                            />
+                            <span className="text-red-500 text-sm">
+                              {errors.otherReference?.message}
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
-                    <div className="mt-5 flex justify-between items-start">
-                      <label className="block text-md font-medium">
-                        Documents
-                        {/* <span className="text-red-500">*</span> */}
-                      </label>
+                      {/* Documents */}
 
-                      <div className="w-[50%] md:w-[60%]">
-                        {/* Upload button */}
-                        <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded inline-block mb-2">
-                          Select Documents
-                          <input
-                            type="file"
-                            multiple
-                            accept=".pdf,.jpg,.png"
-                            hidden
-                            onChange={handleDocumentChange}
-                          />
+                      <div className="mt-5 flex justify-between items-start">
+                        <label className="block text-md font-medium">
+                          Documents
+                          {/* <span className="text-red-500">*</span> */}
                         </label>
 
-                        {/* Selected documents list */}
+                        <div className="w-[50%] md:w-[60%]">
+                          {/* Upload button */}
+                          <label className="cursor-pointer bg-gray-200 px-3 py-2 rounded inline-block mb-2">
+                            Select Documents
+                            <input
+                              type="file"
+                              multiple
+                              accept=".pdf,.jpg,.png"
+                              hidden
+                              onChange={handleDocumentChange}
+                            />
+                          </label>
 
-                        <div className="mt-4 space-y-2">
-                          {documents.map((doc, index) => (
-                            <div key={index} className="flex justify-between items-center p-2 border rounded">
-                              <span className="text-sm truncate">
-                                {doc instanceof File ? doc.name : (doc.original_name || "Existing Document")}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => removeDocument(index)}
-                                className="text-red-500 font-bold px-2"
+                          {/* Selected documents list */}
+
+                          <div className="mt-4 space-y-2">
+                            {documents.map((doc, index) => (
+                              <div
+                                key={index}
+                                className="flex justify-between items-center p-2 border rounded"
                               >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                                <span className="text-sm truncate">
+                                  {doc instanceof File
+                                    ? doc.name
+                                    : doc.original_name || "Existing Document"}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeDocument(index)}
+                                  className="text-red-500 font-bold px-2"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
 
-                        {errors.documents && (
-                          <p className="text-red-500 text-sm mt-1">
-                            Documents are required
-                          </p>
-                        )}
+                          {errors.documents && (
+                            <p className="text-red-500 text-sm mt-1">
+                              Documents are required
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Button */}
+                      <div className="flex  justify-end gap-2 mt-6 md:mt-14">
+                        <button
+                          onClick={closeAddModal}
+                          className=" hover:bg-[#FEE2E2] hover:border-[#FEE2E2] text-sm md:text-base border border-[#7C7C7C]  text-[#7C7C7C] hover:text-[#DC2626] px-5 md:px-5 py-1 md:py-2 font-semibold rounded-[10px] transition-all duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                          onClick={handleSubmit(onSubmit, (errors) =>
+                            console.log(errors),
+                          )}
+                        >
+                          Submit
+                        </button>
                       </div>
                     </div>
-
-
-                    {/* Button */}
-                    <div className="flex  justify-end gap-2 mt-6 md:mt-14">
-                      <button
-                        onClick={closeAddModal}
-                        className=" hover:bg-[#FEE2E2] hover:border-[#FEE2E2] text-sm md:text-base border border-[#7C7C7C]  text-[#7C7C7C] hover:text-[#DC2626] px-5 md:px-5 py-1 md:py-2 font-semibold rounded-[10px] transition-all duration-200"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
-                        onClick={handleSubmit(onSubmit, (errors) =>
-                          console.log(errors)
-                        )}
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2693,7 +2756,6 @@ const onSubmit = async (data) => {
                   {/* Title and profile picture */}
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6 border-b pb-4">
-
                     {/* Title */}
                     <h2 className="text-xl font-semibold text-[#1ea600]">
                       Interview Candidate Details
@@ -2701,7 +2763,6 @@ const onSubmit = async (data) => {
 
                     {/* Profile Picture */}
                     <div className="flex items-center gap-6">
-
                       {viewRow.profile_picture ? (
                         <img
                           src={
@@ -2747,7 +2808,6 @@ const onSubmit = async (data) => {
                           <IoIosCloseCircle size={26} />
                         </button>
                       </div>
-
                     </div>
                   </div>
 
@@ -2755,13 +2815,12 @@ const onSubmit = async (data) => {
                   <div className="pr-2 overflow-y-auto ">
                     {/* Candidate Info */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
-
-                     <p>
-  <b>Company:</b>{" "}
-  {companyOptions.find(
-    c => c.value === String(viewRow.company_id)
-  )?.label || "-"}
-</p>
+                      <p>
+                        <b>Company:</b>{" "}
+                        {companyOptions.find(
+                          (c) => c.value === String(viewRow.company_id),
+                        )?.label || "-"}
+                      </p>
 
                       <p>
                         <b>Name:</b> {viewRow.name}
@@ -2785,12 +2844,13 @@ const onSubmit = async (data) => {
                         <b>Marital Status:</b> {viewRow.marital_status || "-"}
                       </p>
                       {/* <p><b>Education:</b> {educationOptions.find(e => e.value === String(viewRow.education_id || viewRow.education))?.label || viewRow.education || "-"}</p> */}
-<p>
- <b>Education:</b>{" "}
+                      <p>
+                        <b>Education:</b>{" "}
                         {viewRow.education?.eduction_name || "-"}
                       </p>
                       <p>
-                        <b>Interview Date:</b> {formatToDDMMYYYY(viewRow.interview_date) || "-"}
+                        <b>Interview Date:</b>{" "}
+                        {formatToDDMMYYYY(viewRow.interview_date) || "-"}
                       </p>
                       <p>
                         <b>Interview Status:</b>{" "}
@@ -2803,7 +2863,8 @@ const onSubmit = async (data) => {
                         <b>Candidate Status:</b> {viewRow.joining_status || "-"}
                       </p>
                       <p>
-                        <b>Joining Date:</b> {formatToDDMMYYYY(viewRow.joining_date) || "-"}
+                        <b>Joining Date:</b>{" "}
+                        {formatToDDMMYYYY(viewRow.joining_date) || "-"}
                       </p>
                       <p>
                         <b>Joined Date:</b>{" "}
@@ -2816,10 +2877,10 @@ const onSubmit = async (data) => {
                       </p>
                       {viewRow?.other_reference !== null && (
                         <p>
-                          <b>Other Reference:</b> {viewRow.other_reference || "-"}
+                          <b>Other Reference:</b>{" "}
+                          {viewRow.other_reference || "-"}
                         </p>
                       )}
-
 
                       <p className="col-span-2">
                         <b>Reason For Notes:</b>{" "}
@@ -2827,34 +2888,45 @@ const onSubmit = async (data) => {
                           "No notes available"}
                       </p>
 
-<p className="col-span-2">
-  <b>Reason For Notes:</b>{" "}
-  {viewRow.notes && viewRow.notes.length > 0 ? (
-    <ul className="list-disc pl-4 mt-1">
-      {viewRow.notes.map((note, index) => (
-        <li key={index}>
-          <span className="font-medium capitalize">{note.note_status}:</span> {note.notes}
-        </li>
-      ))}
-    </ul>
-  ) : (
-    "No notes available"
-  )}
-</p>
+                      <p className="col-span-2">
+                        <b>Reason For Notes:</b>{" "}
+                        {viewRow.notes && viewRow.notes.length > 0 ? (
+                          <ul className="list-disc pl-4 mt-1">
+                            {viewRow.notes.map((note, index) => (
+                              <li key={index}>
+                                <span className="font-medium capitalize">
+                                  {note.note_status}:
+                                </span>{" "}
+                                {note.notes}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          "No notes available"
+                        )}
+                      </p>
                       <div className="col-span-2 pt-4">
                         <b className="block mb-2 text-gray-700">Documents:</b>
                         {/* Check if documents is an array and has items */}
                         {viewRow.documents && viewRow.documents.length > 0 ? (
                           <div className="space-y-2">
                             {viewRow.documents.map((doc, index) => (
-                              <div key={index} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border">
+                              <div
+                                key={index}
+                                className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border"
+                              >
                                 <span className="text-gray-600 truncate flex-1">
                                   {doc.original_name || `Document ${index + 1}`}
                                 </span>
 
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => window.open(`${API_URL}/${doc.document_path}`, "_blank")}
+                                    onClick={() =>
+                                      window.open(
+                                        `${API_URL}/${doc.document_path}`,
+                                        "_blank",
+                                      )
+                                    }
                                     className="bg-green-50 text-green-600 px-3 py-1 rounded hover:bg-blue-100"
                                   >
                                     View/Print
@@ -2872,7 +2944,9 @@ const onSubmit = async (data) => {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-gray-500 italic">No documents uploaded.</p>
+                          <p className="text-gray-500 italic">
+                            No documents uploaded.
+                          </p>
                         )}
                       </div>
                     </div>

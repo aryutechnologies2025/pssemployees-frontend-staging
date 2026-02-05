@@ -16,7 +16,7 @@ import { FiSearch } from "react-icons/fi";
 import { z } from "zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axiosInstance from "../../utils/axiosConfig";
+import axiosInstance from "../../Utils/axiosConfig";
 import { FaEye } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { API_URL } from "../../config";
@@ -25,14 +25,34 @@ import { IoIosCloseCircle } from "react-icons/io";
 import { AiFillDelete } from "react-icons/ai";
 import Loader from "../Loader";
 import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../Utils/dateformat";
-import { Capitalise } from "../../utils/useCapitalise";
+import { Capitalise } from "../../Utils/useCapitalise";
 import { IoMdDownload } from "react-icons/io";
-import CameraPhoto from "../../utils/CameraPhoto";
+import CameraPhoto from "../../Utils/CameraPhoto";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { FiDownload } from "react-icons/fi";
 import { TbLogs } from "react-icons/tb";
 
 const Employee_contract_details = () => {
+
+
+
+    const Psspermission = JSON.parse(
+    localStorage.getItem("psspermission") || "{}",
+  );
+
+  const candidatePermission = Psspermission.modules.find(
+    (mod) => mod.module === "employee",
+  );
+
+  const canCreate = candidatePermission?.is_create === "1";
+  const canEdit = candidatePermission?.is_edit === "1";
+  const canView = candidatePermission?.is_view === "1";
+  const canDelete = candidatePermission?.is_delete === "1";
+  const canFilter = candidatePermission?.is_filter === "1";
+  const canImport = candidatePermission?.is_import === "1";
+  const canExport = candidatePermission?.is_export === "1";
+
+  console.log("Psspermission", Psspermission);
   //navigation
   const navigate = useNavigate();
   const [editData, setEditData] = useState(null);
@@ -1086,25 +1106,33 @@ const Employee_contract_details = () => {
       header: "Action",
       body: (row) => (
         <div className="flex gap-4 justify-center items-center">
+          {canView && (
+            
+          
           <button
             onClick={() => handleView(row)}
             className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
           >
             <FaEye />
           </button>
+          )}
 
+{canEdit && (
           <button
             className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
             onClick={() => openEditModal(row)}
           >
             <TfiPencilAlt />
           </button>
+        )}
+        {canDelete && (  
           <button
             className="p-2 bg-[#FFD1D1] text-[#DC2626] hover:bg-[#FFE2E2] rounded-[10px] "
             onClick={() => handleDelete(row.id)}
           >
             <MdOutlineDeleteOutline />
           </button>
+        )}
         </div>
       ),
       style: { textAlign: "center", width: "120px" },
@@ -1396,6 +1424,8 @@ const Employee_contract_details = () => {
             </div>
 
             {/* Filter Section */}
+            {canFilter && (
+            
             <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end w-full">
@@ -1494,6 +1524,8 @@ const Employee_contract_details = () => {
                 </div>
               </div>
             </div>
+              
+            )}
 
             {/* Table Section */}
             <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-2 py-2 md:px-6 md:py-6">
@@ -1532,6 +1564,7 @@ const Employee_contract_details = () => {
                         className="w-full pl-10 pr-3 py-2 rounded-md text-sm border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                       />
                     </div>
+                     {canImport &&(
                     <div className="hidden md:flex items-center">
                       <button
                         onClick={openImportAddModal}
@@ -1540,6 +1573,7 @@ const Employee_contract_details = () => {
                         Import
                       </button>
                     </div>
+                     )}
                     {/* sample csv format download */}
                     <div className="hidden md:flex items-center">
                       <button
@@ -1558,12 +1592,16 @@ const Employee_contract_details = () => {
                         <FiDownload className="text-lg" /> Demo CSV
                       </button>
                     </div>
+                    {canCreate && (
+                      
+                   
                     <button
                       onClick={openAddModal}
                       className="hidden md:block px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] text-sm md:text-base font-medium  w-fit rounded-lg transition-all duration-200"
                     >
                       Add Employee
                     </button>
+                     )}
                   </div>
                 </div>
                 {/* mobile view */}
@@ -1583,18 +1621,24 @@ const Employee_contract_details = () => {
                   >
                     <FiDownload className="text-lg" /> Demo CSV
                   </button>
+
+                  {canImport &&(
                   <button
                     onClick={openImportAddModal}
                     className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] text-sm md:text-base font-medium w-fit rounded-lg"
                   >
                     Import
                   </button>
+                  )}
+
+                   {canCreate && (
                   <button
                     onClick={openAddModal}
                     className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] text-sm md:text-base font-medium  w-fit rounded-lg transition-all duration-200"
                   >
                     Add Employee
                   </button>
+                   )}
                 </div>
 
                 <div className="table-scroll-container" id="datatable">

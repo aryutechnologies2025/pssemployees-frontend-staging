@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Contract_Attendance";
 import Message from "./pages/Message";
@@ -21,33 +21,46 @@ import Report_Main from "./components/report component/Report_Main";
 
 function App() {
 
-  const Psspermission = JSON.parse(localStorage.getItem("psspermission") || "{}");
   // const permissionmodula = Psspermission.modules
+  const Psspermission = JSON.parse(localStorage.getItem("psspermission") || "{}");
 
+  const getModulePermission = (moduleName) => {
+    return Psspermission?.modules?.find((m) => m.module === moduleName);
+  };
+
+  const canView = (moduleName) => getModulePermission(moduleName)?.is_view === "1";
+  const canCreate = (moduleName) => getModulePermission(moduleName)?.is_create === "1";
+  const canEdit = (moduleName) => getModulePermission(moduleName)?.is_edit === "1";
 
 
   return (
     <BrowserRouter>
-      <Routes>
+      <Routes>  
         <Route path="/" element={<Login />} />
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contractattendance" element={<Attendance />} />
           <Route path="/finance" element={<Finance />} />
-          <Route path="/attendance-add" element={<Attendance_Add_main />} />
-          <Route
+          <Route path="/attendance-add" 
+          element={canCreate("attendance")?<Attendance_Add_main /> : <Navigate to="/dashboard" replace />} />
+
+            <Route
+            path="/attendance-edit/:id"
+            element={canEdit("attendance") ? <Attendance_Edit_Main /> : <Navigate to="/dashboard" replace />}
+          />
+          {/* <Route
             path="/attendance-edit/:id"
             element={<Attendance_Edit_Main />}
-          />
+          /> */}
           <Route path="/pssattendance" element={<PSS_Attendance />} />
-          <Route
+          {/* <Route
             path="/contractattendance-add"
             element={<Attendance_Add_main />}
           />
           <Route
             path="/contractattendance-edit/:id"
             element={<Attendance_Edit_Main />}
-          />
+          /> */}
           <Route
             path="/employeecontract"
             element={<Employee_contract_main />}
@@ -58,7 +71,8 @@ function App() {
           />
           <Route
             path="/attendance-view/:id"
-            element={<Attendance_view_Main />}
+
+            element={canView("attendance") ? <Attendance_view_Main /> : <Navigate to="/dashboard" replace />} //{<Attendance_view_Main />}
           />
           <Route path="/contractcandidates" element={<ContractCandidates />} />
           <Route path="/message" element={<Message />} />

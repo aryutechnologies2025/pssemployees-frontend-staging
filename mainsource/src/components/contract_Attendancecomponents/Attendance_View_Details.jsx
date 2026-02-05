@@ -12,7 +12,7 @@ import Loader from "../Loader";
 import { FiSearch } from "react-icons/fi";
 import { API_URL } from "../../config";
 import { formatToDDMMYYYY } from "../../Utils/dateformat";
-import TimeDropdown from "../../utils/TimeDropdown";
+import TimeDropdown from "../../Utils/TimeDropdown";
 import axiosInstance from "../../Utils/axiosConfig";
 
 const Attendance_View_Details = () => {

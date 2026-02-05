@@ -31,6 +31,24 @@ import Swal from "sweetalert2";
 import { formatToDDMMYYYY } from "../../Utils/dateformat";
 const Attendance_Mainbar = () => {
 
+   const Psspermission = JSON.parse(
+    localStorage.getItem("psspermission") || "{}",
+  );
+
+  const candidatePermission = Psspermission.modules.find(
+    (mod) => mod.module === "attendance",
+  );
+
+  const canCreate = candidatePermission?.is_create === "1";
+  const canEdit = candidatePermission?.is_edit === "1";
+  const canView = candidatePermission?.is_view === "1";
+  const canDelete = candidatePermission?.is_delete === "1";
+  const canFilter = candidatePermission?.is_filter === "1";
+  const canImport = candidatePermission?.is_import === "1";
+  const canExport = candidatePermission?.is_export === "1";
+
+  console.log("Psspermission", candidatePermission);
+
   const [globalFilter, setGlobalFilter] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -727,18 +745,25 @@ const Attendance_Mainbar = () => {
       header: "Actions",
       body: (row) => (
         <div className="flex justify-center items-center gap-3">
+          {canView && (
           <button
             onClick={() => handleView(row.id)}
             className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]"
           >
             <FaEye />
           </button>
+          )}
+{canEdit && (
+  
 
           <button
             onClick={() => handleEdit(row.id)}
             className="p-2 bg-blue-50 text-[#005AEF] rounded-[10px]  hover:bg-[#DFEBFF]">
             <TfiPencilAlt />
           </button>
+          )}
+
+{canDelete && (
 
           <button
             onClick={() => handleDelete(row.id)}
@@ -746,6 +771,7 @@ const Attendance_Mainbar = () => {
           >
             <MdOutlineDeleteOutline />
           </button>
+          )}
         </div>
       ),
       style: { textAlign: "center" },
@@ -924,6 +950,9 @@ const Attendance_Mainbar = () => {
           Attendance List
         </h1> */}
             {/* Filter Section */}
+            {canFilter && (
+              
+           
             <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-3 py-4 md:px-6 md:py-6">
               {/* <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"> */}
               <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
@@ -1059,6 +1088,7 @@ const Attendance_Mainbar = () => {
               </div>
               {/* </div> */}
             </div>
+             )}
             {/* data table */}
             <div className="flex flex-col w-full mt-1 md:mt-5 h-auto rounded-2xl bg-white 
 shadow-[0_8px_24px_rgba(0,0,0,0.08)] 
@@ -1107,6 +1137,9 @@ px-2 py-2 md:px-6 md:py-6">
 
                       />
                     </div>
+                    {canImport && (
+                      
+                    
                     <div className="flex items-center">
                       <button
                         onClick={openImportAddModal}
@@ -1115,6 +1148,7 @@ px-2 py-2 md:px-6 md:py-6">
                         Import
                       </button>
                     </div>
+                    )}
 
                        {/* sample csv format download */}
                     <div className="flex items-center">
@@ -1134,12 +1168,16 @@ px-2 py-2 md:px-6 md:py-6">
                         <FiDownload className="text-lg" /> Demo CSV
                       </button>
                     </div>
+                    { canCreate && (
+                      
+                   
                     <button
                       onClick={() => navigate('/attendance-add')}
                       className="hidden md:block px-2 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium   w-fit rounded-lg transition-all duration-200"
                     >
                        Add Attendance
                     </button>
+                     )}
                   </div>
                 </div>
                 {/* mobile view */}
@@ -1160,18 +1198,26 @@ px-2 py-2 md:px-6 md:py-6">
                       >
                         <FiDownload className="text-lg" /> Demo CSV
                       </button>
+                      {canImport && (
+                        
+                      
                       <button
                         onClick={openImportAddModal}
                         className="px-1 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] text-xs md:text-base font-medium w-20 rounded-lg"
                       >
                         Import
                       </button>
+                      )}
+                      {canCreate && (
+                        
+                      
                    <button
                       onClick={() => navigate('/attendance-add')}
                       className="px-1 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium  text-xs md:text-base w-fit rounded-lg transition-all duration-200"
                     >
                        +Attendance
                     </button>
+                    )}
                 </div>
 
                 <DataTable

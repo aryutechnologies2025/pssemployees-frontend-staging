@@ -14,12 +14,12 @@ import {
   formatIndianDateTime12Hr,
   formatToDDMMYYYY,
   formatToYYYYMMDD,
-} from "../../utils/dateformat";
-import axiosInstance from "../../utils/axiosConfig";
-import { Capitalise } from "../../utils/useCapitalise";
-import { reverseGeocodeOSM } from "../../utils/geoLocation";
+} from "../../Utils/dateformat";
+import axiosInstance from "../../Utils/axiosConfig";
+import { Capitalise } from "../../Utils/useCapitalise";
+import { reverseGeocodeOSM } from "../../Utils/geoLocation";
 import { API_URL } from "../../config";
-import CameraPhoto from "../../utils/CameraPhoto";
+import CameraPhoto from "../../Utils/CameraPhoto";
 import { FaUserCircle } from "react-icons/fa";
 import Loader from "../../pages/Loader";
 import { useNavigate } from "react-router-dom";

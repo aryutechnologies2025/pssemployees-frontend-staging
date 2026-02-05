@@ -11,9 +11,9 @@ import Footer from "../../components/Footer";
 import Loader from "../Loader";
 import { FiSearch } from "react-icons/fi";
 import { API_URL } from "../../config";
-import axiosInstance from "../../utils/axiosConfig";
-import TimeDropdown from "../../utils/TimeDropdown";
-import { formatToDDMMYYYY } from "../../utils/dateformat";
+import axiosInstance from "../../Utils/axiosConfig";
+import TimeDropdown from "../../Utils/TimeDropdown";
+import { formatToDDMMYYYY } from "../../Utils/dateformat";
 
 
 const Attendance_Edit_Page = () => {

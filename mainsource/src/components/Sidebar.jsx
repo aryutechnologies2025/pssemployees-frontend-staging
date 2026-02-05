@@ -28,7 +28,7 @@ import { CiCalendar } from "react-icons/ci";
 import { IoCalendarOutline } from "react-icons/io5";
 import { MdLeaderboard } from "react-icons/md";
 import { GrMoney } from "react-icons/gr";
-import { Capitalise } from "../utils/useCapitalise";
+import { Capitalise } from "../Utils/useCapitalise";
 import { API_URL } from "../config";
 
 const Sidebar = () => {

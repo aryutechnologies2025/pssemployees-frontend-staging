@@ -5,7 +5,7 @@ import "primereact/resources/themes/saga-blue/theme.css"; // PrimeReact theme
 import "primereact/resources/primereact.min.css"; // PrimeReact core CSS
 import { InputText } from "primereact/inputtext";
 import { API_URL } from "../../config.jsx";
-import axiosInstance from "../../utils/axiosConfig.jsx"
+import axiosInstance from "../../Utils/axiosConfig.jsx"
 import Swal from "sweetalert2";
 import Footer from "../../components/Footer";
 import Mobile_Sidebar from "../Mobile_Sidebar";
@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../Loader";
 import { FiSearch } from "react-icons/fi";
 import { FiChevronDown } from "react-icons/fi";
-import TimeDropdown from "../../utils/TimeDropdown.jsx";
+import TimeDropdown from "../../Utils/TimeDropdown.jsx";
 import { FilterMatchMode } from "primereact/api";
 
 const Attendance_add_details = () => {
