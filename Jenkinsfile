@@ -47,26 +47,26 @@ pipeline {
       }
     }
 
-    stage('Deploy (ATOMIC CONTAINER SYNC)') {
+    stage('Deploy (SAFE SYNC — ADMIN MATCH)') {
       steps {
         sh '''
           set -e
-          echo "🚀 Deploying into container: ${CONTAINER_NAME}"
+          echo "🚀 Deploying employee frontend"
 
-          docker exec ${CONTAINER_NAME} mkdir -p ${WEB_ROOT}_new
+          docker exec ${CONTAINER_NAME} mkdir -p /usr/local/apache2/htdocs_new
 
-          echo "📦 Copying frontend files..."
-          docker cp . ${CONTAINER_NAME}:${WEB_ROOT}_new
+      # copy CONTENTS, not repo folder
+          docker cp . ${CONTAINER_NAME}:/usr/local/apache2/htdocs_new/
 
-          echo "🔁 Atomic switch..."
           docker exec ${CONTAINER_NAME} sh -c "
-            rm -rf ${WEB_ROOT}_old || true
-            mv ${WEB_ROOT} ${WEB_ROOT}_old || true
-            mv ${WEB_ROOT}_new ${WEB_ROOT}
-          "
-        '''
+            rm -rf /usr/local/apache2/htdocs_old || true
+            mv /usr/local/apache2/htdocs /usr/local/apache2/htdocs_old
+            mv /usr/local/apache2/htdocs_new /usr/local/apache2/htdocs
+           "
+         '''
       }
     }
+
 
     stage('Health Check') {
       steps {
