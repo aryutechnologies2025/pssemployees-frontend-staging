@@ -67,6 +67,9 @@ const Employee_contract_details = () => {
 
   const userId = user?.id;
   const userRole = user?.role_id;
+  const company_id = user?.company_id;
+
+  // console.log("userRole", company_id);
 
   const [page, setPage] = useState(1);
   const onPageChange = (e) => {
@@ -148,7 +151,9 @@ const Employee_contract_details = () => {
       name: editData ? editData.name : "",
       phone: editData ? editData.phone_number : "",
       aadhar: editData ? editData.aadhar_number : "",
-      company: editData ? editData.company_name : "",
+      company: editData ? String(editData.company_id) : "",
+
+      // company: editData ? editData.company_name : "",
       manual_value: editData ? editData.manual_value : "",
       dob: editData ? editData.dob : "",
       fatherName: editData ? editData.fatherName : "",
@@ -891,12 +896,13 @@ const Employee_contract_details = () => {
         status: filterStatus,
         gender: filterGender,
         company_id: selectedCompanyfilter,
+        emp_company_id:company_id,
       };
       // console.log("Sending payload as params:", payload);
 
       const queryParams = new URLSearchParams(payload).toString();
       const response = await axiosInstance.get(
-        `api/contract-employee?${queryParams}`,
+        `api/employee/contract-emp/contractemplist?${queryParams}`,
       );
 
       if (response.data.success) {
@@ -1990,11 +1996,11 @@ const Employee_contract_details = () => {
                             }}
                           />
 
-                          {errors.boardingPoint && (
+                          {/* {errors.boardingPoint && (
                             <p className="text-red-500 text-sm">
                               {errors.boardingPoint.message}
                             </p>
-                          )}
+                          )} */}
                         </div>
                       </div>
                       {/* Education */}
@@ -2021,11 +2027,11 @@ const Employee_contract_details = () => {
                             }}
                           />
 
-                          {errors.education && (
+                          {/* {errors.education && (
                             <p className="text-red-500 text-sm">
                               {errors.education.message}
                             </p>
-                          )}
+                          )} */}
                         </div>
                       </div>
                       {/* NAME */}

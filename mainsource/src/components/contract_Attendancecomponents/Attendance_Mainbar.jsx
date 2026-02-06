@@ -47,7 +47,7 @@ const Attendance_Mainbar = () => {
   const canImport = candidatePermission?.is_import === "1";
   const canExport = candidatePermission?.is_export === "1";
 
-  console.log("Psspermission", candidatePermission);
+  // console.log("Psspermission", candidatePermission);
 
   const [globalFilter, setGlobalFilter] = useState("");
   const [notes, setNotes] = useState("");
@@ -74,21 +74,24 @@ const Attendance_Mainbar = () => {
   const fileInputRefEdit = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [attachment, setAttachment] = useState(null);
-  const user = JSON.parse(localStorage.getItem("pssuser") || "null");
+  const user = JSON.parse(localStorage.getItem("pssemployee") || "null");
   const userId = user?.id;
   
   // const userRole = user?.role_id;
 
+  const company_id = user?.company_id;
   const fetchCompaniesAttendance = async () => {
+    const empId = user?.id || [];
     try {
-      const res = await axiosInstance.get(`${API_URL}api/attendance`,
+      
+      const res = await axiosInstance.get(`${API_URL}api/employee/contract-emp/attendance`,
         {
-          params: {
+         params: {
             from_date: filterStartDate,
             to_date: filterEndDate,
-            created_by: filterCreatedBy,
-            company_id: filterCompanyname
-          }
+            employee_id: empId,
+            emp_company_id: filterCompanyname,
+          },
         }
       );
       console.log("res", res);
@@ -113,7 +116,7 @@ const Attendance_Mainbar = () => {
       }));
       console.log("companyData", companyData)
 
-      setCompanies(companyOptions);
+      // setCompanies(companyOptions);
 
       setCreatedbyData(res?.data?.createdby || []);
       setAttendanceData(companyData);
@@ -128,6 +131,40 @@ const Attendance_Mainbar = () => {
     fetchCompaniesAttendance();
   }, []);
 
+
+  
+
+  const fetchAssignedCompaniesForFilter = async () => {
+    try {
+      // const empCompanyId = userData?.company_id?.[0];
+      const empCompanyId = user?.company_id || [];
+      // console.log("empCompanyId", empCompanyId);
+
+      const res = await axiosInstance.get(
+        `${API_URL}api/employee/contract-emp/companylist`,
+        {
+          params: { emp_company_id: empCompanyId.join(",") },
+        },
+      );
+
+      // console.log("resgfsfdbfgd", res);
+
+      const companyOptions = res?.data?.data?.map((company) => ({
+        id: company.id,
+        name: company.company_name,
+      }));
+
+      setCompanies(companyOptions);
+    } catch (err) {
+      console.error("Error fetching assigned companies", err);
+      setCompanies([]);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchAssignedCompaniesForFilter();
+  }, []);
 
   const [filterStartDate, setFilterStartDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
