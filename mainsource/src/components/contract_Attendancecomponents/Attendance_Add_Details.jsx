@@ -5,7 +5,7 @@ import "primereact/resources/themes/saga-blue/theme.css"; // PrimeReact theme
 import "primereact/resources/primereact.min.css"; // PrimeReact core CSS
 import { InputText } from "primereact/inputtext";
 import { API_URL } from "../../config.jsx";
-import axiosInstance from "../../Utils/axiosConfig.jsx"
+import axiosInstance from "../../Utils/axiosConfig.jsx";
 import Swal from "sweetalert2";
 import Footer from "../../components/Footer";
 import Mobile_Sidebar from "../Mobile_Sidebar";
@@ -52,9 +52,24 @@ const Attendance_add_details = () => {
     setRows(value);
     setPage(1); // Reset to first page when changing rows per page};
   };
+
+  const user = JSON.parse(localStorage.getItem("pssemployee") || "null");
+
+  const company_id = user?.company_id;
+
+  
   const fetchCompanies = async () => {
     try {
-      const res = await axiosInstance.get(`${API_URL}api/company`);
+      const payload = {
+        emp_company_id: company_id,
+      };
+      const queryParams = new URLSearchParams(payload).toString();
+
+      const res = await axiosInstance.get(
+        `${API_URL}api/employee/contract-emp/companylist?${queryParams}`,
+      );
+
+      console.log("resereyryrtyret", res);
 
       const companyOptions = res?.data?.data.map((company) => ({
         id: company.id,
@@ -79,7 +94,7 @@ const Attendance_add_details = () => {
         ...emp,
         attendance: null,
         shifts: [],
-          shiftText: "",
+        shiftText: "",
       }));
 
       const shifts = res.data.shifts.map((shift) => ({
@@ -91,10 +106,9 @@ const Attendance_add_details = () => {
 
       setAttendanceData(employees);
       setShiftOptions(shifts);
-            setFilters({
+      setFilters({
         global: { value: globalFilter, matchMode: "contains" },
       });
-
     } catch (err) {
       console.error("Error fetching employees & shifts", err);
     }

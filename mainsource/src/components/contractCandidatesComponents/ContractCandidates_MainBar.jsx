@@ -1443,7 +1443,7 @@ useEffect(() => {
       }
 
 
-console.log("createCandidate",createCandidate)
+// console.log("createCandidate",createCandidate)
       /* ---------------- API CALL ---------------- */
       const url = editData
         ? `/api/contract-emp/update/${editData.id}`
