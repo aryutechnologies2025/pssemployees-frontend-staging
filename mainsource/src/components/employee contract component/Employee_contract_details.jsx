@@ -342,6 +342,34 @@ const Employee_contract_details = () => {
     setIsExistingCandidateViewModalOpen(false);
     setViewExistingCandidate(null);
   };
+
+    const handleStatusChange = async (status) => {
+    if (!editData?.id) return; 
+
+    try {
+      const payload = {
+        status: status,
+        joining_date:
+          status === 1 ? formatDateToYMD(watch("joinedDate")) : null,
+        relieving_date:
+          status === 0 ? formatDateToYMD(new Date()) : null,
+      };
+
+      console.log("Status change payload:", payload);
+
+      await axiosInstance.post(
+        `/api/relieved/status-change/${editData.id}`,
+        payload
+      );
+
+      toast.success("Status updated successfully");
+    } catch (err) {
+      console.error("Status change error:", err);
+      toast.error("Failed to update status");
+    }
+  };
+
+  
   // Open and close modals
   const openAddModal = () => {
     setIsModalOpen(true);
@@ -2562,12 +2590,22 @@ const Employee_contract_details = () => {
 
                         <div className="w-[50%] md:w-[60%] rounded-lg">
                           <select
-                            {...register("status")}
+                            {...register("status", {
+                              onChange: async (e) => {
+                                const status = Number(e.target.value); // 1 or 0
+                                setValue("status", status);
+
+                                // 🔒 Only call API if editing an existing record
+                                if (editData?.id) {
+                                  await handleStatusChange(status);
+                                }
+                              },
+                            })}
                             className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                           >
-                            <option value="">Select a status</option>
-                            <option value="1">Active</option>
-                            <option value="0">InActive</option>
+                            <option disabled >Select a status</option>
+                            <option value="1">Joined</option>
+                            <option value="0">Relieved</option>
                             {/* <option value="2">Relieved</option> */}
                           </select>
                           {errors.status && (
