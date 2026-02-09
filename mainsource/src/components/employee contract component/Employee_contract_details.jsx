@@ -64,7 +64,7 @@ const Employee_contract_details = () => {
   const [employeesList, setEmployeesList] = useState([]);
   const [backendValidationError, setBackendValidationError] = useState(null);
   const user = JSON.parse(localStorage.getItem("pssemployee") || "null");
-
+  const [statusType, setStatusType] = useState(0)
   const userId = user?.id;
   const userRole = user?.role_id;
   const company_id = user?.company_id;
@@ -343,31 +343,31 @@ const Employee_contract_details = () => {
     setViewExistingCandidate(null);
   };
 
-    const handleStatusChange = async (status) => {
-    if (!editData?.id) return; 
+  //   const handleStatusChange = async (status) => {
+  //   if (!editData?.id) return; 
 
-    try {
-      const payload = {
-        status: status,
-        joining_date:
-          status === 1 ? formatDateToYMD(watch("joinedDate")) : null,
-        relieving_date:
-          status === 0 ? formatDateToYMD(new Date()) : null,
-      };
+  //   try {
+  //     const payload = {
+  //       status: status,
+  //       joining_date:
+  //         status === 1 ? formatDateToYMD(watch("joinedDate")) : null,
+  //       relieving_date:
+  //         status === 0 ? formatDateToYMD(new Date()) : null,
+  //     };
 
-      console.log("Status change payload:", payload);
+  //     console.log("Status change payload:", payload);
 
-      await axiosInstance.post(
-        `/api/relieved/status-change/${editData.id}`,
-        payload
-      );
+  //     await axiosInstance.post(
+  //       `/api/relieved/status-change/${editData.id}`,
+  //       payload
+  //     );
 
-      toast.success("Status updated successfully");
-    } catch (err) {
-      console.error("Status change error:", err);
-      toast.error("Failed to update status");
-    }
-  };
+  //     toast.success("Status updated successfully");
+  //   } catch (err) {
+  //     console.error("Status change error:", err);
+  //     toast.error("Failed to update status");
+  //   }
+  // };
 
   
   // Open and close modals
@@ -421,6 +421,7 @@ const Employee_contract_details = () => {
     setPhoto(null);
     setSelectedCompany(null);
     setSelectedBoarding(null);
+    setStatusType(0);
     setSelectedEducation(null);
     setSelectedBranch(null);
     setDocuments([]);
@@ -806,6 +807,7 @@ const Employee_contract_details = () => {
       manual_value: row.employee_id || "",
       interviewDate: row.interview_date || "",
       status: String(row.status),
+      statusType: row.status_type ? 1 : 0,
       interviewStatus: row.interview_status
         ? row.interview_status.toLowerCase()
         : "",
@@ -1254,7 +1256,7 @@ const Employee_contract_details = () => {
         esic: data.esciNumber,
         employee_id: data.manual_value,
         bank_name: data.bankName,
-
+        status_type: statusType,
         status: data.status,
         // status: 1,
         created_by: userId,
@@ -2591,13 +2593,16 @@ const Employee_contract_details = () => {
                         <div className="w-[50%] md:w-[60%] rounded-lg">
                           <select
                             {...register("status", {
-                              onChange: async (e) => {
-                                const status = Number(e.target.value); // 1 or 0
-                                setValue("status", status);
+                              onChange: (e) => {
+                                const value = e.target.value;
 
-                                // 🔒 Only call API if editing an existing record
-                                if (editData?.id) {
-                                  await handleStatusChange(status);
+                                setValue("status", value, { shouldDirty: true });
+
+                                // If user selected Joined or Relieved → mark status_type = 1
+                                if (value === "1" || value === "0") {
+                                  setStatusType(1);
+                                } else {
+                                  setStatusType(0);
                                 }
                               },
                             })}
