@@ -18,6 +18,7 @@ import LeadManagement from "./pages/LeadManagement";
 import DailyWork_Report from "./components/Daily Work Report/DailyWork_Report";
 import Finance from "./pages/Finance";
 import Report_Main from "./components/report component/Report_Main";
+import MonthlyWorkReport_Main from "./components/Daily Work Report/MonthlyWorkReport_Main";
 
 function App() {
 
@@ -77,6 +78,7 @@ function App() {
           <Route path="/contractcandidates" element={<ContractCandidates />} />
           <Route path="/message" element={<Message />} />
           <Route path="/dailywork_report" element={<DailyWork_Report />} />
+          <Route path="/monthly-workreport" element={<MonthlyWorkReport_Main />} />
           <Route path="lead-engine" element={<LeadManagement />} />
           <Route path="report" element={<Report_Main />} />
         </Route>

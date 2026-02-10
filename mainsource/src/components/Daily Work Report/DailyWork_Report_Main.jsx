@@ -424,7 +424,7 @@ const [employees, setEmployees] = useState([]);
                         </div>
 
                         {/* Filter Section */}
-                        <div className="w-full mt-5 rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-4 py-4">
+                        <div className= "flex justify-between w-full mt-5 rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] px-4 py-4">
 
                             <div className="flex flex-wrap items-end gap-4">
 
@@ -468,7 +468,7 @@ const [employees, setEmployees] = useState([]);
 
                                 </div> */}
 
-
+                                <div className="flex gap-3 mt-6 md:mt-0">
                                 {/* Buttons */}
                                 <button
                                     onClick={handleApplyFilter}
@@ -483,8 +483,18 @@ const [employees, setEmployees] = useState([]);
                                 >
                                     Reset
                                 </button>
+                                </div>
 
+          
+                            </div>
 
+                            <div className="flex items-end gap-3 mt-6 md:mt-0">
+                                <button
+                                    onClick={() => navigate('/monthly-workreport')}
+                                    className="h-10 w-20 rounded-lg text-sm bg-[#1ea600] hover:bg-[#23880c] text-white "
+                                >
+                                    Monthly Report
+                                </button>
                             </div>
                         </div>
 
