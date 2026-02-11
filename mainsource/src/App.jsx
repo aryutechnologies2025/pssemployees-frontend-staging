@@ -20,6 +20,8 @@ import Finance from "./pages/Finance";
 import Report_Main from "./components/report component/Report_Main";
 import MonthlyWorkReport_Main from "./components/Daily Work Report/MonthlyWorkReport_Main";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import AssignedLead_Details from "./components/Lead Management/AssignedLead_Details";
+import AssignedLead_Main from "./pages/AssignedLead_Main";
 
 function App() {
 
@@ -83,6 +85,7 @@ function App() {
           <Route path="/dailywork_report" element={<DailyWork_Report />} />
           <Route path="/monthly-workreport" element={<MonthlyWorkReport_Main />} />
           <Route path="lead-engine" element={<LeadManagement />} />
+          <Route path="lead-assignedto" element={<AssignedLead_Main />} />
           <Route path="report" element={<Report_Main />} />
         </Route>
         </Route>
