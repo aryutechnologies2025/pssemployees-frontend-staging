@@ -35,7 +35,7 @@ import { formatToDDMMYYYY, formatToYYYYMMDD } from "../../Utils/dateformat.js";
 import { IoToday } from "react-icons/io5";
 
 
-const LeadManagement_Details = () => {
+const AssignedLead_Details = () => {
   let navigate = useNavigate();
   const multiSelectRef = useRef(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -54,6 +54,7 @@ const LeadManagement_Details = () => {
   const storedDetatis = localStorage.getItem("pssemployee");
   const parsedDetails = JSON.parse(storedDetatis);
   const userid = parsedDetails ? parsedDetails.id : null;
+  
   const [rows, setRows] = useState(10);
   const [globalFilter, setGlobalFilter] = useState("");
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -139,7 +140,7 @@ const LeadManagement_Details = () => {
   });
   // apply filter
   const handleApplyFilter = () => {
-    fetchLead();
+    fetchAssignedLeadsByEmployee();
   };
 
    const handleResetFilter = () => {
@@ -153,7 +154,7 @@ const LeadManagement_Details = () => {
     };
 
     setFilters(reset);
-    fetchLead(reset);
+    fetchAssignedLeadsByEmployee(reset);
   };
 
     // status list open
@@ -275,7 +276,7 @@ const LeadManagement_Details = () => {
       if (res.data.success || res.data.status) {
         toast.success("Lead updated successfully");
         closeEditModal();
-        fetchLead();
+        fetchAssignedLeadsByEmployee();
       }
     } catch {
       toast.error("Failed to update lead");
@@ -343,7 +344,7 @@ const LeadManagement_Details = () => {
         followUpDate: "",
       });
 
-      fetchLead();
+      fetchAssignedLeadsByEmployee();
     } catch (error) {
       console.error("Status update failed", error);
       alert("Failed to update status");
@@ -380,7 +381,7 @@ const LeadManagement_Details = () => {
       if (res.data.success || res.data.status) {
         toast.success("Lead created successfully");
         closeAddModal();
-        fetchLead();
+        fetchAssignedLeadsByEmployee();
       } else {
         toast.error("Failed to create lead");
       }
@@ -390,10 +391,10 @@ const LeadManagement_Details = () => {
       setSubmitting(false);
     }
   };
-
+  
   // Fetch lead from the API
   useEffect(() => {
-    fetchLead();
+    fetchAssignedLeadsByEmployee();
   }, []);
 
 
@@ -429,55 +430,62 @@ const LeadManagement_Details = () => {
   //   }
   // };
 
-    const fetchLead = async (customFilters) => {
-    const appliedFilters = customFilters ?? filters;
+const fetchAssignedLeadsByEmployee = async (employeeId) => {
+  if (!employeeId) {
+    toast.error("Employee is required");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const params = {};
 
-      if (appliedFilters.gender)
-        params.gender = appliedFilters.gender.toLowerCase();
+    // OPTIONAL FILTERS
+    // if (customFilters.from_date) {
+    //   params.from_date = customFilters.from_date;
+    // }
 
-      if (appliedFilters.platform)
-        params.platform = appliedFilters.platform.toLowerCase();
+    // if (customFilters.to_date) {
+    //   params.to_date = customFilters.to_date;
+    // }
 
-      if (appliedFilters.city)
-        params.city = appliedFilters.city.toLowerCase();
+    // if (customFilters.category?.length) {
+    //   params.category_id = customFilters.category.join(",");
+    // }
 
-      if (appliedFilters.from_date)
-        params.from_date = appliedFilters.from_date;
+    // if (customFilters.lead_status?.length) {
+    //   params.lead_status = customFilters.lead_status.join(",");
+    // }
 
-      if (appliedFilters.to_date)
-        params.to_date = appliedFilters.to_date;
-
-      const res = await axiosInstance.get(
-        `${API_URL}api/lead-management`,
-        { params }
-      );
-
-      console.log("API LIST", res.data.data);
-
-      if (res.data.success) {
-        let data = res.data.data || [];
-
-        //  FRONTEND FILTERING
-        data = applyFrontendFilters(data, appliedFilters);
-
-        setLeads(data);
-        setTotalRecords(data.length);
-        setGenderOptions(res.data.gender || []);
-        setPlatformOptions(res.data.platforms || {});
-        setCityOptions(res.data.cities || []);
+const res = await axiosInstance.get(
+      `${API_URL}api/lead-management/assign-employee-list`,
+      {
+        params: { employee_id: employeeId }
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to fetch leads");
-    } finally {
-      setLoading(false);
+    );
+
+
+    console.log("Assigned Leads Response:", res.data);
+
+    if (res.data?.success) {
+      const data = res.data.data || [];
+
+      setLeads(data);
+      setTotalRecords(data.length);
+    } else {
+      setLeads([]);
+      setTotalRecords(0);
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to fetch assigned leads");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   const applyFrontendFilters = (data, filters) => {
   let result = [...data];
 
@@ -585,7 +593,7 @@ const LeadManagement_Details = () => {
 
         setTimeout(() => {
           closeImportAddModal();
-          fetchLead();
+          fetchAssignedLeadsByEmployee();
         }, 600);
 
       } else {
@@ -624,7 +632,7 @@ const LeadManagement_Details = () => {
 
       if (res.data?.success === true) {
         toast.success("Lead deleted successfully");
-        fetchLead(); // refresh table
+        fetchAssignedLeadsByEmployee(); // refresh table
       } else {
         toast.error(res.data?.message || "Delete failed");
       }
@@ -1005,7 +1013,7 @@ px-2 py-2 md:px-6 md:py-6">
 
                       />
                     </div>
-                    <div className="flex justify-between items-center gap-5">
+                    {/* <div className="flex justify-between items-center gap-5">
                       <button
                         onClick={openImportAddModal}
                         className="px-2 md:px-3 py-2  text-white bg-[#1ea600] hover:bg-[#4BB452] font-medium w-20 rounded-lg"
@@ -1020,7 +1028,7 @@ px-2 py-2 md:px-6 md:py-6">
                         Add Lead
                       </button>
 
-                    </div>
+                    </div> */}
 
                   </div>
                 </div>
@@ -1874,4 +1882,4 @@ px-2 py-2 md:px-6 md:py-6">
     </div >
   );
 };
-export default LeadManagement_Details;
+export default AssignedLead_Details;
