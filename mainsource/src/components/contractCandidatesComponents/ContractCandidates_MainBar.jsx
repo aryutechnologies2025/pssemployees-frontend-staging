@@ -33,6 +33,8 @@ import Footer from "../Footer";
 import { Capitalise } from "../../Utils/useCapitalise";
 import CameraPhoto from "../../Utils/CameraPhoto";
 
+import { FiX } from "react-icons/fi";
+
 const ContractCandidates_Mainbar = () => {
   // permission all
   const Psspermission = JSON.parse(
@@ -70,7 +72,6 @@ const ContractCandidates_Mainbar = () => {
   const [joinedType, setJoinedType] = useState(0);
 
   console.log("joinedType", joinedType);
-
 
   const userId = JSON.parse(user).id;
   // console.log("userId", userId);
@@ -314,13 +315,11 @@ const ContractCandidates_Mainbar = () => {
     }
   }, [candidateStatus, setValue]);
 
-
- 
-useEffect(() => {
-  if (candidateStatus !== "joined") {
-    setJoinedType(0); // Reset to 0 when not joined
-  }
-}, [candidateStatus]);
+  useEffect(() => {
+    if (candidateStatus !== "joined") {
+      setJoinedType(0); // Reset to 0 when not joined
+    }
+  }, [candidateStatus]);
   const [ModalOpen, setIsModalOpen] = useState(false);
 
   const handleApplyFilter = () => {
@@ -627,7 +626,8 @@ useEffect(() => {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [importskip, setImportskip] = useState([]);
+  const [showSkipModal, setShowSkipModal] = useState(false);
   const handleFileSubmit = async (e) => {
     // console.log("selectedAccount:1");
     e.preventDefault();
@@ -714,6 +714,18 @@ useEffect(() => {
       setSelectedDate(new Date().toISOString().split("T")[0]);
       setSelectedCompany(null);
 
+      const skipped = response.data?.skipped_details || [];
+
+      setImportskip(skipped);
+
+      //  only if skipped data exists
+      if (skipped.length > 0) {
+        setShowSkipModal(true);
+      }
+
+      closeImportAddModal();
+      resetImportForm();
+
       fetchContractCandidates();
     } catch (err) {
       console.error("Import error:", err);
@@ -760,11 +772,12 @@ useEffect(() => {
       interviewStatus: row.interview_status
         ? row.interview_status.toLowerCase()
         : "",
-     candidateStatus: row.joining_status === "joined"
-      ? "joined"
-      : row.joining_status === "not_joined"
-        ? "not_joined"
-        : "",
+      candidateStatus:
+        row.joining_status === "joined"
+          ? "joined"
+          : row.joining_status === "not_joined"
+            ? "not_joined"
+            : "",
       selectedJoiningDate: row.joining_date || "",
       joinedDate: row.joined_date || "",
       reference: row.reference || "",
@@ -847,8 +860,7 @@ useEffect(() => {
           education: normalizedData.education,
           reference: normalizedData.reference || "",
           otherReference: normalizedData.otherReference || "",
-                  candidateStatus: normalizedData.candidateStatus || "",
-
+          candidateStatus: normalizedData.candidateStatus || "",
         });
 
         // reset({
@@ -1401,7 +1413,7 @@ useEffect(() => {
             ? formatDateToYMD(data.joinedDate)
             : null,
 
-      joined_type: data.candidateStatus === "joined" ? joinedType : 0, 
+        joined_type: data.candidateStatus === "joined" ? joinedType : 0,
 
         joining_date:
           data.interviewStatus === "selected"
@@ -1442,8 +1454,7 @@ useEffect(() => {
         });
       }
 
-
-// console.log("createCandidate",createCandidate)
+      // console.log("createCandidate",createCandidate)
       /* ---------------- API CALL ---------------- */
       const url = editData
         ? `/api/contract-emp/update/${editData.id}`
@@ -1729,6 +1740,16 @@ useEffect(() => {
                         placeholder="Search......"
                         className="w-full pl-10 pr-3 py-2 rounded-md text-sm border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                       />
+
+                      {globalFilter && (
+                        <button
+                          type="button"
+                          onClick={() => setGlobalFilter("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                        >
+                          <FiX size={18} />
+                        </button>
+                      )}
                     </div>
                     {canImport && (
                       <div className="flex items-center">
@@ -2527,17 +2548,19 @@ useEffect(() => {
                                 /> */}
                             <input
                               type="date"
-              {...register("joinedDate", {
-          onChange: (e) => {
-            setValue("joinedDate", e.target.value, { shouldDirty: true });
-            // Check if joined date is being set (not null/empty)
-            if (e.target.value) {
-              setJoinedType(1); // Set to 1 when date is selected
-            } else {
-              setJoinedType(0); // Set to 0 when date is cleared
-            }
-          },
-        })}
+                              {...register("joinedDate", {
+                                onChange: (e) => {
+                                  setValue("joinedDate", e.target.value, {
+                                    shouldDirty: true,
+                                  });
+                                  // Check if joined date is being set (not null/empty)
+                                  if (e.target.value) {
+                                    setJoinedType(1); // Set to 1 when date is selected
+                                  } else {
+                                    setJoinedType(0); // Set to 0 when date is cleared
+                                  }
+                                },
+                              })}
                               name="joinedDate"
                               className="w-full px-2 py-2 border border-gray-300 placeholder:text-[#4A4A4A] placeholder:text-sm placeholder:font-normal rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#1ea600]"
                             />
@@ -2950,6 +2973,91 @@ useEffect(() => {
                         )}
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/*  Skipped Employees Popup (Tailwind) */}
+            {showSkipModal && importskip.length > 0 && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                {/* Backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/50"
+                  onClick={() => setShowSkipModal(false)}
+                />
+
+                {/* Modal Box */}
+                <div className="relative w-[95%] max-w-4xl rounded-2xl bg-white shadow-2xl border border-green-200 overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-6 py-4 bg-green-600">
+                    <h2 className="text-white font-bold text-lg">
+                      ⚠️ Skipped Employees ({importskip.length})
+                    </h2>
+
+                    <button
+                      onClick={() => setShowSkipModal(false)}
+                      className="text-white text-2xl font-bold hover:opacity-80"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="p-6">
+                    <p className="text-gray-600 mb-4">
+                      These employees were skipped because they already exist /
+                      duplicate.
+                    </p>
+
+                    <div className="overflow-auto rounded-xl border border-green-100">
+                      <table className="w-full text-sm">
+                        <thead className="bg-green-50">
+                          <tr className="text-left text-gray-700">
+                            <th className="px-4 py-3 w-[80px] font-semibold">
+                              S.No
+                            </th>
+                            <th className="px-4 py-3 font-semibold">
+                              Employee Name
+                            </th>
+                            <th className="px-4 py-3 w-[240px] font-semibold">
+                              Aadhar Number
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {importskip.map((item, index) => (
+                            <tr
+                              key={index}
+                              className="border-t hover:bg-green-50/40 transition"
+                            >
+                              <td className="px-4 py-3 font-bold">
+                                {index + 1}
+                              </td>
+
+                              <td className="px-4 py-3 font-semibold uppercase text-gray-800">
+                                {item?.employee_name || "-"}
+                              </td>
+
+                              <td className="px-4 py-3 font-semibold text-green-700">
+                                {item?.aadhar_number || "-"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
+                    <button
+                      onClick={() => setShowSkipModal(false)}
+                      className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+                    >
+                      OK
+                    </button>
                   </div>
                 </div>
               </div>
