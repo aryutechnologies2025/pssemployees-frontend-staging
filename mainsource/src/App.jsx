@@ -19,11 +19,13 @@ import DailyWork_Report from "./components/Daily Work Report/DailyWork_Report";
 import Finance from "./pages/Finance";
 import Report_Main from "./components/report component/Report_Main";
 import MonthlyWorkReport_Main from "./components/Daily Work Report/MonthlyWorkReport_Main";
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 function App() {
 
   // const permissionmodula = Psspermission.modules
   const Psspermission = JSON.parse(localStorage.getItem("psspermission") || "{}");
+  
 
   const getModulePermission = (moduleName) => {
     return Psspermission?.modules?.find((m) => m.module === moduleName);
@@ -38,6 +40,7 @@ function App() {
     <BrowserRouter>
       <Routes>  
         <Route path="/" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contractattendance" element={<Attendance />} />
@@ -82,6 +85,8 @@ function App() {
           <Route path="lead-engine" element={<LeadManagement />} />
           <Route path="report" element={<Report_Main />} />
         </Route>
+        </Route>
+
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>

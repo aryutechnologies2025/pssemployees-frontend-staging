@@ -70,7 +70,7 @@ const Sidebar = () => {
   const faviconURL = `${API_URL.replace(/\/$/, "")}/${favicon}`;
   // const logoURL = sitelogo ? `${API_URL.sitelogo}` : "/pssAgenciesLogo.svg";
 
-  console.log("AdminData sitelogo", AdminData);
+  // console.log("AdminData sitelogo", AdminData);
 
   const [currentOpen, setCurrentOpen] = useState(null);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -124,15 +124,42 @@ const Sidebar = () => {
     localStorage.setItem("sidebarState", newState);
   };
 
-  const onClickSidebarMenu = (label) => {
+    const logoutUser = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("pssemployee"));
+      console.log("USER....... : ", user);
+
+      if (!user?.id) {
+        console.warn("User ID not found");
+        return;
+      }
+
+      await Api.post(`api/logout`, {
+        id: user.id,
+      });
+      console.log("Logout API success");
+    } catch (error) {
+      console.error("Logout API failed", error);
+    } finally {
+      // Always clear session regardless of API success/failure
+      localStorage.removeItem("pssemployee");
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_token_expires");
+      localStorage.removeItem("pss_dateformat");
+      sessionStorage.removeItem("admin_logged_in");
+    }
+  };
+
+  const onClickSidebarMenu = async (label) => {
     if (label === "/") {
       setButtonLoading(true);
-      setTimeout(() => {
-        localStorage.removeItem("pssuser");
-        window.location.reload();
-        window.scrollTo({ top: 0, behavior: "instant" });
-        setButtonLoading(false);
-      }, 300);
+      await logoutUser();
+      // setTimeout(() => {
+      //   localStorage.removeItem("pssuser");
+      //   window.location.reload();
+      //   window.scrollTo({ top: 0, behavior: "instant" });
+      //   setButtonLoading(false);
+      // }, 300);
       navigate("/");
       window.scrollTo({ top: 0, behavior: "instant" });
     } else {

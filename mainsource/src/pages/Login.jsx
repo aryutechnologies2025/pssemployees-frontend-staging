@@ -41,7 +41,7 @@ const Login = () => {
 
     try {
       // Make API request to login
-      const res = await axiosInstance.post("api/employee/login", data);
+      const res = await axiosInstance.post(`${API_URL}api/employee/login`, data);
       console.log("Response :", res.data);
 
       if (res.data.status) {
@@ -51,6 +51,11 @@ const Login = () => {
         localStorage.setItem("psspermission", JSON.stringify(res.data.permission));
 
         localStorage.setItem("pss_dateformat", JSON.stringify(res.data.setting));
+
+        localStorage.setItem("admin_token", data.token);
+        const expiresAt = data.token_expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        localStorage.setItem("admin_token_expires", expiresAt);
+        sessionStorage.setItem("admin_logged_in", "true");
 
 
         // Navigate to dashboard
