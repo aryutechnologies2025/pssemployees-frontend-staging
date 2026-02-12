@@ -68,6 +68,28 @@ const LeadManagement_Details = () => {
 
   console.log("viewStatus", viewStatus);
 
+  const [categoryOptions, setCategoryOptions] = useState([]);
+      console.log("categoryOptions",categoryOptions)
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  
+    const cityDropdownOptions = cityOptions.map(city => ({
+      label: Capitalise(city.name) || city,
+      value: city
+    }));
+  const categoryDropdownOptions = categoryOptions.map(cat => ({
+    label: Capitalise(cat.name) || cat.name,
+    value: cat.id
+  }));
+
+  const statusDropdownOptions = [
+  { label: "Open", value: "open" },
+  { label: "Joined", value: "joined" },
+  { label: "Interested / Scheduled", value: "interested" },
+  { label: "Not Interested", value: "not_interested" },
+  { label: "Follow Up", value: "follow_up" },
+  { label: "Not Picked", value: "not_picked" },
+];
+
 
   // const formatToDDMMYYYY = (date) => {
   //   if (!date) return "-";
@@ -106,17 +128,7 @@ const LeadManagement_Details = () => {
     followUpDate: ""
   });
 
-  const STATUS_MAP = {
-    open: "Open",
-    contacted: "Contacted",
-    interested: "Interested",
-    not_interested: "Not Interested",
-    customer: "Customer",
-    bad_timing: "Bad Timing",
-    not_picked: "Not Picked",
-    future_lead: "Future Lead",
-  };
-
+ 
   const validateImport = () => {
     let newErrors = {};
 
@@ -135,7 +147,9 @@ const LeadManagement_Details = () => {
     age: "",
     city: "",
     from_date:today ,
-    to_date: today
+    to_date: today,
+        category:null,
+    lead_status:""
   });
   // apply filter
   const handleApplyFilter = () => {
@@ -149,7 +163,9 @@ const LeadManagement_Details = () => {
       age: "",
       city: "",
       from_date: "",
-      to_date: ""
+      to_date: "",
+               category:null,
+      lead_status:"",
     };
 
     setFilters(reset);
@@ -197,7 +213,8 @@ const LeadManagement_Details = () => {
     post_code: "",
     city: "",
     state: "",
-    status: ""
+    status: "",
+    category: null
   });
   // open add
   const openAddModal = () => {
@@ -218,7 +235,8 @@ const LeadManagement_Details = () => {
         post_code: "",
         city: "",
         state: "",
-        status: ""
+        status: "",
+        category: null
       });
       setErrors({});
     }, 300);
@@ -235,6 +253,7 @@ const LeadManagement_Details = () => {
       post_code: lead.post_code,
       city: lead.city,
       state: lead.state,
+     lead_category_id: lead.lead_category_id ?? null,
       status: lead.status?.toString()
     });
 
@@ -263,6 +282,7 @@ const LeadManagement_Details = () => {
         post_code: editLeadForm.post_code,
         city: editLeadForm.city,
         state: editLeadForm.state,
+         lead_category_id: editLeadForm.lead_category_id,
         status: editLeadForm.status,
         updated_by: userid
       };
@@ -316,12 +336,14 @@ const LeadManagement_Details = () => {
         return;
       }
 
-      const payload = {
-        lead_status: STATUS_MAP[statusForm.status],
-        notes: statusForm.notes,
-        followup_status: statusForm.followUp === "yes" ? 1 : 0,
-        created_by: userid,
-      };
+     const payload = {
+       lead_status: statusForm.status, 
+      notes: statusForm.notes,
+      followup_status: statusForm.followUp === "yes" ? 1 : 0,
+      created_by: userid,
+      scheduled_date: statusForm.epoDate || null,
+      followup_date: statusForm.followUp === "yes" ? statusForm.followUpDate : null,
+    };
 
       if (statusForm.followUp === "yes") {
         payload.followup_date = statusForm.followUpDate;
@@ -367,6 +389,7 @@ const LeadManagement_Details = () => {
         post_code: leadForm.post_code,
         city: leadForm.city,
         state: leadForm.state,
+         lead_category_id: leadForm.category,
         status: leadForm.status,
         created_by: userid
       };
@@ -452,6 +475,13 @@ const LeadManagement_Details = () => {
       if (appliedFilters.to_date)
         params.to_date = appliedFilters.to_date;
 
+       if (appliedFilters.category) {
+    params.lead_category_id = appliedFilters.category;
+  }
+
+    if (appliedFilters.lead_status)
+    params.lead_status = appliedFilters.lead_status.toLowerCase();
+
       const res = await axiosInstance.get(
         `${API_URL}api/lead-management`,
         { params }
@@ -470,6 +500,7 @@ const LeadManagement_Details = () => {
         setGenderOptions(res.data.gender || []);
         setPlatformOptions(res.data.platforms || {});
         setCityOptions(res.data.cities || []);
+        setCategoryOptions(res.data["lead-category"] || []);
       }
     } catch (err) {
       console.error(err);
@@ -636,6 +667,41 @@ const LeadManagement_Details = () => {
     }
   };
 
+  const STATUS_MAP = {
+    open: "Open",
+    joined: "Joined",
+    interested: "Interested / scheduled",
+    not_interested: "Not Interested",
+    follow_up: "Follow Up",
+    not_picked: "Not Picked",
+    
+  };
+
+  const handleStatusChange = (row, newStatusKey) => {
+
+  //  Update UI immediately
+  setLeads(prev =>
+    prev.map(lead =>
+      lead.id === row.id
+        ? { ...lead, lead_status: newStatusKey }
+        : lead
+    )
+  );
+
+  //  Open modal
+  setViewStatus({ ...row, lead_status: newStatusKey });
+  setIsViewStatusOpen(true);
+
+  //  Prepare form
+  setStatusForm({
+    status: newStatusKey,
+    notes: "",
+    followUp: "no",
+    followUpDate: "",
+    epoDate: ""
+  });
+};
+
   // column
   const columns = [
     {
@@ -680,6 +746,7 @@ const LeadManagement_Details = () => {
       field: "phone",
       header: "Phone"
     },
+    
     {
       field: "age",
       header: "Age",
@@ -690,6 +757,11 @@ const LeadManagement_Details = () => {
       body: (row) => Capitalise(row.city),
     },
     {
+          field :"category_name",
+          header: "Platform ",
+          body: (row) => Capitalise(row?.category?.name) || row.category_name || "-"
+        },
+    {
       field: "state",
       header: "State",
       body: (row) => Capitalise(row.state),
@@ -699,39 +771,66 @@ const LeadManagement_Details = () => {
       header: "Date",
       body: (row) => formatToDDMMYYYY(row.created_time),
     },
-    {
+    // {
+    //   header: "Status",
+    //   body: (row) => (
+    //     <select
+    //       className="border p-1"
+    //       value={row.status || ""}
+    //       onChange={(e) => {
+    //         const selectedStatus = e.target.value;
+
+    //         setViewStatus(row);
+    //         setIsViewStatusOpen(true);
+
+    //         setStatusForm({
+    //           status: selectedStatus,
+    //           notes: "",
+    //           followUp: "no",
+    //           followUpDate: ""
+    //         });
+    //       }}
+    //     >
+    //       <option value="">Select Status</option>
+    //         <option value="open">Open</option>
+    //         <option value="joined">Joined</option>
+    //         <option value="interested">Interested</option>
+    //         <option value="not_interested">Not Interested</option>
+    //         <option value="follow_up">Follow Up</option>
+    //         <option value="bad_timing">Bad Timing</option>
+    //         <option value="not_picked">Not Picked</option>
+    //         <option value="interview_scheduled">Interview Scheduled</option>
+    //     </select>
+    //   ),
+    //   style: { width: "150px" },
+    //   fixed: true
+    // },
+        {
+      field: "status",
       header: "Status",
       body: (row) => (
-        <select
-          className="border p-1"
-          value={row.status || ""}
-          onChange={(e) => {
-            const selectedStatus = e.target.value;
-
-            setViewStatus(row);
-            setIsViewStatusOpen(true);
-
-            setStatusForm({
-              status: selectedStatus,
-              notes: "",
-              followUp: "no",
-              followUpDate: ""
-            });
-          }}
-        >
-          <option value="">Select Status</option>
-            <option value="open">Open</option>
-            <option value="joined">Joined</option>
-            <option value="interested">Interested</option>
-            <option value="not_interested">Not Interested</option>
-            <option value="follow_up">Follow Up</option>
-            <option value="bad_timing">Bad Timing</option>
-            <option value="not_picked">Not Picked</option>
-            <option value="interview_scheduled">Interview Scheduled</option>
-        </select>
+        
+        <div className="flex items-center gap-2">
+          <select
+            className="border p-1"
+            value={row.lead_status}
+            onChange={(e) =>
+              handleStatusChange(row, e.target.value)
+            }
+          >
+            {Object.entries(STATUS_MAP).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+    
+          <button
+            onClick={() => openStatusView(row)}
+            className="text-blue-600"
+          >
+            <FaEye />
+          </button>
+        </div>
       ),
-      style: { width: "150px" },
-      fixed: true
     },
     {
       field: "Action",
@@ -764,8 +863,10 @@ const LeadManagement_Details = () => {
     },
   ];
 
-  const [visibleColumnFields, setVisibleColumnFields] = useState(
-    columns.filter(col => col.fixed || ["full_name", "date_of_birth", "gender", "phone","age","city", "created_time", "status", "Action"].includes(col.field)).map(col => col.field)
+const [visibleColumnFields, setVisibleColumnFields] = useState(
+    columns.filter(col => col.fixed || 
+      ["full_name",  "gender", "phone", "age", "qualification", "city","category_name", "created_time","status", "Action"]
+      .includes(col.field)).map(col => col.field)
   );
 
   const onColumnToggle = (event) => {
@@ -855,7 +956,7 @@ const LeadManagement_Details = () => {
                 </div>
 
                 {/* Platform */}
-                <div className="flex flex-col gap-1">
+                {/* <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-[#6B7280]">Platform</label>
                   <select
                     className="h-10 px-3 rounded-md border"
@@ -873,7 +974,7 @@ const LeadManagement_Details = () => {
                     ))}
                   </select>
 
-                </div>
+                </div> */}
 
                    {/* age */}
                 <div className="flex flex-col gap-1">
@@ -898,22 +999,58 @@ const LeadManagement_Details = () => {
                 {/* city */}
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-[#6B7280]">City</label>
-                  <select
-                    className="h-10 px-3 rounded-md border"
+                  <Dropdown
                     value={filters.city}
+                    options={cityDropdownOptions}
                     onChange={(e) =>
-                      setFilters(prev => ({ ...prev, city: e.target.value }))
+                      setFilters(prev => ({ ...prev, city: e.value }))
                     }
-                  >
-                    <option value="">Select City</option>
-                    {cityOptions.map((city, index) => (
-                      <option key={index} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select City"
+                    filter
+                    filterPlaceholder="Search city"
+                    className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+                    panelClassName="text-sm"
+                  />
 
                 </div>
+
+                 {/* status */}
+                
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-[#6B7280]">
+                    Status
+                  </label>
+                
+                  <Dropdown
+                    value={filters.lead_status}
+                    options={statusDropdownOptions}
+                    onChange={(e) =>
+                      setFilters((prev) => ({ ...prev, lead_status: e.value }))
+                    }
+                    placeholder="Select Status"
+                    className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+                    panelClassName="text-sm"
+                    filter
+                  />
+                </div>
+                
+                  {/* platform */}
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-sm font-medium text-[#6B7280]">Platform</label>
+                <Dropdown
+                  value={filters.category}
+                  options={categoryDropdownOptions}
+                  onChange={(e) =>
+                    setFilters(prev => ({ ...prev, category: e.value }))
+                  }
+                  placeholder="All Platforms"
+                  className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+                  panelClassName="text-sm"
+                  filter
+                />
+                
+                                    
+                                </div>
 
                 {/* Buttons */}
                 <div className="flex gap-3 mt-6 md:mt-0">
