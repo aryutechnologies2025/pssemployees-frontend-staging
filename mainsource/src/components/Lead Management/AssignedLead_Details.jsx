@@ -48,6 +48,8 @@ const AssignedLead_Details = () => {
   // console.log("....erors.... : ", errors);
   const [leads, setLeads] = useState([]);
   // console.log("leads :", leads)
+  const [filteredLeads, setFilteredLeads] = useState([]);
+
   const [totalRecords, setTotalRecords] = useState(0);
   const [editLeadForm, setEditLeadForm] = useState(null);
   // console.log("edit value", editLeadForm);
@@ -62,6 +64,7 @@ const AssignedLead_Details = () => {
   const [viewContact, setViewContact] = useState(null);
   const [genderOptions, setGenderOptions] = useState([]);
   const [platformOptions, setPlatformOptions] = useState({});
+  console.log("platformOptions",platformOptions)
     const [cityOptions, setCityOptions] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isViewStatusOpen, setIsViewStatusOpen] = useState(false);
@@ -69,6 +72,20 @@ const AssignedLead_Details = () => {
 
   console.log("viewStatus", viewStatus);
 
+   const [isStatusViewOpen, setIsStatusViewOpen] = useState(false);
+  const [statusViewLead, setStatusViewLead] = useState(null);
+      const [categoryOptions, setCategoryOptions] = useState([]);
+    console.log("categoryOptions",categoryOptions)
+const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const cityDropdownOptions = cityOptions.map(city => ({
+    label: Capitalise(city.name) || city,
+    value: city
+  }));
+const categoryDropdownOptions = categoryOptions.map(cat => ({
+  label: Capitalise(cat.name) || cat.name,
+  value: cat.id
+}));
 
   // const formatToDDMMYYYY = (date) => {
   //   if (!date) return "-";
@@ -107,16 +124,6 @@ const AssignedLead_Details = () => {
     followUpDate: ""
   });
 
-  const STATUS_MAP = {
-    open: "Open",
-    contacted: "Contacted",
-    interested: "Interested",
-    not_interested: "Not Interested",
-    customer: "Customer",
-    bad_timing: "Bad Timing",
-    not_picked: "Not Picked",
-    future_lead: "Future Lead",
-  };
 
   const validateImport = () => {
     let newErrors = {};
@@ -129,6 +136,8 @@ const AssignedLead_Details = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+
+
   const today = new Date().toISOString().split("T")[0];
   const [filters, setFilters] = useState({
     gender: "",
@@ -136,12 +145,22 @@ const AssignedLead_Details = () => {
     age: "",
     city: "",
     from_date:today ,
-    to_date: today
+    to_date: today,
+    category:null,
+    lead_status:""
   });
   // apply filter
+  // const handleApplyFilter = () => {
+  //   const filtered = applyFrontendFilters(leads, filters);
+  // setFilteredLeads(filtered);
+  // setTotalRecords(filtered.length);
+  // fetchAssignedLeadsByEmployee();
+  // };
+
   const handleApplyFilter = () => {
-    fetchAssignedLeadsByEmployee();
-  };
+  fetchAssignedLeadsByEmployee(filters);
+};
+
 
    const handleResetFilter = () => {
     const reset = {
@@ -150,11 +169,16 @@ const AssignedLead_Details = () => {
       age: "",
       city: "",
       from_date: "",
-      to_date: ""
+      to_date: "",
+          category:null,
+      lead_status:"",
+      
     };
 
     setFilters(reset);
-    fetchAssignedLeadsByEmployee(reset);
+    setFilteredLeads(leads);
+  setTotalRecords(leads.length);
+  fetchAssignedLeadsByEmployee(reset);
   };
 
     // status list open
@@ -198,7 +222,8 @@ const AssignedLead_Details = () => {
     post_code: "",
     city: "",
     state: "",
-    status: ""
+    status: "",
+    category: null,
   });
   // open add
   const openAddModal = () => {
@@ -219,7 +244,8 @@ const AssignedLead_Details = () => {
         post_code: "",
         city: "",
         state: "",
-        status: ""
+        status: "",
+        category: ""
       });
       setErrors({});
     }, 300);
@@ -236,6 +262,7 @@ const AssignedLead_Details = () => {
       post_code: lead.post_code,
       city: lead.city,
       state: lead.state,
+      lead_category_id: lead.lead_category_id ?? null,
       status: lead.status?.toString()
     });
 
@@ -264,6 +291,7 @@ const AssignedLead_Details = () => {
         post_code: editLeadForm.post_code,
         city: editLeadForm.city,
         state: editLeadForm.state,
+        lead_category_id: editLeadForm.lead_category_id,
         status: editLeadForm.status,
         updated_by: userid
       };
@@ -291,6 +319,7 @@ const AssignedLead_Details = () => {
     let newErrors = {};
 
     if (!leadForm.is_organic) newErrors.is_organic = "Required";
+     if(!leadForm.lead_category_id) newErrors.lead_category_id = "Select Category";
     if (!leadForm.full_name) newErrors.full_name = "Enter a Name";
     if (!leadForm.gender) newErrors.gender = "Select Gender";
     if (!leadForm.phone) newErrors.phone = "Enter a Phone Number";
@@ -298,6 +327,7 @@ const AssignedLead_Details = () => {
     if (!leadForm.post_code) newErrors.post_code = "Enter a Postcode";
     if (!leadForm.city) newErrors.city = "Enter a city";
     if (!leadForm.state) newErrors.state = "Enter a State";
+     if (!leadForm.category || leadForm.category.length === 0) newErrors.category = "Select Category";
     if (leadForm.status === "") newErrors.status = "select Status";
 
     setErrors(newErrors);
@@ -318,11 +348,13 @@ const AssignedLead_Details = () => {
       }
 
       const payload = {
-        lead_status: STATUS_MAP[statusForm.status],
-        notes: statusForm.notes,
-        followup_status: statusForm.followUp === "yes" ? 1 : 0,
-        created_by: userid,
-      };
+       lead_status: statusForm.status, 
+      notes: statusForm.notes,
+      followup_status: statusForm.followUp === "yes" ? 1 : 0,
+      created_by: userid,
+      scheduled_date: statusForm.epoDate || null,
+      followup_date: statusForm.followUp === "yes" ? statusForm.followUpDate : null,
+    };
 
       if (statusForm.followUp === "yes") {
         payload.followup_date = statusForm.followUpDate;
@@ -334,6 +366,12 @@ const AssignedLead_Details = () => {
       );
 
       console.log("Status Updated:", response.data);
+      setTimeout(() => {
+      toast.success("Lead Status Updated Successfully");    
+    }, 600);
+
+      await fetchStatusList(viewStatus.id);
+     
 
       setIsViewStatusOpen(false);
 
@@ -368,6 +406,7 @@ const AssignedLead_Details = () => {
         post_code: leadForm.post_code,
         city: leadForm.city,
         state: leadForm.state,
+         lead_category_id: leadForm.category,
         status: leadForm.status,
         created_by: userid
       };
@@ -430,61 +469,6 @@ const AssignedLead_Details = () => {
   //   }
   // };
 
-const fetchAssignedLeadsByEmployee = async (employeeId) => {
-  if (!employeeId) {
-    toast.error("Employee is required");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-
-    // OPTIONAL FILTERS
-    // if (customFilters.from_date) {
-    //   params.from_date = customFilters.from_date;
-    // }
-
-    // if (customFilters.to_date) {
-    //   params.to_date = customFilters.to_date;
-    // }
-
-    // if (customFilters.category?.length) {
-    //   params.category_id = customFilters.category.join(",");
-    // }
-
-    // if (customFilters.lead_status?.length) {
-    //   params.lead_status = customFilters.lead_status.join(",");
-    // }
-
-const res = await axiosInstance.get(
-      `${API_URL}api/lead-management/assign-employee-list`,
-      {
-        params: { employee_id: employeeId }
-      }
-    );
-
-
-    console.log("Assigned Leads Response:", res.data);
-
-    if (res.data?.success) {
-      const data = res.data.data || [];
-
-      setLeads(data);
-      setTotalRecords(data.length);
-    } else {
-      setLeads([]);
-      setTotalRecords(0);
-    }
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to fetch assigned leads");
-  } finally {
-    setLoading(false);
-  }
-};
-
 
   const applyFrontendFilters = (data, filters) => {
   let result = [...data];
@@ -514,9 +498,97 @@ const res = await axiosInstance.get(
     });
   }
 
+  if (filters.category) {
+    result = result.filter(item => item.lead_category_id === filters.category);
+  }
+
+    // lead status
+  if (filters.lead_status) {
+    console.log("filtering by status : ",filters.lead_status)
+    let a=result.map(item=> console.log(item.lead_status))
+    result = result.filter(item => item.lead_status === filters.lead_status);
+  }
+
+
   return result;
 };
 
+const buildFilterParams = (filters) => {
+  const params = {};
+
+  if (filters.city)
+    params.city = filters.city.toLowerCase();
+
+  if (filters.platform)
+    params.platform = filters.platform.toLowerCase();
+
+  if (filters.gender)
+    params.gender = filters.gender.toLowerCase();
+
+  if (filters.lead_status)
+    params.lead_status = filters.lead_status.toLowerCase();
+
+  if (filters.category)
+    params.lead_category_id = filters.category;
+
+
+  if (filters.age) {
+    if (filters.age === "46+") {
+      params.min_age = 46;
+    } else {
+      const [min, max] = filters.age.split("-").map(Number);
+      params.min_age = min;
+      params.max_age = max;
+    }
+  }
+
+  if (filters.from_date)
+    params.from_date = filters.from_date;
+
+  if (filters.to_date)
+    params.to_date = filters.to_date;
+
+  return params;
+};
+console.log("buildFilterParams", buildFilterParams(filters));
+
+
+const fetchAssignedLeadsByEmployee = async (appliedFilters = filters) => {
+  if (!userid) return;
+
+  try {
+    setLoading(true);
+
+    const filterParams = buildFilterParams(appliedFilters);
+
+    const res = await axiosInstance.get(
+      `${API_URL}api/lead-management/assign-employee-list`,
+      {
+        params: {
+          employee_id: userid,
+          ...filterParams
+        }
+      }
+    );
+
+    if (res.data?.success) {
+      const data = res.data.data || [];
+
+      setLeads(data);
+      setFilteredLeads(data); // backend already filtered
+      setTotalRecords(data.length);
+
+      // dropdown options (set ONLY ON FIRST LOAD if you want)
+      setPlatformOptions(res.data.platforms || {});
+      setCityOptions(res.data.cities || []);
+      setCategoryOptions(res.data["lead-category"] || []);
+    }
+  } catch (err) {
+    toast.error("Failed to fetch leads");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   // status api get showing fetching
@@ -525,11 +597,11 @@ const res = await axiosInstance.get(
   // console.log("statusList", statusList);
   // const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (viewStatus?.id) {
-      fetchStatusList(viewStatus.id);
-    }
-  }, [viewStatus?.id]);
+  // useEffect(() => {
+  //   if (viewStatus?.id) {
+  //     fetchStatusList(viewStatus.id);
+  //   }
+  // }, [viewStatus?.id]);
 
   const fetchStatusList = async (id) => {
     try {
@@ -644,6 +716,56 @@ const res = await axiosInstance.get(
     }
   };
 
+   const STATUS_MAP = {
+    open: "Open",
+    joined: "Joined",
+    interested: "Interested / scheduled",
+    not_interested: "Not Interested",
+    follow_up: "Follow Up",
+    not_picked: "Not Picked",
+    
+  };
+
+  const normalizeLeadStatus = (statusFromBackend) => {
+  if (!statusFromBackend) return "open"; // default
+
+  // Check if it's already a key 
+  if (STATUS_MAP[statusFromBackend]) return statusFromBackend;
+
+  // 2. If it's a label then find the key
+  const foundKey = Object.keys(STATUS_MAP).find(
+    (key) => STATUS_MAP[key].toLowerCase() === statusFromBackend.toLowerCase()
+  );
+
+  return foundKey || "open"; 
+};
+
+const handleStatusChange = (row, newStatusKey) => {
+
+  //  Update UI immediately
+  setLeads(prev =>
+    prev.map(lead =>
+      lead.id === row.id
+        ? { ...lead, lead_status: newStatusKey }
+        : lead
+    )
+  );
+
+  //  Open modal
+  setViewStatus({ ...row, lead_status: newStatusKey });
+  setIsViewStatusOpen(true);
+
+  //  Prepare form
+  setStatusForm({
+    status: newStatusKey,
+    notes: "",
+    followUp: "no",
+    followUpDate: "",
+    epoDate: ""
+  });
+};
+
+const [selectedRows, setSelectedRows] = useState([]);
   // column
   const columns = [
     {
@@ -697,6 +819,12 @@ const res = await axiosInstance.get(
       header: "City",
       body: (row) => Capitalise(row.city),
     },
+
+     {
+      field :"category_name",
+      header: "Platform ",
+      body: (row) => Capitalise(row?.category?.name) || row.category_name || "-"
+    },
     {
       field: "state",
       header: "State",
@@ -707,40 +835,68 @@ const res = await axiosInstance.get(
       header: "Date",
       body: (row) => formatToDDMMYYYY(row.created_time),
     },
+    // {
+    //   header: "Status",
+    //   body: (row) => (
+    //     <select
+    //       className="border p-1"
+    //       value={row.status || ""}
+    //       onChange={(e) => {
+    //         const selectedStatus = e.target.value;
+
+    //         setViewStatus(row);
+    //         setIsViewStatusOpen(true);
+
+    //         setStatusForm({
+    //           status: selectedStatus,
+    //           notes: "",
+    //           followUp: "no",
+    //           followUpDate: ""
+    //         });
+    //       }}
+    //     >
+    //       <option value="">Select Status</option>
+    //         <option value="open">Open</option>
+    //         <option value="joined">Joined</option>
+    //         <option value="interested">Interested</option>
+    //         <option value="not_interested">Not Interested</option>
+    //         <option value="follow_up">Follow Up</option>
+    //         <option value="bad_timing">Bad Timing</option>
+    //         <option value="not_picked">Not Picked</option>
+    //         <option value="interview_scheduled">Interview Scheduled</option>
+    //     </select>
+    //   ),
+    //   style: { width: "150px" },
+    //   fixed: true
+    // },
+
     {
-      header: "Status",
-      body: (row) => (
-        <select
-          className="border p-1"
-          value={row.status || ""}
-          onChange={(e) => {
-            const selectedStatus = e.target.value;
+  field: "status",
+  header: "Status",
+  body: (row) => (
+    
+    <div className="flex items-center gap-2">
+      <select
+        className="border p-1"
+        value={row.lead_status}
+        onChange={(e) =>
+          handleStatusChange(row, e.target.value)
+        }
+      >
+        {Object.entries(STATUS_MAP).map(([key, label]) => (
+          <option key={key} value={key}>{label}</option>
+        ))}
+      </select>
 
-            setViewStatus(row);
-            setIsViewStatusOpen(true);
-
-            setStatusForm({
-              status: selectedStatus,
-              notes: "",
-              followUp: "no",
-              followUpDate: ""
-            });
-          }}
-        >
-          <option value="">Select Status</option>
-            <option value="open">Open</option>
-            <option value="joined">Joined</option>
-            <option value="interested">Interested</option>
-            <option value="not_interested">Not Interested</option>
-            <option value="follow_up">Follow Up</option>
-            <option value="bad_timing">Bad Timing</option>
-            <option value="not_picked">Not Picked</option>
-            <option value="interview_scheduled">Interview Scheduled</option>
-        </select>
-      ),
-      style: { width: "150px" },
-      fixed: true
-    },
+      <button
+        onClick={() => openStatusView(row)}
+        className="text-blue-600"
+      >
+        <FaEye />
+      </button>
+    </div>
+  ),
+},
     {
       field: "Action",
       header: "Action",
@@ -773,7 +929,9 @@ const res = await axiosInstance.get(
   ];
 
   const [visibleColumnFields, setVisibleColumnFields] = useState(
-    columns.filter(col => col.fixed || ["full_name", "date_of_birth", "gender", "phone","age","city", "created_time", "status", "Action"].includes(col.field)).map(col => col.field)
+    columns.filter(col => col.fixed || 
+      ["full_name",  "gender", "phone", "age", "qualification", "city","category_name", "created_time","status", "Action"]
+      .includes(col.field)).map(col => col.field)
   );
 
   const onColumnToggle = (event) => {
@@ -787,6 +945,14 @@ const res = await axiosInstance.get(
     return columns.filter(col => visibleColumnFields.includes(col.field));
   }, [visibleColumnFields]);
 
+const statusDropdownOptions = [
+  { label: "Open", value: "open" },
+  { label: "Joined", value: "joined" },
+  { label: "Interested / Scheduled", value: "interested" },
+  { label: "Not Interested", value: "not_interested" },
+  { label: "Follow Up", value: "follow_up" },
+  { label: "Not Picked", value: "not_picked" },
+];
 
 
   return (
@@ -863,7 +1029,7 @@ const res = await axiosInstance.get(
                 </div>
 
                 {/* Platform */}
-                <div className="flex flex-col gap-1">
+                {/* <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-[#6B7280]">Platform</label>
                   <select
                     className="h-10 px-3 rounded-md border"
@@ -881,7 +1047,7 @@ const res = await axiosInstance.get(
                     ))}
                   </select>
 
-                </div>
+                </div> */}
 
                    {/* age */}
                 <div className="flex flex-col gap-1">
@@ -906,21 +1072,57 @@ const res = await axiosInstance.get(
                 {/* city */}
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-[#6B7280]">City</label>
-                  <select
-                    className="h-10 px-3 rounded-md border"
+                  <Dropdown
                     value={filters.city}
+                    options={cityDropdownOptions}
                     onChange={(e) =>
-                      setFilters(prev => ({ ...prev, city: e.target.value }))
+                      setFilters(prev => ({ ...prev, city: e.value }))
                     }
-                  >
-                    <option value="">Select City</option>
-                    {cityOptions.map((city, index) => (
-                      <option key={index} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select City"
+                    filter
+                    filterPlaceholder="Search city"
+                    className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+                    panelClassName="text-sm"
+                  />
 
+                </div>
+
+                {/* status */}
+
+<div className="flex flex-col gap-1">
+  <label className="text-sm font-medium text-[#6B7280]">
+    Status
+  </label>
+
+  <Dropdown
+    value={filters.lead_status}
+    options={statusDropdownOptions}
+    onChange={(e) =>
+      setFilters((prev) => ({ ...prev, lead_status: e.value }))
+    }
+    placeholder="Select Status"
+    className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+    panelClassName="text-sm"
+    filter
+  />
+</div>
+
+  {/* platform */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-[#6B7280]">Platform</label>
+<Dropdown
+  value={filters.category}
+  options={categoryDropdownOptions}
+  onChange={(e) =>
+    setFilters(prev => ({ ...prev, category: e.value }))
+  }
+  placeholder="All Platforms"
+  className="h-10 rounded-md border border-[#D9D9D9] text-sm"
+  panelClassName="text-sm"
+  filter
+/>
+
+                    
                 </div>
 
                 {/* Buttons */}
@@ -1282,7 +1484,7 @@ px-2 py-2 md:px-6 md:py-6">
                       <button
                         disabled={submitting}
                         onClick={handleAddLeadSubmit}
-                        className="bg-[#005AEF] hover:bg-[#2879FF]
+                        className="bg-[#1ea600] hover:bg-[#4BB452]
             text-white px-5 py-2 rounded-[10px]
             disabled:opacity-50"
                       >
@@ -1633,7 +1835,7 @@ px-2 py-2 md:px-6 md:py-6">
                     </button>
 
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                      className="px-4 py-2 bg-[#1ea600] hover:bg-[#4BB452] text-white rounded-md"
                       onClick={handleStatusSubmit}
                     >
                       Submit
@@ -1863,7 +2065,7 @@ px-2 py-2 md:px-6 md:py-6">
                       </button>
                       <button
                         type="button"
-                        className="bg-[#005AEF] hover:bg-[#2879FF] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
+                        className="bg-[#1ea600] hover:bg-[#4BB452] text-white px-4 md:px-5 py-2 font-semibold rounded-[10px] disabled:opacity-50 transition-all duration-200"
                         onClick={handleFileSubmit}
                       >
                         Submit
