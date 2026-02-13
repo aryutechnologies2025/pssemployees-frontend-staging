@@ -319,7 +319,7 @@ const categoryDropdownOptions = categoryOptions.map(cat => ({
     let newErrors = {};
 
     if (!leadForm.is_organic) newErrors.is_organic = "Required";
-     if(!leadForm.lead_category_id) newErrors.lead_category_id = "Select Category";
+    //  if(!leadForm.lead_category_id) newErrors.lead_category_id = "Select Category";
     if (!leadForm.full_name) newErrors.full_name = "Enter a Name";
     if (!leadForm.gender) newErrors.gender = "Select Gender";
     if (!leadForm.phone) newErrors.phone = "Enter a Phone Number";

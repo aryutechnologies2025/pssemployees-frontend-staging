@@ -304,7 +304,8 @@ const Employee_contract_details = () => {
   // console.log("boarding option", boardingOptions);
   const [educationOptions, setEducationOptions] = useState([]);
   // console.log("education option", educationOptions);
-
+  const [filterEducation, setFilterEducation] = useState("");
+  
   const fileInputRef = useRef(null);
   const fileInputRefEdit = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
